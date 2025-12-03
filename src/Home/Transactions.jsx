@@ -6,8 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronDown, ChevronUp, Trash2, Search, Receipt } from "lucide-react";
+import { DialogForm } from "@/Input/DialogForm";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+  Search,
+  Receipt,
+  Menu,
+  Bell,
+  Plus,
+} from "lucide-react";
 
 /* ============================
    FULL RECEIPT-STYLE DATA
@@ -32,8 +48,20 @@ const initialTransactions = [
       transaction_number: "TXN-77881",
     },
     items: [
-      { description: "Bread", upc: "123456", type: "Food", price: 45.5, quantity: 1 },
-      { description: "Milk", upc: "987654", type: "Food", price: 79, quantity: 1 },
+      {
+        description: "Bread",
+        upc: "123456",
+        type: "Food",
+        price: 45.5,
+        quantity: 1,
+      },
+      {
+        description: "Milk",
+        upc: "987654",
+        type: "Food",
+        price: 79,
+        quantity: 1,
+      },
     ],
     subtotal: 124.5,
     tax_rate: 0.12,
@@ -69,7 +97,13 @@ const initialTransactions = [
       transaction_number: "TXN-99314",
     },
     items: [
-      { description: "Diesel Fuel", upc: null, type: "Fuel", price: 62.15, quantity: 1 },
+      {
+        description: "Diesel Fuel",
+        upc: null,
+        type: "Fuel",
+        price: 62.15,
+        quantity: 1,
+      },
     ],
     subtotal: 62.15,
     tax_rate: 0.12,
@@ -90,20 +124,23 @@ const initialTransactions = [
 /* ============================
    PAGE
    ============================ */
-export default function TransactionsPage() {
+export default function TransactionsPage({
+  sidebarOpen,
+  setSidebarOpen,
+  handleBellClick,
+}) {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [expandedId, setExpandedId] = useState(null);
   const [transactions, setTransactions] = useState(initialTransactions);
-
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const filteredTransactions = useMemo(() => {
     return transactions.filter((t) => {
       const matchesSearch =
         t.store.toLowerCase().includes(search.toLowerCase()) ||
         t.metadata.notes?.toLowerCase().includes(search.toLowerCase());
 
-      const matchesType =
-        filterType === "all" ? true : t.type === filterType;
+      const matchesType = filterType === "all" ? true : t.type === filterType;
 
       return matchesSearch && matchesType;
     });
@@ -116,35 +153,66 @@ export default function TransactionsPage() {
   };
 
   return (
+    
+
+    <>
     <div className="h-screen w-full bg-slate-50 flex flex-col">
-
-      {/* HEADER */}
-      <div className="bg-white border-b px-6 py-4 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-        <h1 className="text-2xl font-bold">Receipt Transactions</h1>
-
-        <div className="flex gap-3 w-full md:w-auto">
-          <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search by store or notes..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+      {/*Needs to set the sideBarOpen*/}
+      <header className="bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left side - Menu and Search */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="shrink-0"
+            >
+              {sidebarOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </Button>
           </div>
 
-          <Select value={filterType} onValueChange={setFilterType}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="income">Income</SelectItem>
-              <SelectItem value="expense">Expense</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Right side - Actions */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              onClick={handleBellClick}
+            >
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </Button>
+
+            {/* Desktop button */}
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              className="hidden sm:flex bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Transaction
+            </Button>
+
+            {/* Mobile button - icon only */}
+            <Button
+              onClick={() => setIsAddDialogOpen(true)}
+              size="icon"
+              className="sm:hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
-      </div>
+      </header>
+      <DialogForm
+      transactions={transactions}
+      setTransactions={setTransactions}
+      isAddDialogOpen={isAddDialogOpen}
+      setIsAddDialogOpen={setIsAddDialogOpen} /> 
 
       {/* LIST */}
       <ScrollArea className="flex-1 p-6">
@@ -165,18 +233,14 @@ export default function TransactionsPage() {
                   {/* COLLAPSED HEADER */}
                   <CardHeader
                     className="cursor-pointer flex-row flex justify-between items-center"
-                    onClick={() =>
-                      setExpandedId(isOpen ? null : t.id)
-                    }
+                    onClick={() => setExpandedId(isOpen ? null : t.id)}
                   >
                     <div>
                       <p className="font-semibold">{t.store}</p>
                       <p className="text-sm text-slate-500">
                         {t.metadata.datetime}
                       </p>
-                      <Badge className="mt-1">
-                        {t.payment_method}
-                      </Badge>
+                      <Badge className="mt-1">{t.payment_method}</Badge>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -190,18 +254,27 @@ export default function TransactionsPage() {
                   {/* EXPANDED CONTENT */}
                   {isOpen && (
                     <CardContent className="space-y-4">
-
                       {/* STORE INFO */}
                       <div className="grid grid-cols-2 md:grid-cols-4 text-sm gap-4">
-                        <div><strong>Manager:</strong> {t.manager || "N/A"}</div>
-                        <div><strong>Contact:</strong> {t.contact || "N/A"}</div>
-                        <div><strong>Store #:</strong> {t.transaction.store_number}</div>
-                        <div><strong>Terminal:</strong> {t.transaction.terminal_number}</div>
+                        <div>
+                          <strong>Manager:</strong> {t.manager || "N/A"}
+                        </div>
+                        <div>
+                          <strong>Contact:</strong> {t.contact || "N/A"}
+                        </div>
+                        <div>
+                          <strong>Store #:</strong> {t.transaction.store_number}
+                        </div>
+                        <div>
+                          <strong>Terminal:</strong>{" "}
+                          {t.transaction.terminal_number}
+                        </div>
                       </div>
 
                       {/* ADDRESS */}
                       <div className="text-sm text-slate-600">
-                        {t.address.street}, {t.address.city}, {t.address.state} {t.address.zip}
+                        {t.address.street}, {t.address.city}, {t.address.state}{" "}
+                        {t.address.zip}
                       </div>
 
                       {/* ITEMS */}
@@ -256,6 +329,38 @@ export default function TransactionsPage() {
           )}
         </div>
       </ScrollArea>
+      
     </div>
+
+     
+    </>
   );
 }
+
+// {/* HEADER */}
+// <div className="bg-white border-b px-6 py-4 flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+//   <h1 className="text-2xl font-bold">Receipt Transactions</h1>
+
+//   <div className="flex gap-3 w-full md:w-auto">
+//     <div className="relative w-full md:w-72">
+//       <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+//       <Input
+//         placeholder="Search by store or notes..."
+//         className="pl-9"
+//         value={search}
+//         onChange={(e) => setSearch(e.target.value)}
+//       />
+//     </div>
+
+//     <Select value={filterType} onValueChange={setFilterType}>
+//       <SelectTrigger className="w-40">
+//         <SelectValue />
+//       </SelectTrigger>
+//       <SelectContent>
+//         <SelectItem value="all">All</SelectItem>
+//         <SelectItem value="income">Income</SelectItem>
+//         <SelectItem value="expense">Expense</SelectItem>
+//       </SelectContent>
+//     </Select>
+//   </div>
+// </div>

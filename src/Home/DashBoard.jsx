@@ -1,13 +1,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Home as UserHome } from "./Home";
+import TransactionsPage from "./Transactions";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { Toaster } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+
 import {
   Dialog,
   DialogContent,
@@ -48,11 +59,11 @@ import {
   Receipt,
 } from "lucide-react";
 
-export default function BudgetDashboard() {
+export function BudgetDashboard() {
   // ============================================================================
   // STATE MANAGEMENT
   // ============================================================================
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -60,17 +71,96 @@ export default function BudgetDashboard() {
   const [quickText, setQuickText] = useState("");
 
   const [transactions, setTransactions] = useState([
-    { id: 1, name: "Grocery Store", amount: 125.5, category: "Food", date: "2024-12-01", type: "expense", notes: "Weekly groceries" },
-    { id: 2, name: "Salary Deposit", amount: 4200, category: "Income", date: "2024-12-01", type: "income", notes: "Monthly salary" },
-    { id: 3, name: "Netflix", amount: 15.99, category: "Entertainment", date: "2024-11-30", type: "expense", notes: "Subscription" },
-    { id: 4, name: "Electric Bill", amount: 89.0, category: "Utilities", date: "2024-11-29", type: "expense", notes: "November bill" },
-    { id: 5, name: "Freelance Project", amount: 850.0, category: "Income", date: "2024-11-28", type: "income", notes: "Web design" },
-    { id: 6, name: "Gas Station", amount: 62.15, category: "Transportation", date: "2024-12-02", type: "expense", notes: "Fuel refill" },
-  { id: 7, name: "Coffee Shop", amount: 8.75, category: "Food", date: "2024-12-03", type: "expense", notes: "Morning coffee" },
-  { id: 8, name: "Internet Bill", amount: 59.99, category: "Utilities", date: "2024-12-04", type: "expense", notes: "Monthly internet" },
-  { id: 9, name: "Pharmacy Purchase", amount: 27.40, category: "Healthcare", date: "2024-12-05", type: "expense", notes: "Medicine" },
-  { id: 10, name: "Online Store Refund", amount: 45.00, category: "Income", date: "2024-12-06", type: "income", notes: "Item return refund" },
-
+    {
+      id: 1,
+      name: "Grocery Store",
+      amount: 125.5,
+      category: "Food",
+      date: "2024-12-01",
+      type: "expense",
+      notes: "Weekly groceries",
+    },
+    {
+      id: 2,
+      name: "Salary Deposit",
+      amount: 4200,
+      category: "Income",
+      date: "2024-12-01",
+      type: "income",
+      notes: "Monthly salary",
+    },
+    {
+      id: 3,
+      name: "Netflix",
+      amount: 15.99,
+      category: "Entertainment",
+      date: "2024-11-30",
+      type: "expense",
+      notes: "Subscription",
+    },
+    {
+      id: 4,
+      name: "Electric Bill",
+      amount: 89.0,
+      category: "Utilities",
+      date: "2024-11-29",
+      type: "expense",
+      notes: "November bill",
+    },
+    {
+      id: 5,
+      name: "Freelance Project",
+      amount: 850.0,
+      category: "Income",
+      date: "2024-11-28",
+      type: "income",
+      notes: "Web design",
+    },
+    {
+      id: 6,
+      name: "Gas Station",
+      amount: 62.15,
+      category: "Transportation",
+      date: "2024-12-02",
+      type: "expense",
+      notes: "Fuel refill",
+    },
+    {
+      id: 7,
+      name: "Coffee Shop",
+      amount: 8.75,
+      category: "Food",
+      date: "2024-12-03",
+      type: "expense",
+      notes: "Morning coffee",
+    },
+    {
+      id: 8,
+      name: "Internet Bill",
+      amount: 59.99,
+      category: "Utilities",
+      date: "2024-12-04",
+      type: "expense",
+      notes: "Monthly internet",
+    },
+    {
+      id: 9,
+      name: "Pharmacy Purchase",
+      amount: 27.4,
+      category: "Healthcare",
+      date: "2024-12-05",
+      type: "expense",
+      notes: "Medicine",
+    },
+    {
+      id: 10,
+      name: "Online Store Refund",
+      amount: 45.0,
+      category: "Income",
+      date: "2024-12-06",
+      type: "income",
+      notes: "Item return refund",
+    },
   ]);
 
   const [formData, setFormData] = useState({
@@ -79,7 +169,7 @@ export default function BudgetDashboard() {
     amount: "",
     category: "",
     date: "",
-    notes: ""
+    notes: "",
   });
 
   // ============================================================================
@@ -129,14 +219,14 @@ export default function BudgetDashboard() {
   ];
 
   const categories = [
-    "Food", 
-    "Transportation", 
-    "Entertainment", 
-    "Shopping", 
-    "Utilities", 
-    "Income", 
-    "Healthcare", 
-    "Other"
+    "Food",
+    "Transportation",
+    "Entertainment",
+    "Shopping",
+    "Utilities",
+    "Income",
+    "Healthcare",
+    "Other",
   ];
 
   const navItems = [
@@ -154,15 +244,17 @@ export default function BudgetDashboard() {
   const handleQuickParse = () => {
     const amountMatch = quickText.match(/\$?(\d+(\.\d+)?)/);
     const amount = amountMatch ? amountMatch[1] : "";
-    
+
     setFormData({
       ...formData,
       name: quickText.split(/\d/)[0].trim() || "Transaction",
       amount: amount,
-      type: quickText.toLowerCase().includes("received") || quickText.toLowerCase().includes("income") 
-        ? "income" 
-        : "expense",
-      notes: quickText
+      type:
+        quickText.toLowerCase().includes("received") ||
+        quickText.toLowerCase().includes("income")
+          ? "income"
+          : "expense",
+      notes: quickText,
     });
   };
 
@@ -177,8 +269,8 @@ export default function BudgetDashboard() {
         name: "Receipt from Store",
         amount: "56.25",
         category: "Food",
-        date: new Date().toISOString().split('T')[0],
-        notes: "Extracted via OCR"
+        date: new Date().toISOString().split("T")[0],
+        notes: "Extracted via OCR",
       });
     }, 1000);
   };
@@ -191,13 +283,13 @@ export default function BudgetDashboard() {
       name: formData.name,
       amount: Number(formData.amount),
       category: formData.category || "Other",
-      date: formData.date || new Date().toISOString().split('T')[0],
+      date: formData.date || new Date().toISOString().split("T")[0],
       type: formData.type,
-      notes: formData.notes
+      notes: formData.notes,
     };
 
     setTransactions([newTransaction, ...transactions]);
-    
+
     // Reset form
     setFormData({
       type: "expense",
@@ -205,7 +297,7 @@ export default function BudgetDashboard() {
       amount: "",
       category: "",
       date: "",
-      notes: ""
+      notes: "",
     });
     setQuickText("");
     setIsAddDialogOpen(false);
@@ -213,14 +305,54 @@ export default function BudgetDashboard() {
 
   const deleteTransaction = (id) => {
     if (window.confirm("Delete this transaction?")) {
-      setTransactions(transactions.filter(t => t.id !== id));
+      setTransactions(transactions.filter((t) => t.id !== id));
     }
   };
 
-  const filteredTransactions = transactions.filter(t =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTransactions = transactions.filter(
+    (t) =>
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const notificationList = [
+    {
+      title: "Salary Credited",
+      message: "₱4,200 has been added to your balance.",
+      type: "success",
+    },
+    {
+      title: "Budget Warning",
+      message: "You are close to exceeding your Food budget.",
+      type: "warning",
+    },
+    {
+      title: "Subscription Charged",
+      message: "Netflix charged ₱15.99",
+      type: "info",
+    },
+  ];
+
+  const handleBellClick = () => {
+    if (!notificationList.length) {
+      toast.info("No new notifications");
+      return;
+    }
+
+    notificationList.forEach((notif, index) => {
+      setTimeout(() => {
+        if (notif.type === "success") {
+          toast.success(notif.title, { description: notif.message });
+        } else if (notif.type === "warning") {
+          toast.warning(notif.title, { description: notif.message });
+        } else if (notif.type === "error") {
+          toast.error(notif.title, { description: notif.message });
+        } else {
+          toast.info(notif.title, { description: notif.message });
+        }
+      }, index * 300); // staggered animation
+    });
+  };
 
   // ============================================================================
   // RENDER HELPERS
@@ -242,11 +374,14 @@ export default function BudgetDashboard() {
 
   return (
     <div className="flex min-h-screen w-full bg-slate-50">
-      
       {/* ========================================================================
           SIDEBAR
           ======================================================================== */}
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 bg-white border-r border-slate-200 flex flex-col overflow-hidden`}>
+      <aside
+        className={`${
+          sidebarOpen ? "w-64" : "w-0"
+        } transition-all duration-300 bg-white border-r border-slate-200 flex flex-col overflow-hidden`}
+      >
         <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-2 rounded-xl">
@@ -260,7 +395,9 @@ export default function BudgetDashboard() {
         </div>
 
         <nav className="flex-1 p-4 space-y-1">
-          <p className="text-slate-500 text-xs uppercase px-3 mb-2 font-semibold">Menu</p>
+          <p className="text-slate-500 text-xs uppercase px-3 mb-2 font-semibold">
+            Menu
+          </p>
           {navItems.map((item) => (
             <Button
               key={item.title}
@@ -276,7 +413,9 @@ export default function BudgetDashboard() {
         <div className="p-6 border-t border-slate-200">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarFallback className="bg-emerald-100 text-emerald-600">JD</AvatarFallback>
+              <AvatarFallback className="bg-emerald-100 text-emerald-600">
+                JD
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <p className="text-sm font-semibold text-slate-900">John Doe</p>
@@ -290,502 +429,633 @@ export default function BudgetDashboard() {
           MAIN CONTENT
           ======================================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
-        
-        {/* HEADER */}
-        <header className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-              >
-                {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Search transactions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 w-80 bg-slate-50 border-slate-200"
-                />
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </Button>
-              <Button 
-                onClick={() => setIsAddDialogOpen(true)}
-                className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Transaction
-              </Button>
-            </div>
-          </div>
-        </header>
-
-        {/* PAGE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6">
-          
-          {/* Welcome Section */}
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">Welcome back, John! 👋</h1>
-            <p className="text-slate-500 mt-1">Here's what's happening with your money today.</p>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats.map((stat, idx) => (
-              <Card key={idx} className="border-slate-200">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm text-slate-500 mb-1">{stat.title}</p>
-                      <h3 className="text-2xl font-bold text-slate-900 mb-2">{stat.value}</h3>
-                      <div className="flex items-center gap-1">
-                        {stat.isPositive ? (
-                          <ArrowUpRight className="w-4 h-4 text-emerald-500" />
-                        ) : (
-                          <ArrowDownRight className="w-4 h-4 text-red-500" />
-                        )}
-                        <span className={`text-sm ${stat.isPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-                          {stat.change}
-                        </span>
-                      </div>
-                    </div>
-                    <div className={`${getColorClass(stat.color, "bg")} p-3 rounded-xl`}>
-                      <stat.icon className={`w-6 h-6 ${getColorClass(stat.color, "text")}`} />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Tabs Section */}
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList className="bg-white border border-slate-200">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="transactions">Transactions</TabsTrigger>
-              <TabsTrigger value="budgets">Budgets</TabsTrigger>
-            </TabsList>
-
-            {/* ================================================================
-                OVERVIEW TAB
-                ================================================================ */}
-            <TabsContent value="overview" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                
-                {/* Recent Transactions Card */}
-                <Card className="border-slate-200">
-                  <CardHeader>
-                    <CardTitle>Recent Transactions</CardTitle>
-                    <CardDescription>Your latest financial activities</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {transactions.slice(0, 5).map((transaction) => (
-                        <div key={transaction.id} className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${
-                              transaction.type === 'income' ? 'bg-emerald-100' : 'bg-orange-100'
-                            }`}>
-                              {transaction.type === 'income' ? (
-                                <ArrowUpRight className="w-4 h-4 text-emerald-600" />
-                              ) : (
-                                <ArrowDownRight className="w-4 h-4 text-orange-600" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="font-medium text-slate-900">{transaction.name}</p>
-                              <p className="text-xs text-slate-500">{transaction.category}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className={`font-semibold ${
-                              transaction.type === 'income' ? 'text-emerald-600' : 'text-slate-900'
-                            }`}>
-                              ${transaction.amount.toFixed(2)}
-                            </p>
-                            <p className="text-xs text-slate-500">{transaction.date}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Budget Progress Card */}
-                <Card className="border-slate-200">
-                  <CardHeader>
-                    <CardTitle>Budget Overview</CardTitle>
-                    <CardDescription>Track your spending by category</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {budgetCategories.map((category, idx) => (
-                      <div key={idx}>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-slate-900">{category.name}</span>
-                          <span className="text-sm text-slate-500">
-                            ${category.spent} / ${category.budget}
-                          </span>
-                        </div>
-                        <Progress 
-                          value={(category.spent / category.budget) * 100} 
-                          className="h-2"
-                        />
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            {/* ================================================================
-                TRANSACTIONS TAB
-                ================================================================ */}
-            <TabsContent value="transactions" className="space-y-6">
-              
-              <div className="flex justify-between items-center">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">All Transactions</h2>
-                  <p className="text-sm text-slate-500">Manage your financial activities</p>
-                </div>
-                <Button 
-                  onClick={() => setIsAddDialogOpen(true)}
-                  className="bg-gradient-to-r from-emerald-600 to-teal-600"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add New
-                </Button>
-              </div>
-
-              {/* Transaction Cards */}
-              {filteredTransactions.length === 0 ? (
-                <Card className="border-slate-200">
-                  <CardContent className="p-12">
-                    <div className="text-center text-slate-500">
-                      <Receipt className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                      <p className="font-medium">No transactions found</p>
-                      <p className="text-sm mt-1">Try adjusting your search or add a new transaction</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {filteredTransactions.map((transaction) => (
-                    <Card key={transaction.id} className="border-slate-200 hover:shadow-lg transition-shadow">
-                      <CardContent className="p-5">
-                        <div className="flex items-start justify-between gap-4">
-                          
-                          {/* Left Section */}
-                          <div className="flex items-start gap-4 flex-1">
-                            <div className={`p-3 rounded-lg ${
-                              transaction.type === "income" 
-                                ? "bg-emerald-100" 
-                                : "bg-orange-100"
-                            }`}>
-                              {transaction.type === "income" ? (
-                                <ArrowUpRight className="w-5 h-5 text-emerald-600" />
-                              ) : (
-                                <ArrowDownRight className="w-5 h-5 text-orange-600" />
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <p className="font-semibold text-slate-900">{transaction.name}</p>
-                                <Badge variant="secondary" className="text-xs">
-                                  {transaction.category}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-slate-500 mb-1">
-                                <Calendar className="w-3 h-3" />
-                                <span>{transaction.date}</span>
-                              </div>
-                              {transaction.notes && (
-                                <p className="text-xs text-slate-600 line-clamp-1">
-                                  {transaction.notes}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Right Section */}
-                          <div className="flex flex-col items-end gap-2">
-                            <p className={`text-xl font-bold ${
-                              transaction.type === "income" 
-                                ? "text-emerald-600" 
-                                : "text-slate-900"
-                            }`}>
-                              ${transaction.amount.toFixed(2)}
-                            </p>
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="outline" className="h-8 w-8">
-                                <Edit className="w-4 h-4" />
-                              </Button>
-                              <Button 
-                                size="icon" 
-                                variant="outline"
-                                className="h-8 w-8 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                                onClick={() => deleteTransaction(transaction.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* ================================================================
-                BUDGETS TAB
-                ================================================================ */}
-            <TabsContent value="budgets">
-              <Card className="border-slate-200">
-                <CardHeader>
-                  <CardTitle>Budget Management</CardTitle>
-                  <CardDescription>Set and track your spending limits</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {budgetCategories.map((category, idx) => (
-                    <div key={idx} className="p-4 bg-slate-50 rounded-xl">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <h4 className="font-semibold text-slate-900">{category.name}</h4>
-                          <p className="text-sm text-slate-500">
-                            ${category.spent} spent of ${category.budget} budget
-                          </p>
-                        </div>
-                        <Badge 
-                          variant={category.spent > category.budget * 0.9 ? "destructive" : "secondary"}
-                        >
-                          {Math.round((category.spent / category.budget) * 100)}%
-                        </Badge>
-                      </div>
-                      <Progress 
-                        value={(category.spent / category.budget) * 100} 
-                        className="h-3"
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </main>
+        {/* HEADER - sidebarOpen, handleBellClick, handleImageUpload, handleQuickParse */}
+        <UserHome
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          handleBellClick={handleBellClick}
+          setIsAddDialogOpen={setIsAddDialogOpen}
+          isAddDialogOpen={isAddDialogOpen}
+        />
+        {/* <TransactionsPage 
+             sidebarOpen={sidebarOpen}
+             setSidebarOpen={setSidebarOpen}
+             handleBellClick={handleBellClick}
+              handleImageUpload={handleImageUpload}
+          handleQuickParse={handleQuickParse}
+         /> */}
+        <Toaster position="top-right" richColors />;
       </div>
-
-      {/* ========================================================================
-          ADD TRANSACTION DIALOG
-          ======================================================================== */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Add New Transaction</DialogTitle>
-            <DialogDescription>
-              Choose how you'd like to add your transaction
-            </DialogDescription>
-          </DialogHeader>
-
-          {/* Input Method Selector */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
-            <Button
-              variant={inputMode === "manual" ? "default" : "outline"}
-              className="flex-col h-auto py-4"
-              onClick={() => setInputMode("manual")}
-            >
-              <FileText className="w-6 h-6 mb-2" />
-              <span className="text-xs">Manual Entry</span>
-            </Button>
-            <Button
-              variant={inputMode === "receipt" ? "default" : "outline"}
-              className="flex-col h-auto py-4"
-              onClick={() => setInputMode("receipt")}
-            >
-              <Camera className="w-6 h-6 mb-2" />
-              <span className="text-xs">Scan Receipt</span>
-            </Button>
-            <Button
-              variant={inputMode === "quick" ? "default" : "outline"}
-              className="flex-col h-auto py-4"
-              onClick={() => setInputMode("quick")}
-            >
-              <Upload className="w-6 h-6 mb-2" />
-              <span className="text-xs">Quick Text</span>
-            </Button>
-          </div>
-
-          {/* Manual Entry Form */}
-          {inputMode === "manual" && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Transaction Type</Label>
-                  <Select 
-                    value={formData.type}
-                    onValueChange={(value) => setFormData({...formData, type: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="expense">Expense</SelectItem>
-                      <SelectItem value="income">Income</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Amount ($)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0.00"
-                    value={formData.amount}
-                    onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Input
-                  placeholder="e.g., Grocery shopping, Salary..."
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Category</Label>
-                  <Select 
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({...formData, category: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => setFormData({...formData, date: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Notes (Optional)</Label>
-                <Textarea
-                  placeholder="Add any additional details..."
-                  value={formData.notes}
-                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                  rows={3}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Receipt Upload */}
-          {inputMode === "receipt" && (
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 transition-colors">
-                <Camera className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-                <p className="text-sm font-medium text-slate-700 mb-1">
-                  Upload Receipt Image
-                </p>
-                <p className="text-xs text-slate-500 mb-4">
-                  We'll extract transaction details automatically
-                </p>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  id="image-upload"
-                 onChange={handleImageUpload}
-                />
-                <label htmlFor="image-upload">
-                  <Button type="button" variant="outline">
-                    Upload Image
-                  </Button>
-                </label>
-              </div>
-
-              <div className="bg-slate-50 p-4 rounded-lg">
-                <p className="text-sm text-slate-600">
-                  After upload, extracted values will auto-fill the form.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* QUICK TEXT INPUT */}
-          {inputMode === "quick" && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Quick Entry</Label>
-                <Textarea
-                  placeholder='Example: "Paid $45 for groceries at Walmart"'
-                  value={quickText}
-                  onChange={(e) => setQuickText(e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              <Button
-                variant="secondary"
-                onClick={handleQuickParse}
-              >
-                Parse Text
-              </Button>
-
-              {formData.amount && (
-                <Card className="border-slate-200">
-                  <CardContent className="p-4 space-y-2 text-sm">
-                    <p><strong>Detected Name:</strong> {formData.name}</p>
-                    <p><strong>Detected Amount:</strong> ${formData.amount}</p>
-                    <p><strong>Detected Type:</strong> {formData.type}</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-
-          {/* DIALOG ACTIONS */}
-          <div className="flex justify-end gap-3 pt-6">
-            <Button
-              variant="outline"
-              onClick={() => setIsAddDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-emerald-600 to-teal-600"
-              onClick={addTransaction}
-            >
-              Save Transaction
-            </Button>
-          </div>
-
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
+
+//  <header className="bg-white border-b border-slate-200 px-6 py-4">
+//         <div className="flex items-center justify-between">
+//           <div className="flex items-center gap-4">
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               onClick={() => setSidebarOpen(!sidebarOpen)}
+//             >
+//               {sidebarOpen ? (
+//                 <X className="w-5 h-5" />
+//               ) : (
+//                 <Menu className="w-5 h-5" />
+//               )}
+//             </Button>
+//             <div className="relative">
+//               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+//               <Input
+//                 placeholder="Search transactions..."
+//                 value={searchQuery}
+//                 onChange={(e) => setSearchQuery(e.target.value)}
+//                 className="pl-10 w-80 bg-slate-50 border-slate-200"
+//               />
+//             </div>
+//           </div>
+//           <div className="flex items-center gap-3">
+//             <Button
+//               variant="ghost"
+//               size="icon"
+//               className="relative"
+//               onClick={handleBellClick}
+//             >
+//               <Bell className="w-5 h-5" />
+//               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+//             </Button>
+
+//             <Button
+//               onClick={() => setIsAddDialogOpen(true)}
+//               className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+//             >
+//               <Plus className="w-4 h-4 mr-2" />
+//               Add Transaction
+//             </Button>
+//           </div>
+//         </div>
+//       </header>
+
+//       <main className="flex-1 overflow-y-auto p-6 space-y-6">
+//         {/* Welcome Section */}
+//         <div>
+//           <h1 className="text-3xl font-bold text-slate-900">
+//             Welcome back, John! 👋
+//           </h1>
+//           <p className="text-slate-500 mt-1">
+//             Here's what's happening with your money today.
+//           </p>
+//         </div>
+
+//         {/* Stats Grid */}
+//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+//           {stats.map((stat, idx) => (
+//             <Card key={idx} className="border-slate-200">
+//               <CardContent className="p-6">
+//                 <div className="flex items-start justify-between">
+//                   <div className="flex-1">
+//                     <p className="text-sm text-slate-500 mb-1">
+//                       {stat.title}
+//                     </p>
+//                     <h3 className="text-2xl font-bold text-slate-900 mb-2">
+//                       {stat.value}
+//                     </h3>
+//                     <div className="flex items-center gap-1">
+//                       {stat.isPositive ? (
+//                         <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+//                       ) : (
+//                         <ArrowDownRight className="w-4 h-4 text-red-500" />
+//                       )}
+//                       <span
+//                         className={`text-sm ${
+//                           stat.isPositive
+//                             ? "text-emerald-500"
+//                             : "text-red-500"
+//                         }`}
+//                       >
+//                         {stat.change}
+//                       </span>
+//                     </div>
+//                   </div>
+//                   <div
+//                     className={`${getColorClass(
+//                       stat.color,
+//                       "bg"
+//                     )} p-3 rounded-xl`}
+//                   >
+//                     <stat.icon
+//                       className={`w-6 h-6 ${getColorClass(
+//                         stat.color,
+//                         "text"
+//                       )}`}
+//                     />
+//                   </div>
+//                 </div>
+//               </CardContent>
+//             </Card>
+//           ))}
+//         </div>
+
+//         {/* Tabs Section */}
+//         <Tabs defaultValue="overview" className="space-y-4">
+//           <TabsList className="bg-white border border-slate-200">
+//             <TabsTrigger value="overview">Overview</TabsTrigger>
+//             <TabsTrigger value="transactions">Transactions</TabsTrigger>
+//             <TabsTrigger value="budgets">Budgets</TabsTrigger>
+//           </TabsList>
+
+//           {/* ================================================================
+//               OVERVIEW TAB
+//               ================================================================ */}
+//           <TabsContent value="overview" className="space-y-4">
+//             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+//               {/* Recent Transactions Card */}
+//               <Card className="border-slate-200">
+//                 <CardHeader>
+//                   <CardTitle>Recent Transactions</CardTitle>
+//                   <CardDescription>
+//                     Your latest financial activities
+//                   </CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <div className="space-y-4">
+//                     {transactions.slice(0, 5).map((transaction) => (
+//                       <div
+//                         key={transaction.id}
+//                         className="flex items-center justify-between"
+//                       >
+//                         <div className="flex items-center gap-3">
+//                           <div
+//                             className={`p-2 rounded-lg ${
+//                               transaction.type === "income"
+//                                 ? "bg-emerald-100"
+//                                 : "bg-orange-100"
+//                             }`}
+//                           >
+//                             {transaction.type === "income" ? (
+//                               <ArrowUpRight className="w-4 h-4 text-emerald-600" />
+//                             ) : (
+//                               <ArrowDownRight className="w-4 h-4 text-orange-600" />
+//                             )}
+//                           </div>
+//                           <div>
+//                             <p className="font-medium text-slate-900">
+//                               {transaction.name}
+//                             </p>
+//                             <p className="text-xs text-slate-500">
+//                               {transaction.category}
+//                             </p>
+//                           </div>
+//                         </div>
+//                         <div className="text-right">
+//                           <p
+//                             className={`font-semibold ${
+//                               transaction.type === "income"
+//                                 ? "text-emerald-600"
+//                                 : "text-slate-900"
+//                             }`}
+//                           >
+//                             ${transaction.amount.toFixed(2)}
+//                           </p>
+//                           <p className="text-xs text-slate-500">
+//                             {transaction.date}
+//                           </p>
+//                         </div>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 </CardContent>
+//               </Card>
+
+//               {/* Budget Progress Card */}
+//               <Card className="border-slate-200">
+//                 <CardHeader>
+//                   <CardTitle>Budget Overview</CardTitle>
+//                   <CardDescription>
+//                     Track your spending by category
+//                   </CardDescription>
+//                 </CardHeader>
+//                 <CardContent className="space-y-6">
+//                   {budgetCategories.map((category, idx) => (
+//                     <div key={idx}>
+//                       <div className="flex items-center justify-between mb-2">
+//                         <span className="text-sm font-medium text-slate-900">
+//                           {category.name}
+//                         </span>
+//                         <span className="text-sm text-slate-500">
+//                           ${category.spent} / ${category.budget}
+//                         </span>
+//                       </div>
+//                       <Progress
+//                         value={(category.spent / category.budget) * 100}
+//                         className="h-2"
+//                       />
+//                     </div>
+//                   ))}
+//                 </CardContent>
+//               </Card>
+
+//             </div>
+//           </TabsContent>
+
+//           {/* ================================================================
+//               TRANSACTIONS TAB
+//               ================================================================ */}
+//           <TabsContent value="transactions" className="space-y-6">
+//             <div className="flex justify-between items-center">
+//               <div>
+//                 <h2 className="text-2xl font-bold text-slate-900">
+//                   All Transactions
+//                 </h2>
+//                 <p className="text-sm text-slate-500">
+//                   Manage your financial activities
+//                 </p>
+//               </div>
+//               <Button
+//                 onClick={() => setIsAddDialogOpen(true)}
+//                 className="bg-gradient-to-r from-emerald-600 to-teal-600"
+//               >
+//                 <Plus className="w-4 h-4 mr-2" />
+//                 Add New
+//               </Button>
+//             </div>
+
+//             {/* Transaction Cards */}
+//             {filteredTransactions.length === 0 ? (
+//               <Card className="border-slate-200">
+//                 <CardContent className="p-12">
+//                   <div className="text-center text-slate-500">
+//                     <Receipt className="w-12 h-12 mx-auto mb-3 opacity-50" />
+//                     <p className="font-medium">No transactions found</p>
+//                     <p className="text-sm mt-1">
+//                       Try adjusting your search or add a new transaction
+//                     </p>
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             ) : (
+//               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+//                 {filteredTransactions.map((transaction) => (
+//                   <Card
+//                     key={transaction.id}
+//                     className="group border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300"
+//                   >
+//                     <CardContent className="p-0">
+//                       {/* IMAGE */}
+//                       <div className="aspect-square w-full overflow-hidden relative">
+//                         <img
+//                           src={
+//                             transaction.image ||
+//                             "https://images.unsplash.com/photo-1601598851547-4302969d0614?w=500"
+//                           }
+//                           alt={transaction.name}
+//                           className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+//                         />
+
+//                         {/* FLOATING AMOUNT */}
+//                         <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold">
+//                           ${transaction.amount.toFixed(2)}
+//                         </div>
+//                       </div>
+
+//                       {/* CONTENT */}
+//                       <div className="relative p-4 flex flex-col justify-between h-[140px]">
+//                         <div>
+//                           <p className="font-semibold text-slate-900 truncate">
+//                             {transaction.name}
+//                           </p>
+
+//                           <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+//                             <Calendar className="w-3 h-3" />
+//                             <span>{transaction.date}</span>
+//                           </div>
+
+//                           <div className="mt-2 flex flex-wrap gap-1">
+//                             <Badge
+//                               variant="secondary"
+//                               className="text-[10px]"
+//                             >
+//                               {transaction.category}
+//                             </Badge>
+
+//                             <Badge
+//                               className={`text-[10px] ${
+//                                 transaction.type === "income"
+//                                   ? "bg-emerald-100 text-emerald-700"
+//                                   : "bg-orange-100 text-orange-700"
+//                               }`}
+//                             >
+//                               {transaction.type}
+//                             </Badge>
+//                           </div>
+
+//                           {transaction.notes && (
+//                             <p className="text-xs text-slate-600 mt-2 line-clamp-2">
+//                               {transaction.notes}
+//                             </p>
+//                           )}
+//                         </div>
+
+//                         {/* TYPE LABEL */}
+//                         <div
+//                           className={`text-xs font-semibold ${
+//                             transaction.type === "income"
+//                               ? "text-emerald-600"
+//                               : "text-slate-800"
+//                           }`}
+//                         >
+//                           {transaction.type === "income"
+//                             ? "Income"
+//                             : "Expense"}
+//                         </div>
+
+//                         {/* ✅ HOVER ACTIONS – FIXED */}
+//                         <div
+//                           className="absolute bottom-3 right-3 flex gap-2
+//     opacity-0 pointer-events-none
+//     group-hover:opacity-100 group-hover:pointer-events-auto
+//     transition-all z-20"
+//                         >
+//                           <Button
+//                             size="icon"
+//                             variant="outline"
+//                             className="h-7 w-7"
+//                           >
+//                             <Edit className="w-3 h-3" />
+//                           </Button>
+
+//                           <Button
+//                             size="icon"
+//                             variant="outline"
+//                             className="h-7 w-7 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+//                             onClick={() => deleteTransaction(transaction.id)}
+//                           >
+//                             <Trash2 className="w-3 h-3" />
+//                           </Button>
+//                         </div>
+//                       </div>
+//                     </CardContent>
+//                   </Card>
+//                 ))}
+//               </div>
+//             )}
+//           </TabsContent>
+
+//           {/* ================================================================
+//               BUDGETS TAB
+//               ================================================================ */}
+//           <TabsContent value="budgets">
+//             <Card className="border-slate-200">
+//               <CardHeader>
+//                 <CardTitle>Budget Management</CardTitle>
+//                 <CardDescription>
+//                   Set and track your spending limits
+//                 </CardDescription>
+//               </CardHeader>
+//               <CardContent className="space-y-6">
+//                 {budgetCategories.map((category, idx) => (
+//                   <div key={idx} className="p-4 bg-slate-50 rounded-xl">
+//                     <div className="flex items-center justify-between mb-3">
+//                       <div>
+//                         <h4 className="font-semibold text-slate-900">
+//                           {category.name}
+//                         </h4>
+//                         <p className="text-sm text-slate-500">
+//                           ${category.spent} spent of ${category.budget} budget
+//                         </p>
+//                       </div>
+//                       <Badge
+//                         variant={
+//                           category.spent > category.budget * 0.9
+//                             ? "destructive"
+//                             : "secondary"
+//                         }
+//                       >
+//                         {Math.round((category.spent / category.budget) * 100)}
+//                         %
+//                       </Badge>
+//                     </div>
+//                     <Progress
+//                       value={(category.spent / category.budget) * 100}
+//                       className="h-3"
+//                     />
+//                   </div>
+//                 ))}
+//               </CardContent>
+//             </Card>
+//           </TabsContent>
+//         </Tabs>
+//       </main>
+
+// <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+//   <DialogContent className="sm:max-w-[600px]">
+//     <DialogHeader>
+//       <DialogTitle>Add New Transaction</DialogTitle>
+//       <DialogDescription>
+//         Choose how you'd like to add your transaction
+//       </DialogDescription>
+//     </DialogHeader>
+
+//     {/* Input Method Selector */}
+//     <div className="grid grid-cols-3 gap-3 mb-3">
+//       <Button
+//         variant={inputMode === "manual" ? "default" : "outline"}
+//         className="flex-col h-auto py-4"
+//         onClick={() => setInputMode("manual")}
+//       >
+//         <FileText className="w-6 h-6 mb-2" />
+//         <span className="text-xs">Manual Entry</span>
+//       </Button>
+//       <Button
+//         variant={inputMode === "receipt" ? "default" : "outline"}
+//         className="flex-col h-auto py-4"
+//         onClick={() => setInputMode("receipt")}
+//       >
+//         <Camera className="w-6 h-6 mb-2" />
+//         <span className="text-xs">Scan Receipt</span>
+//       </Button>
+//       <Button
+//         variant={inputMode === "quick" ? "default" : "outline"}
+//         className="flex-col h-auto py-4"
+//         onClick={() => setInputMode("quick")}
+//       >
+//         <Upload className="w-6 h-6 mb-2" />
+//         <span className="text-xs">Quick Text</span>
+//       </Button>
+//     </div>
+
+//     {/* Manual Entry Form */}
+//     {inputMode === "manual" && (
+//       <div>
+//         <div className="grid grid-cols-2 gap-4">
+//           <div className="space-y-2">
+//             <Label>Transaction Type</Label>
+//             <Select
+//               value={formData.type}
+//               onValueChange={(value) =>
+//                 setFormData({ ...formData, type: value })
+//               }
+//             >
+//               <SelectTrigger>
+//                 <SelectValue />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 <SelectItem value="expense">Expense</SelectItem>
+//                 <SelectItem value="income">Income</SelectItem>
+//               </SelectContent>
+//             </Select>
+//           </div>
+//           <div className="space-y-2">
+//             <Label>Amount ($)</Label>
+//             <Input
+//               type="number"
+//               step="0.01"
+//               placeholder="0.00"
+//               value={formData.amount}
+//               onChange={(e) =>
+//                 setFormData({ ...formData, amount: e.target.value })
+//               }
+//             />
+//           </div>
+//         </div>
+
+//         <div className="space-y-2">
+//           <Label>Description</Label>
+//           <Input
+//             placeholder="e.g., Grocery shopping, Salary..."
+//             value={formData.name}
+//             onChange={(e) =>
+//               setFormData({ ...formData, name: e.target.value })
+//             }
+//           />
+//         </div>
+
+//         <div className="grid grid-cols-2 gap-3">
+//           <div className="space-y-1">
+//             <Label>Category</Label>
+//             <Select
+//               value={formData.category}
+//               onValueChange={(value) =>
+//                 setFormData({ ...formData, category: value })
+//               }
+//             >
+//               <SelectTrigger>
+//                 <SelectValue placeholder="Select category" />
+//               </SelectTrigger>
+//               <SelectContent>
+//                 {categories.map((cat) => (
+//                   <SelectItem key={cat} value={cat}>
+//                     {cat}
+//                   </SelectItem>
+//                 ))}
+//               </SelectContent>
+//             </Select>
+//           </div>
+//           <div className="space-y-1">
+//             <Label>Date</Label>
+//             <Input
+//               type="date"
+//               value={formData.date}
+//               onChange={(e) =>
+//                 setFormData({ ...formData, date: e.target.value })
+//               }
+//             />
+//           </div>
+//         </div>
+
+//         <div className="space-y-1">
+//           <Label>Notes (Optional)</Label>
+//           <Textarea
+//             placeholder="Add any additional details..."
+//             value={formData.notes}
+//             onChange={(e) =>
+//               setFormData({ ...formData, notes: e.target.value })
+//             }
+//             rows={3}
+//           />
+//         </div>
+//       </div>
+//     )}
+
+//     {/* Receipt Upload */}
+//     {inputMode === "receipt" && (
+//       <div className="space-y-4">
+//         <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-emerald-500 transition-colors">
+//           <Camera className="w-12 h-12 mx-auto mb-3 text-slate-400" />
+//           <p className="text-sm font-medium text-slate-700 mb-1">
+//             Upload Receipt Image
+//           </p>
+//           <p className="text-xs text-slate-500 mb-4">
+//             We'll extract transaction details automatically
+//           </p>
+//           <Input
+//             type="file"
+//             accept="image/*"
+//             className="hidden"
+//             id="image-upload"
+//             onChange={handleImageUpload}
+//           />
+//           <label htmlFor="image-upload">
+//             <Button type="button" variant="outline">
+//               Upload Image
+//             </Button>
+//           </label>
+//         </div>
+
+//         <div className="bg-slate-50 p-4 rounded-lg">
+//           <p className="text-sm text-slate-600">
+//             After upload, extracted values will auto-fill the form.
+//           </p>
+//         </div>
+//       </div>
+//     )}
+
+//     {/* QUICK TEXT INPUT */}
+//     {inputMode === "quick" && (
+//       <div className="space-y-4">
+//         <div className="space-y-2">
+//           <Label>Quick Entry</Label>
+//           <Textarea
+//             placeholder='Example: "Paid $45 for groceries at Walmart"'
+//             value={quickText}
+//             onChange={(e) => setQuickText(e.target.value)}
+//             rows={4}
+//           />
+//         </div>
+
+//         <Button variant="secondary" onClick={handleQuickParse}>
+//           Parse Text
+//         </Button>
+
+//         {formData.amount && (
+//           <Card className="border-slate-200">
+//             <CardContent className="p-4 space-y-2 text-sm">
+//               <p>
+//                 <strong>Detected Name:</strong> {formData.name}
+//               </p>
+//               <p>
+//                 <strong>Detected Amount:</strong> ${formData.amount}
+//               </p>
+//               <p>
+//                 <strong>Detected Type:</strong> {formData.type}
+//               </p>
+//             </CardContent>
+//           </Card>
+//         )}
+//       </div>
+//     )}
+
+//     {/* DIALOG ACTIONS */}
+//     <div className="flex justify-end gap-3 pt-6">
+//       <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+//         Cancel
+//       </Button>
+//       <Button
+//         className="bg-gradient-to-r from-emerald-600 to-teal-600"
+//         onClick={addTransaction}
+//       >
+//         Save Transaction
+//       </Button>
+//     </div>
+//   </DialogContent>
+// </Dialog>
