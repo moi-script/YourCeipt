@@ -209,68 +209,6 @@ export function Home({
 
   return (
     <>
-     <header className="bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4">
-  <div className="flex items-center justify-between gap-2">
-    {/* Left side - Menu and Search */}
-    <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="shrink-0"
-      >
-        {sidebarOpen ? (
-          <X className="w-5 h-5" />
-        ) : (
-          <Menu className="w-5 h-5" />
-        )}
-      </Button>
-      
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          placeholder="Search transactions..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 w-full bg-slate-50 border-slate-200 text-sm"
-        />
-      </div>
-    </div>
-
-    {/* Right side - Actions */}
-    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative"
-        onClick={handleBellClick}
-      >
-        <Bell className="w-5 h-5" />
-        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-      </Button>
-
-      {/* Desktop button */}
-      <Button
-        onClick={() => setIsAddDialogOpen(true)}
-        className="hidden sm:flex bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Add Transaction
-      </Button>
-
-      {/* Mobile button - icon only */}
-      <Button
-        onClick={() => setIsAddDialogOpen(true)}
-        size="icon"
-        className="sm:hidden bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
-      >
-        <Plus className="w-5 h-5" />
-      </Button>
-    </div>
-  </div>
-</header>
-
-
 
       <main className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Welcome Section */}

@@ -3,9 +3,15 @@ import { useForm } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Eye, EyeOff, Wallet, DollarSign, TrendingUp } from "lucide-react";
-
+import { Link } from "react-router-dom";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const form = useForm({
@@ -33,8 +39,13 @@ export default function Login() {
             <div className="bg-primary/30 p-3 rounded-2xl">
               <Wallet className="w-10 h-10 text-primary-foreground" />
             </div>
-            <CardTitle className="text-3xl font-bold text-primary">Welcome Back</CardTitle>
-            <p className="text-foreground/80 text-sm">Sign in to access your account</p>
+            <CardTitle className="text-3xl font-bold text-primary">
+              Welcome Back
+            </CardTitle>
+
+            <p className="text-foreground/80 text-sm">
+              Sign in to access your account
+            </p>
           </div>
         </CardHeader>
 
@@ -47,7 +58,9 @@ export default function Login() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground font-medium">Email Address</FormLabel>
+                    <FormLabel className="text-foreground font-medium">
+                      Email Address
+                    </FormLabel>
                     <Input
                       {...field}
                       type="email"
@@ -65,7 +78,9 @@ export default function Login() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground font-medium">Password</FormLabel>
+                    <FormLabel className="text-foreground font-medium">
+                      Password
+                    </FormLabel>
                     <div className="relative">
                       <Input
                         {...field}
@@ -80,7 +95,11 @@ export default function Login() {
                         className="absolute right-1 top-1/2 -translate-y-1/2 text-foreground/70 hover:text-foreground h-9 w-9 p-0"
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        {showPassword ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
                       </Button>
                     </div>
                     <FormMessage />
@@ -100,12 +119,14 @@ export default function Login() {
               <div className="text-center pt-4">
                 <p className="text-foreground/70 text-sm">
                   Don’t have an account?{" "}
-                  <Button
-                    variant="link"
-                    className="text-secondary hover:text-secondary/80 font-semibold p-0 h-auto"
-                  >
-                    Sign Up
-                  </Button>
+                  <Link to="/signup">
+                    <Button
+                      variant="link"
+                      className="text-secondary hover:text-secondary/80 font-semibold p-0 h-auto"
+                    >
+                      Sign Up
+                    </Button>
+                  </Link>
                 </p>
               </div>
 

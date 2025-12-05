@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Home as UserHome } from "./Home";
+import { DialogForm } from "@/Input/DialogForm";
 import TransactionsPage from "./Transactions";
 import {
   Card,
@@ -18,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Toaster } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { Header } from "./Header";
 
 import {
   Dialog,
@@ -49,7 +51,6 @@ import {
   ArrowDownRight,
   Plus,
   Menu,
-  X,
   Camera,
   Upload,
   FileText,
@@ -58,6 +59,7 @@ import {
   Calendar,
   Receipt,
 } from "lucide-react";
+import { Link, NavLink, Outlet } from "react-router-dom";
 
 export function BudgetDashboard() {
   // ============================================================================
@@ -230,11 +232,11 @@ export function BudgetDashboard() {
   ];
 
   const navItems = [
-    { title: "Dashboard", icon: Home, href: "#" },
-    { title: "Transactions", icon: CreditCard, href: "#" },
-    { title: "Budgets", icon: PieChart, href: "#" },
-    { title: "Analytics", icon: TrendingUp, href: "#" },
-    { title: "Settings", icon: Settings, href: "#" },
+    { title: "Dashboard", icon: Home, href: "/user/home" },
+    { title: "Transactions", icon: CreditCard, href: "/user/transactions" },
+    { title: "Budgets", icon: PieChart, href: "/user/budgets" },
+    { title: "Analytics", icon: TrendingUp, href: "/user/analytics" },
+    { title: "Settings", icon: Settings, href: "/user/settings" },
   ];
 
   // ============================================================================
@@ -402,10 +404,15 @@ export function BudgetDashboard() {
             <Button
               key={item.title}
               variant="ghost"
+              asChild
               className="w-full justify-start gap-3 hover:bg-emerald-50 hover:text-emerald-600"
             >
-              <item.icon className="w-5 h-5" />
-              <span>{item.title}</span>
+              <NavLink
+                to={item.href}
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.title}</span>
+              </NavLink>
             </Button>
           ))}
         </nav>
@@ -429,14 +436,28 @@ export function BudgetDashboard() {
           MAIN CONTENT
           ======================================================================== */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* HEADER - sidebarOpen, handleBellClick, handleImageUpload, handleQuickParse */}
-        <UserHome
+        {/* HEADER - sidebarOpen, handleBellClick, handleImageUpload, handleQuickParse 
+        setSidebarOpen, sidebarOpen, handleBellClick
+        */}
+        <Header
+          setSidebarOpen={setSidebarOpen}
+          sidebarOpen={sidebarOpen}
+          handleBellClick={handleBellClick}
+          setIsAddDialogOpen={setIsAddDialogOpen}
+        />
+        <Outlet />
+        <DialogForm
+          setIsAddDialogOpen={setIsAddDialogOpen}
+          isAddDialogOpen={isAddDialogOpen}
+        />
+        <Toaster position="top-right" richColors />;
+        {/* <UserHome
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           handleBellClick={handleBellClick}
           setIsAddDialogOpen={setIsAddDialogOpen}
           isAddDialogOpen={isAddDialogOpen}
-        />
+        /> */}
         {/* <TransactionsPage 
              sidebarOpen={sidebarOpen}
              setSidebarOpen={setSidebarOpen}
@@ -444,7 +465,6 @@ export function BudgetDashboard() {
               handleImageUpload={handleImageUpload}
           handleQuickParse={handleQuickParse}
          /> */}
-        <Toaster position="top-right" richColors />;
       </div>
     </div>
   );
