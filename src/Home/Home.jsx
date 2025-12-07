@@ -264,105 +264,17 @@ export function Home({
         </div>
 
         {/* Tabs Section */}
-        <Tabs defaultValue="overview" className="space-y-4">
+        <Tabs defaultValue="transactions" className="space-y-4">
           <TabsList className="bg-white border border-slate-200">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="transactions">Transactions</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="budgets">Budgets</TabsTrigger>
           </TabsList>
 
           {/* ================================================================
                 OVERVIEW TAB
                 ================================================================ */}
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Recent Transactions Card */}
-              <Card className="border-slate-200">
-                <CardHeader>
-                  <CardTitle>Recent Transactions</CardTitle>
-                  <CardDescription>
-                    Your latest financial activities
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {transactions.slice(0, 5).map((transaction) => (
-                      <div
-                        key={transaction.id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={`p-2 rounded-lg ${
-                              transaction.type === "income"
-                                ? "bg-emerald-100"
-                                : "bg-orange-100"
-                            }`}
-                          >
-                            {transaction.type === "income" ? (
-                              <ArrowUpRight className="w-4 h-4 text-emerald-600" />
-                            ) : (
-                              <ArrowDownRight className="w-4 h-4 text-orange-600" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-slate-900">
-                              {transaction.name}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {transaction.category}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p
-                            className={`font-semibold ${
-                              transaction.type === "income"
-                                ? "text-emerald-600"
-                                : "text-slate-900"
-                            }`}
-                          >
-                            ${transaction.amount.toFixed(2)}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {transaction.date}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Budget Progress Card */}
-              <Card className="border-slate-200">
-                <CardHeader>
-                  <CardTitle>Budget Overview</CardTitle>
-                  <CardDescription>
-                    Track your spending by category
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {budgetCategories.map((category, idx) => (
-                    <div key={idx}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-900">
-                          {category.name}
-                        </span>
-                        <span className="text-sm text-slate-500">
-                          ${category.spent} / ${category.budget}
-                        </span>
-                      </div>
-                      <Progress
-                        value={(category.spent / category.budget) * 100}
-                        className="h-2"
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+         
 
           {/* ================================================================
                 TRANSACTIONS TAB
@@ -412,7 +324,7 @@ export function Home({
                         <img
                           src={
                             transaction.image ||
-                            "https://images.unsplash.com/photo-1601598851547-4302969d0614?w=500"
+                            "https://logos-world.net/wp-content/uploads/2021/08/7-Eleven-Logo.jpg"
                           }
                           alt={transaction.name}
                           className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
@@ -502,6 +414,98 @@ export function Home({
             )}
           </TabsContent>
 
+           <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Recent Transactions Card */}
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle>Recent Transactions</CardTitle>
+                  <CardDescription>
+                    Your latest financial activities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {transactions.slice(0, 5).map((transaction) => (
+                      <div
+                        key={transaction.id}
+                        className="flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`p-2 rounded-lg ${
+                              transaction.type === "income"
+                                ? "bg-emerald-100"
+                                : "bg-orange-100"
+                            }`}
+                          >
+                            {transaction.type === "income" ? (
+                              <ArrowUpRight className="w-4 h-4 text-emerald-600" />
+                            ) : (
+                              <ArrowDownRight className="w-4 h-4 text-orange-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {transaction.name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {transaction.category}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p
+                            className={`font-semibold ${
+                              transaction.type === "income"
+                                ? "text-emerald-600"
+                                : "text-slate-900"
+                            }`}
+                          >
+                            ${transaction.amount.toFixed(2)}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {transaction.date}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Budget Progress Card */}
+              <Card className="border-slate-200">
+                <CardHeader>
+                  <CardTitle>Budget Overview</CardTitle>
+                  <CardDescription>
+                    Track your spending by category
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {budgetCategories.map((category, idx) => (
+                    <div key={idx}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-slate-900">
+                          {category.name}
+                        </span>
+                        <span className="text-sm text-slate-500">
+                          ${category.spent} / ${category.budget}
+                        </span>
+                      </div>
+                      <Progress
+                        value={(category.spent / category.budget) * 100}
+                        className="h-2"
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+
+
           {/* ================================================================
                 BUDGETS TAB
                 ================================================================ */}
@@ -547,12 +551,12 @@ export function Home({
         </Tabs>
       </main>
 
-      <DialogForm 
+      {/* <DialogForm 
         transactions={transactions}
         setTransactions={setTransactions}
         setIsAddDialogOpen={setIsAddDialogOpen}
         isAddDialogOpen={isAddDialogOpen}
-      />
+      /> */}
 
     </>
   );

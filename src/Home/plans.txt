@@ -1,0 +1,17 @@
+
+
+// make a dropdown menu  for profile 
+--> log out
+
+// organize contexts and web contents
+// web flow
+
+login sign in flow 
+// onboarding
+
+// add suspense in dash boards also create suspense animation 
+// create logo
+
+
+
+
