@@ -16,13 +16,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // import { toast } from "sonner";
 
 import {
-//   DollarSign,
+  //   DollarSign,
   TrendingUp,
   TrendingDown,
   Wallet,
-//   CreditCard,
+  //   CreditCard,
   PieChart,
-//   Settings,
+  //   Settings,
   Bell,
   Search,
   ArrowUpRight,
@@ -36,7 +36,7 @@ import {
   Receipt,
 } from "lucide-react";
 
-import { DialogForm } from "@/Input/DialogForm"; 
+import { DialogForm } from "@/Input/DialogForm";
 
 const stats = [
   {
@@ -95,8 +95,7 @@ export function Home({
   setSidebarOpen,
   handleBellClick,
   setIsAddDialogOpen,
-  isAddDialogOpen
-  
+  isAddDialogOpen,
 }) {
   const [transactions, setTransactions] = useState([
     {
@@ -192,24 +191,21 @@ export function Home({
   ]);
 
   const [searchQuery, setSearchQuery] = useState("");
- 
+
   const filteredTransactions = transactions.filter(
     (t) =>
       t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       t.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
-   const deleteTransaction = (id) => {
+  const deleteTransaction = (id) => {
     if (window.confirm("Delete this transaction?")) {
       setTransactions(transactions.filter((t) => t.id !== id));
     }
   };
 
-
   return (
     <>
-
       <main className="flex-1 overflow-y-auto p-6 space-y-6">
         {/* Welcome Section */}
         <div>
@@ -274,7 +270,6 @@ export function Home({
           {/* ================================================================
                 OVERVIEW TAB
                 ================================================================ */}
-         
 
           {/* ================================================================
                 TRANSACTIONS TAB
@@ -382,12 +377,11 @@ export function Home({
                           {transaction.type === "income" ? "Income" : "Expense"}
                         </div>
 
-                        {/* ✅ HOVER ACTIONS – FIXED */}
                         <div
                           className="absolute bottom-3 right-3 flex gap-2
-      opacity-0 pointer-events-none
-      group-hover:opacity-100 group-hover:pointer-events-auto
-      transition-all z-20"
+                                    opacity-0 pointer-events-none
+                                    group-hover:opacity-100 group-hover:pointer-events-auto
+                                    transition-all z-20"
                         >
                           <Button
                             size="icon"
@@ -414,7 +408,7 @@ export function Home({
             )}
           </TabsContent>
 
-           <TabsContent value="overview" className="space-y-4">
+          <TabsContent value="overview" className="space-y-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Recent Transactions Card */}
               <Card className="border-slate-200">
@@ -504,8 +498,6 @@ export function Home({
             </div>
           </TabsContent>
 
-
-
           {/* ================================================================
                 BUDGETS TAB
                 ================================================================ */}
@@ -550,14 +542,6 @@ export function Home({
           </TabsContent>
         </Tabs>
       </main>
-
-      {/* <DialogForm 
-        transactions={transactions}
-        setTransactions={setTransactions}
-        setIsAddDialogOpen={setIsAddDialogOpen}
-        isAddDialogOpen={isAddDialogOpen}
-      /> */}
-
     </>
   );
 }

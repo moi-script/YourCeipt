@@ -10,6 +10,7 @@ import { Home } from "./Home/Home";
 import { AnalyticsDashBoards } from "./Home/Analyts";
 import SettingsDashboard from "./Home/Settings";
 import BudgetPage from "./Home/Budget";
+import ForgotPassword from "./Login/Forgot";
 function App() {
   return (
     <>
@@ -18,11 +19,13 @@ function App() {
     <Routes>
       <Route path="/" element={<Login/>}/>
       <Route path="/signup" element={<BudgetSignup/>}/>
+      <Route path="/forgot" element={<ForgotPassword/>}/>
       <Route path="/onboard" element={<Onboarding/>}/>
 
 
       <Route path="/user" element={<BudgetDashboard/>}>
         <Route path="/user/home" element={<Home/>}></Route>
+
         <Route path="/user/budgets" element={<BudgetPage/>}></Route>
         <Route path="/user/transactions" element={<TransactionsPage/>}></Route>
         <Route path="/user/analytics" element={<AnalyticsDashBoards/>}></Route>
