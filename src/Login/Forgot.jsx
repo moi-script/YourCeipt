@@ -120,10 +120,7 @@ const ForgotPassword = () => {
             <div className="relative z-10 w-full max-w-md mx-auto">
               {/* Logo */}
               <div className="flex items-center justify-center mb-8">
-                <div className="bg-gradient-to-br from-[#2FAF8A] to-[#6BBF92] p-3 rounded-2xl">
-                  <Wallet className="w-8 h-8 text-white" />
-                </div>
-                <h1 className="ml-3 text-3xl font-bold text-[#1F2937]">Recepta</h1>
+             
               </div>
 
               {/* Icon Header */}
@@ -168,7 +165,6 @@ const ForgotPassword = () => {
                   <button 
                     onClick={() => console.log('Back to login')}
                     className="inline-flex items-center gap-2 text-[#2FAF8A] hover:text-[#6BBF92] font-semibold transition-colors"
-                    aschild
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <Link to="/">Back to Login</Link>
