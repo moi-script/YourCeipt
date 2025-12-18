@@ -179,7 +179,7 @@ const Login = () => {
               </div>
 
               {/* Form */}
-              <div className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 {/* Email Field */}
                 <div>
                   <label className="block text-sm font-semibold text-[#374151] mb-2">
@@ -188,6 +188,7 @@ const Login = () => {
                   <input
                     type="email"
                     value={email}
+                    required
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your.email@example.com"
                     className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#2FAF8A] focus:border-transparent transition-all"
@@ -203,6 +204,7 @@ const Login = () => {
                     <input
                       type={showPassword ? "text" : "password"}
                       value={password}
+                      required
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Enter your password"
                       className="w-full px-4 py-3 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl text-[#1F2937] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#2FAF8A] focus:border-transparent transition-all pr-12"
@@ -233,7 +235,7 @@ const Login = () => {
 
                 {/* Submit Button */}
                 <button
-                  onClick={handleSubmit}
+                type="submit"
                   className="w-full bg-gradient-to-r from-[#2FAF8A] to-[#6BBF92] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200"
                 >
                   Sign In
@@ -251,7 +253,7 @@ const Login = () => {
                     </button>
                   </p>
                 </div>
-              </div>
+              </form>
 
               {/* Mobile Onboarding Indicator */}
               <div className="lg:hidden mt-8 pt-8 border-t border-[#E5E7EB]">
