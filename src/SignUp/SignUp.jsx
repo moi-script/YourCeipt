@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { RegisterForm } from "./Register.jsx";
 import receptaLogo from "../assets/receptaLogo.png";
+
+
 const BudgetSignup = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);

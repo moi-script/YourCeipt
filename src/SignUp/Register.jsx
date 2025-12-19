@@ -1,22 +1,25 @@
 import { Eye, EyeOff } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, use, useState } from "react";
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner";
+import { useAuth } from "@/context/AuthContext";
+
 export function RegisterForm({
   formData,
   handleChange,
   showPassword,
   setShowPassword,
 }) {
-  const navigate = useNavigate();
   const [isLoading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e, setLoading) => {
     e.preventDefault();
 
     console.log("Uploading user data");
     setLoading(true);
-
     try {
       const response = await fetch("http://localhost:3000/user/register", {
         method: "POST",
@@ -25,19 +28,21 @@ export function RegisterForm({
         },
         body: JSON.stringify(formData),
       });
-      const data = await response.json();
-      setLoading(false);
 
-      if (response.ok) {
-        console.log("Success:", data);
-        navigate("/");
+      if (response.status === 200) {
+        login(formData);
+        navigate(from, { replace: true });
+        return true;
       } else {
-        console.error("Server Error:", data);
+        console.error("Server Error:");
       }
     } catch (error) {
       console.error("Network Error:", error);
     }
+    setLoading(false);
   };
+
+  const from = location.state?.from?.pathname || "/user";
 
   return (
     <form className="space-y-4">
@@ -115,7 +120,7 @@ export function RegisterForm({
         type="submit"
         className="w-full bg-gradient-to-r from-[#2FAF8A] to-[#6BBF92] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 mt-6"
       >
-        {isLoading ? <Spinner/> : "Create Account"}
+        {isLoading ? <Spinner /> : "Create Account"}
       </button>
 
       {/* Sign In Link */}

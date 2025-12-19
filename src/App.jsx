@@ -11,32 +11,39 @@ import { AnalyticsDashBoards } from "./Home/Analyts";
 import SettingsDashboard from "./Home/Settings";
 import BudgetPage from "./Home/Budget";
 import ForgotPassword from "./Login/Forgot";
+import ProtectedRoute from "./ProtectedRoute";
+import { AuthProvider } from "./context/authContext";
 function App() {
   return (
     <>
-     <BrowserRouter>
 
+    <AuthProvider>
+  <BrowserRouter>
+  
     <Routes>
       <Route path="/" element={<Login/>}/>
       <Route path="/signup" element={<BudgetSignup/>}/>
       <Route path="/forgot" element={<ForgotPassword/>}/>
       <Route path="/onboard" element={<Onboarding/>}/>
 
-
-      <Route path="/user" element={<BudgetDashboard/>}>
-        <Route path="/user/home" element={<Home/>}></Route>
-
-        <Route path="/user/budgets" element={<BudgetPage/>}></Route>
-        <Route path="/user/transactions" element={<TransactionsPage/>}></Route>
-        <Route path="/user/analytics" element={<AnalyticsDashBoards/>}></Route>
-        <Route path="/user/settings" element={<SettingsDashboard/>}></Route>
-        
+      
+      <Route element={<ProtectedRoute/>}>
+         <Route path="/user" element={<BudgetDashboard/>}>
+           <Route path="/user/home" element={<Home/>}></Route>
+           <Route path="/user/budgets" element={<BudgetPage/>}></Route>
+           <Route path="/user/transactions" element={<TransactionsPage/>}></Route>
+           <Route path="/user/analytics" element={<AnalyticsDashBoards/>}></Route>
+           <Route path="/user/settings" element={<SettingsDashboard/>}></Route>
+         </Route>
       </Route>
       
     </Routes>
     </BrowserRouter>   
         <Toaster position="top-right" richColors />;
     
+
+    </AuthProvider>
+   
     </>
     
   )
