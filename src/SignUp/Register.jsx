@@ -1,6 +1,6 @@
 import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Suspense, use, useState } from "react";
+import { Suspense, use, useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/AuthContext";
 
@@ -10,36 +10,42 @@ export function RegisterForm({
   showPassword,
   setShowPassword,
 }) {
-  const [isLoading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, register, isLoading, setLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSubmit = async (e, setLoading) => {
+  useEffect(() => {
+    console.log('This is the localtion :: ', location);
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     console.log("Uploading user data");
-    setLoading(true);
+
     try {
-      const response = await fetch("http://localhost:3000/user/register", {
+      const response = await register("http://localhost:3000/user" + location.pathname, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
+      setLoading(true);
+
+      console.log('Response register ::', response);
 
       if (response.status === 200) {
         login(formData);
+        console.log('From location :: ', from);
         navigate(from, { replace: true });
-        return true;
-      } else {
+      } else {  
         console.error("Server Error:");
       }
-    } catch (error) {
-      console.error("Network Error:", error);
+    } catch (err) {
+      console.error("Network Error:", err);
     }
-    setLoading(false);
+
   };
 
   const from = location.state?.from?.pathname || "/user";

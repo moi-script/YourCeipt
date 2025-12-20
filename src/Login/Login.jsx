@@ -249,7 +249,7 @@ const Login = () => {
                       onClick={() => console.log("Sign up")}
                       className="font-semibold text-[#2FAF8A] hover:text-[#6BBF92] transition-colors"
                     >
-                      <Link to="/signup">Sign Up</Link>
+                      <Link to="/register">Sign Up</Link>
                     </button>
                   </p>
                 </div>
