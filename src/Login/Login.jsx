@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Wallet,
   DollarSign,
@@ -11,7 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-
+import { useAuth } from "@/context/AuthContext";
 import receptaLogo from '../assets/receptaLogo.png';
 
 const Login = () => {
@@ -19,6 +19,10 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const { login } = useAuth();
 
   const steps = [
     {
@@ -47,10 +51,31 @@ const Login = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Login:", { email, password });
+
+    try {
+      const res = login('http://localhost:3000/user/login', {
+        method : 'POST',
+        headers : {
+          'Content-Type' : 'application/json'
+        },
+        body : JSON.stringify({email, password})
+      })
+
+      if(res) {
+        console.log('Succesfully login');
+        navigate(from, { replace: true });
+        
+      };
+    } catch(err) {
+      console.error('Error login', err);
+    }
+
   };
+
+  const from = location.state?.from?.pathname || "/user";
 
   const FloatingIcon = ({ Icon, className }) => (
     <div className={`absolute ${className}`}>

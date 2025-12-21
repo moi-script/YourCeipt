@@ -1,6 +1,6 @@
 // context/AuthContext.jsx
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { apiFetch } from '@/api/client';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { apiFetch, loginFetch } from "@/api/client";
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -8,36 +8,39 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setLoading] = useState(true);
   const [registerLoading, setRegisterLoading] = useState(true);
 
-
   const register = async (url, options = {}) => {
     const status = await apiFetch(url, options);
     return status;
-  }
+  };
 
   useEffect(() => {
     const checkSession = async () => {
-            try {
-                // This calls the backend route we just made
-                const response = await apiFetch('http://localhost:3000/user/verify'); 
+      try {
+        // This calls the backend route we just made
+        const response = await apiFetch("http://localhost:3000/user/verify");
 
-                if (response.user) {
-                    setUser(response.user);
-                }
-            } catch (error) {
-                console.log("No valid session found");
-                setUser(null);
-            } finally {
-                // 3. Whether it works or fails, we are done loading
-                setLoading(false);
-            }
-        };
+        if (response.user) {
+          setUser(response.user);
+        }
+      } catch (error) {
+        console.log("No valid session found");
+        setUser(null);
+      } finally {
+        // 3. Whether it works or fails, we are done loading
+        setLoading(false);
+      }
+    };
 
-        checkSession();
+    checkSession();
   }, []);
 
+  const login = async (endpoint, options = {}) => {
+    const loginRes = await loginFetch(endpoint, options);
+    if (loginRes.status === 200) {
+      setUser(loginRes);
+    } else setUser(null);
 
-  const login = (userData) => {
-    setUser(userData);
+    return true;
     // In a real app, you might also store a token in localStorage here
   };
 
@@ -46,7 +49,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, setLoading, isLoading, register, registerLoading, setRegisterLoading  }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        setLoading,
+        isLoading,
+        register,
+        registerLoading,
+        setRegisterLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
