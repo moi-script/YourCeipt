@@ -2,17 +2,22 @@
 export async function apiFetch(endpoint, options = {}) {
 
     const url = endpoint.startsWith('http') ? endpoint : BASE_URL + endpoint;
-    console.log('Url ::', url);
-    console.log('Options ::', options);
+    // console.log('Url ::', url);
+    // console.log('Endpoint  ::', endpoint);
+    // console.log('Type  ::', endpoint === url);
 
-    const defaultHeaders = {
-    'Content-Type': 'application/json', // <--- REQUIRED for express.json()
-  };
 
-  const res = await fetch(url, {
-    credentials: "include", 
+    // console.log('Options headers --> ', options.headers);
+    // console.log('Options ::', {
+    //   ...options,
+    //   headers : {
+    //     'test' : 'lol'
+    //   }
+    // });
+
+  const res = await fetch(endpoint, {
+    credentials: "include",
     headers: {
-        ...defaultHeaders,
       ...options.headers
     },
     ...options

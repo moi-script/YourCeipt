@@ -10,7 +10,7 @@ export function RegisterForm({
   showPassword,
   setShowPassword,
 }) {
-  const { login, register, isLoading, setLoading } = useAuth();
+  const { login, register, registerLoading, setRegisterLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,7 +18,7 @@ export function RegisterForm({
     console.log('This is the localtion :: ', location);
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, setRegisterLoading) => {
     e.preventDefault();
 
     console.log("Uploading user data");
@@ -31,7 +31,7 @@ export function RegisterForm({
         },
         body: JSON.stringify(formData),
       });
-      setLoading(true);
+      setRegisterLoading(false);
 
       console.log('Response register ::', response);
 
@@ -120,13 +120,13 @@ export function RegisterForm({
           </button>
         </div>
       </div>
-
+      
       <button
-        onClick={(e) => handleSubmit(e, setLoading)}
+        onClick={(e) => handleSubmit(e, setRegisterLoading)}
         type="submit"
         className="w-full bg-gradient-to-r from-[#2FAF8A] to-[#6BBF92] text-white font-semibold py-4 rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 mt-6"
       >
-        {isLoading ? <Spinner /> : "Create Account"}
+        {!registerLoading ? <Spinner /> : "Create Account"}
       </button>
 
       {/* Sign In Link */}
