@@ -13,9 +13,9 @@ import TransactionsPage from "./Home/Transactions";
 import Settings from "./Home/Settings";
 import SettingsDashboard from "./Home/Settings";
 import { AnalyticsDashBoards } from "./Home/Analyts";
-
+import FileUpload from "./FileUploads";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <FileUpload />
   </StrictMode>
 );
