@@ -261,13 +261,14 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                   id="image-upload"
                   onChange={handleImageUpload}
                 />
-                <label htmlFor="image-upload">
-                  <Button type="button" variant="outline">
-                    Upload Image
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                       {/* Add pointer-events-none so the click ignores the button and hits the label */}
+                   <Button type="button" variant="outline" className="pointer-events-none">
+                        Upload Image
                   </Button>
                 </label>
               </div>
-
+              
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-sm text-slate-600">
                   After upload, extracted values will auto-fill the form.
