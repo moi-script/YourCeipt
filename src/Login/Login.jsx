@@ -22,7 +22,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { login } = useAuth();
+  const { login, setUser} = useAuth();
 
   const steps = [
     {
@@ -56,7 +56,7 @@ const Login = () => {
     console.log("Login:", { email, password });
 
     try {
-      const res = login('http://localhost:3000/user/login', {
+      const res = await login('http://localhost:3000/user/login', {
         method : 'POST',
         headers : {
           'Content-Type' : 'application/json'
@@ -64,8 +64,10 @@ const Login = () => {
         body : JSON.stringify({email, password})
       })
 
-      if(res) {
+      if(res.status === 200) {
         console.log('Succesfully login');
+        console.log('Setting a user ::', res);
+        setUser(res);
         navigate(from, { replace: true });
         
       };

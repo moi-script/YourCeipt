@@ -10,7 +10,7 @@ export function RegisterForm({
   showPassword,
   setShowPassword,
 }) {
-  const { login, register, registerLoading, setRegisterLoading } = useAuth();
+  const { login, register, registerLoading, setRegisterLoading, setUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,11 +33,9 @@ export function RegisterForm({
       });
       setRegisterLoading(false);
 
-      console.log('Response register ::', response);
-
       if (response.status === 200) {
-        login(formData);
-        console.log('From location :: ', from);
+
+        setUser(formData);
         navigate(from, { replace: true });
       } else {  
         console.error("Server Error:");

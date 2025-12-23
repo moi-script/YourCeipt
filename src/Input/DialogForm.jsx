@@ -1,11 +1,11 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-
+import { use, useState } from "react";
+import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,10 @@ import { Camera, Upload, FileText } from "lucide-react";
 export function DialogForm({transactions, setTransactions, isAddDialogOpen, setIsAddDialogOpen }) {
   const [inputMode, setInputMode] = useState("manual");
   const [quickText, setQuickText] = useState("");
+  const [isLoading, setIsLoader] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState(null);
 
+  // const [text, setExtractedText] = useState(null);
   const categories = [
     "Food",
     "Transportation",
@@ -56,22 +59,51 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
     });
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileChanges = async (e) => {
+    const files = e.target.files;
+    // setSelectedFiles(e.target.files);
+    if (files){
+      setIsLoader(true);
+      console.log('Uploading files');
+       const formData = new FormData();
 
-    // Simulate OCR processing
-    setTimeout(() => {
-      setFormData({
-        type: "expense",
-        name: "Receipt from Store",
-        amount: "56.25",
-        category: "Food",
-        date: new Date().toISOString().split("T")[0],
-        notes: "Extracted via OCR",
-      });
-    }, 1000);
-  };
+       for (let i = 0; i < files.length; i++) {
+           formData.append('myImages', files[i]);
+       }
+       try {
+         const res = await axios.post('http://localhost:3000/upload', formData, {
+           headers: { 'Content-Type': 'multipart/form-data' }
+         });
+         console.log('Uploaded:', res.data);
+
+
+         const extractText = await axios.get('http://localhost:3000/extract/getText');
+         const dataContents = await extractText.json();
+         console.log('Extracted text :: ', dataContents);
+         setIsLoader(false);
+         alert(`${files.length} files uploaded!`);
+       } catch (err) {
+         console.error(err);
+       }
+    } else return
+
+  }
+
+  // const handleImageUpload = (e) => {
+
+
+  //   // Simulate OCR processing
+  //   setTimeout(() => {
+  //     setFormData({
+  //       type: "expense",
+  //       name: "Receipt from Store",
+  //       amount: "56.25",
+  //       category: "Food",
+  //       date: new Date().toISOString().split("T")[0],
+  //       notes: "Extracted via OCR",
+  //     });
+  //   }, 1000);
+  // };
 
   
   const addTransaction = () => {
@@ -257,18 +289,19 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                 <Input
                   type="file"
                   accept="image/*"
+                  multiple 
                   className="hidden"
                   id="image-upload"
-                  onChange={handleImageUpload}
+                  onChange={handleFileChanges}
                 />
-                  <label htmlFor="image-upload" className="cursor-pointer">
+                  <label htmlFor="image-upload" className="cursor-pointer flex justify-center items-center">
                        {/* Add pointer-events-none so the click ignores the button and hits the label */}
-                   <Button type="button" variant="outline" className="pointer-events-none">
+                  {isLoading ? <Spinner/> : (<Button type="button" variant="outline" className="pointer-events-none">
                         Upload Image
-                  </Button>
+                  </Button>)}
                 </label>
               </div>
-              
+
               <div className="bg-slate-50 p-4 rounded-lg">
                 <p className="text-sm text-slate-600">
                   After upload, extracted values will auto-fill the form.
@@ -317,6 +350,7 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancel
             </Button>
+
             <Button
               className="bg-gradient-to-r from-emerald-600 to-teal-600"
               onClick={addTransaction}

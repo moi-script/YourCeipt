@@ -12,22 +12,31 @@ export const AuthProvider = ({ children }) => {
 
  const register = useCallback(async (url, options = {}) => {
     const status = await apiFetch(url, options);
+    console.log('Register status :: ', status);
     return status;
   }, []);
 
   const login = useCallback(async (endpoint, options = {}) => {
+    console.log('Endpoint ::', endpoint);
+    console.log('Options ::', options);
+
     const loginRes = await loginFetch(endpoint, options);
-    if (loginRes.status === 200) {
-      setUser(loginRes);
-    } else {
-      setUser(null);
-    }
-    return true;
+    console.log('Login status :: ', loginRes);
+
+    return loginRes;
+
+    // if (loginRes.status === 200) {
+    //   setUser(loginRes);
+    // } else {
+    //   setUser(null);
+    // }
+    // return true;
   }, []);
 
 
   
   useEffect(() => {
+    console.log("Running the check sessions");
     const checkSession = async () => {
       try {
         // This calls the backend route we just made
@@ -44,7 +53,7 @@ export const AuthProvider = ({ children }) => {
         setTimeout(() => {
           console.log('After 5 seconds');
           setLoading(false);
-        }, 100);
+        }, 500);
       }
     };
 
@@ -59,6 +68,7 @@ const logout = useCallback(() => {
 
   const value = useMemo(() => ({
     user,
+    setUser,
     login,
     logout,
     setLoading,
@@ -66,7 +76,7 @@ const logout = useCallback(() => {
     register,
     registerLoading,
     setRegisterLoading,
-  }), [user, login, logout, isLoading, register, registerLoading]);
+  }), [user, setUser, login, logout, isLoading, register, registerLoading]);
 
 
 

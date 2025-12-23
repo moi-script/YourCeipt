@@ -8,19 +8,18 @@ export async function apiFetch(endpoint, options = {}) {
     ...options,
   });
 
-  if (!res.ok) throw res;
-  //   console.log('Res json :; ', await res.json())
+  
+  if (!res.ok) {
+    console.log('Resopnse is not ok :(');
+    throw res
+  };
 
-  try {
-    const data = await res.json();
-    console.log("Data ::", data);
-    return data;
-  } catch (err) {
-    console.error("Error in data :: ", err);
-  }
+  return await res.json();
+
 }
 
 export async function loginFetch(endpoint, options = {}) {
+  console.log('Using login fetch');
   const res = await fetch(endpoint, {
     credentials: "include",
     headers: {
@@ -31,11 +30,5 @@ export async function loginFetch(endpoint, options = {}) {
 
   if (!res.ok) throw res;
 
-  try {
-    const data = await res.json();
-    console.log("Data ::", data);
-    return data;
-  } catch (err) {
-    console.error("Error in data :: ", err);
-  }
+  return await res.json();
 }
