@@ -13,9 +13,13 @@ import TransactionsPage from "./Home/Transactions";
 import Settings from "./Home/Settings";
 import SettingsDashboard from "./Home/Settings";
 import { AnalyticsDashBoards } from "./Home/Analyts";
-import FileUpload from "./FileUploads";
+import MultipleUpload from "./FileUploads";
+import VideoLoader from "./components/loaders/AnimatedLoader";
+import TransactionDashboardSkeleton from "./components/loaders/HomeSkeletonLoader";
+
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <FileUpload />
+    <App />
   </StrictMode>
 );

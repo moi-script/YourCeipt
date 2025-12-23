@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import VideoLoader from './components/loaders/AnimatedLoader';
+
 const ProtectedRoute = () => {
   const { user, isAuth, isLoading } = useAuth(); // <--- Read the current user from Context
   const location = useLocation();
@@ -10,17 +12,17 @@ const ProtectedRoute = () => {
 
 
 
+
   // loading part when session is fetcing 
   if(isLoading) {
-    return <h1>Fetching session</h1>
+    return <VideoLoader/>
   }
 
   // If user is null, redirect to login
   if(!user) {
-    return <Navigate to="/user" state={{ from: location }} replace />;
-  } 
-
-  return <Outlet />;
+    return <Navigate to="/" state={{ from: location }} replace />
+  }
+  return <Outlet />
 };
 
-export default ProtectedRoute;
+export default ProtectedRoute

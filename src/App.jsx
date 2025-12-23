@@ -40,7 +40,7 @@ function App() {
       
       </Routes>
      </BrowserRouter>   
-      <Toaster position="top-right" richColors />;
+      <Toaster position="top-right" richColors />
     
     </AuthProvider>
    
