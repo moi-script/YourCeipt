@@ -143,7 +143,7 @@ const BudgetSignup = () => {
           </div>
 
           {/* Right Column - Signup Form */}
-          <div className="relative flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+          <div className="relative flex flex-col justify-center p-8 sm:p-12 lg:p-2">
             {/* Floating Icons */}
             <FloatingIcon
               Icon={DollarSign}
