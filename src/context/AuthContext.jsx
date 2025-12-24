@@ -9,28 +9,32 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setLoading] = useState(true);
   const [registerLoading, setRegisterLoading] = useState(true);
+  const [receipts, setReceipts] = useState(null);
+
+  useEffect(() => {
+
+  console.log('Reciepts contents ::', receipts);
+  console.log('User contents ::', user);
+
+  }, [user, receipts])
+
+
+
 
  const register = useCallback(async (url, options = {}) => {
     const status = await apiFetch(url, options);
-    console.log('Register status :: ', status);
     return status;
   }, []);
 
   const login = useCallback(async (endpoint, options = {}) => {
-    console.log('Endpoint ::', endpoint);
-    console.log('Options ::', options);
-
     const loginRes = await loginFetch(endpoint, options);
-    console.log('Login status :: ', loginRes);
-
     return loginRes;
+  }, []);
 
-    // if (loginRes.status === 200) {
-    //   setUser(loginRes);
-    // } else {
-    //   setUser(null);
-    // }
-    // return true;
+
+  const uploadReceipts = useCallback(async (endpoint, options = {}) => {
+    const upload = await apiFetch(endpoint, options);
+    return upload;  
   }, []);
 
 
@@ -40,9 +44,13 @@ export const AuthProvider = ({ children }) => {
     const checkSession = async () => {
       try {
         // This calls the backend route we just made
-        const response = await apiFetch("http://localhost:3000/user/verify");
+        const response = await apiFetch("http://localhost:3000/user/verify", {
+           credentials: "include",
+          
+        });
 
         if (response.user) {
+          console.log('Response user --> session ', response.user);
           setUser(response.user);
         }
       } catch (error) {
@@ -74,6 +82,9 @@ const logout = useCallback(() => {
     setLoading,
     isLoading,
     register,
+    uploadReceipts,
+    receipts,
+    setReceipts,
     registerLoading,
     setRegisterLoading,
   }), [user, setUser, login, logout, isLoading, register, registerLoading]);

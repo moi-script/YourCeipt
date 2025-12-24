@@ -22,7 +22,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { login, setUser} = useAuth();
+  const { login, user, setUser} = useAuth();
 
   const steps = [
     {
@@ -76,6 +76,11 @@ const Login = () => {
     }
 
   };
+
+  // useEffect(() => {
+  //       console.log('User objcet --> ', user);
+
+  // }, [user])
 
   const from = location.state?.from?.pathname || "/user";
 

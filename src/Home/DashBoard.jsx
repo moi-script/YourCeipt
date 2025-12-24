@@ -60,6 +60,10 @@ import {
   Receipt,
 } from "lucide-react";
 import { Link, NavLink, Outlet } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+
+
+
 
 export function BudgetDashboard() {
   // ============================================================================
@@ -72,6 +76,8 @@ export function BudgetDashboard() {
   const [inputMode, setInputMode] = useState("manual");
   const [quickText, setQuickText] = useState("");
   const [homeDefault, setHomeDefault] = useState("Home");
+  // const [userId, setUserId] = useState();
+
 
   const [transactions, setTransactions] = useState([
     {

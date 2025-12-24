@@ -25,6 +25,7 @@ export function RegisterForm({
 
     try {
       const response = await register("http://localhost:3000/user" + location.pathname, {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",

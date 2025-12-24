@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,13 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Upload, FileText } from "lucide-react";
+import { Camera, Upload, FileText, Loader2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export function DialogForm({transactions, setTransactions, isAddDialogOpen, setIsAddDialogOpen }) {
   const [inputMode, setInputMode] = useState("manual");
   const [quickText, setQuickText] = useState("");
   const [isLoading, setIsLoader] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState(null);
+  const [receiptContent, setReceiptContent] = useState(null);
+
+  // const { setReceipts } = useAuth();
 
   // const [text, setExtractedText] = useState(null);
   const categories = [
@@ -59,6 +63,39 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
     });
   };
 
+  const { user, receipts, uploadReceipts, setReceipts } = useAuth(); // _id
+
+
+  useEffect(() => {
+    console.log('Reciept object handleUpload ::', receiptContent);
+
+  }, [receiptContent])
+  
+  const handleUploadReceipts = async () => {
+    console.log('User object handleUpload ::', user);
+    console.log('Reciept object handleUpload ::', receiptContent);
+
+    try {
+      const res = await uploadReceipts('http://localhost:3000/receipt/upload', {
+        method : "POST",
+        headers : {
+          'Content-type' : 'application/json'
+        },
+        body : JSON.stringify({
+          userId :user._id,
+          ...receiptContent
+        })
+      })
+
+      // const data = await res.json();
+      console.log('Data :: ', res);
+      alert('Uploaded Successfully');
+    } catch(err) {
+      console.error('Unable to upload receipts', err);
+    }
+}
+
+
   const handleFileChanges = async (e) => {
     const files = e.target.files;
     // setSelectedFiles(e.target.files);
@@ -78,9 +115,12 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
 
 
          const extractText = await axios.get('http://localhost:3000/extract/getText');
-         const dataContents = await extractText.json();
-         console.log('Extracted text :: ', dataContents);
          setIsLoader(false);
+        //  const dataContents = await extractText.json();
+         console.log('Extracted text :: ', extractText.data.contents);
+         setReceipts(extractText.data.contents);
+         setReceiptContent(extractText.data.contents);
+         
          alert(`${files.length} files uploaded!`);
        } catch (err) {
          console.error(err);
@@ -351,10 +391,12 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
               Cancel
             </Button>
 
-            <Button
+            <Button 
+              disabled={isLoading}
               className="bg-gradient-to-r from-emerald-600 to-teal-600"
-              onClick={addTransaction}
+              onClick={handleUploadReceipts}
             >
+              {isLoading && <Loader2 className="animate-spin" />}
               Save Transaction
             </Button>
           </div>

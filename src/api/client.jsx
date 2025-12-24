@@ -1,7 +1,7 @@
 export async function apiFetch(endpoint, options = {}) {
 
   const res = await fetch(endpoint, {
-    credentials: "include",
+    // credentials: "include",
     headers: {
       ...options.headers,
     },
