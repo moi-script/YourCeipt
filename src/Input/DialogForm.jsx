@@ -24,7 +24,12 @@ import {
 import { Camera, Upload, FileText, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
-export function DialogForm({transactions, setTransactions, isAddDialogOpen, setIsAddDialogOpen }) {
+export function DialogForm({
+  transactions,
+  setTransactions,
+  isAddDialogOpen,
+  setIsAddDialogOpen,
+}) {
   const [inputMode, setInputMode] = useState("manual");
   const [quickText, setQuickText] = useState("");
   const [isLoading, setIsLoader] = useState(false);
@@ -45,7 +50,6 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
     "Other",
   ];
 
-  
   const handleQuickParse = () => {
     const amountMatch = quickText.match(/\$?(\d+(\.\d+)?)/);
     const amount = amountMatch ? amountMatch[1] : "";
@@ -65,87 +69,124 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
 
   const { user, receipts, uploadReceipts, setReceipts } = useAuth(); // _id
 
-
   useEffect(() => {
-    console.log('Reciept object handleUpload ::', receiptContent);
+    console.log("Reciept object handleUpload ::", receiptContent);
+  }, [receiptContent]);
 
-  }, [receiptContent])
-  
+  const [manualReceipt, setManualReceipt] = useState({
+    transaction_type: "expense",
+    amount: "",
+    description: "",
+    category: "",
+    date: "",
+    notes: "",
+  });
+
+  const handleManualReceiptChange = (e) => {
+    console.log("e --> ", e.target);
+
+    if (e === "expense" || e === "income") {
+      setManualReceipt((prev) => ({ ...prev, transaction_type: e }));
+      return;
+    }
+
+    if ((e !== "expense" || e !== "income") && !e.target) {
+      setManualReceipt((prev) => ({ ...prev, category: e }));
+      return;
+    }
+
+    const { name, value } = e.target;
+    setManualReceipt((prev) => ({ ...prev, [name]: value }));
+    console.log("Manual :: ", manualReceipt);
+  };
+
+  const uploadManualReceipt = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/receipt/uploadManual", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user._id,
+          ...manualReceipt,
+        }),
+      });
+      console.log(res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleUploadReceipts = async () => {
-    console.log('User object handleUpload ::', user);
-    console.log('Reciept object handleUpload ::', receiptContent);
+    console.log("User object handleUpload ::", user);
+    console.log("Reciept object handleUpload ::", receiptContent);
 
     try {
-      const res = await uploadReceipts('http://localhost:3000/receipt/upload', {
-        method : "POST",
-        headers : {
-          'Content-type' : 'application/json'
+      const res = await uploadReceipts("http://localhost:3000/receipt/upload", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
         },
-        body : JSON.stringify({
-          userId :user._id,
-          ...receiptContent
-        })
-      })
+        body: JSON.stringify({
+          userId: user._id,
+          ...receiptContent,
+        }),
+      });
 
       // const data = await res.json();
-      console.log('Data :: ', res);
-      alert('Uploaded Successfully');
-    } catch(err) {
-      console.error('Unable to upload receipts', err);
+      console.log("Data :: ", res);
+      alert("Uploaded Successfully");
+    } catch (err) {
+      console.error("Unable to upload receipts", err);
     }
-}
-
+  };
 
   const handleFileChanges = async (e) => {
     const files = e.target.files;
     // setSelectedFiles(e.target.files);
-    if (files){
+    if (files) {
       setIsLoader(true);
-      console.log('Uploading files');
-       const formData = new FormData();
+      console.log("Uploading files");
+      const formData = new FormData();
 
-       for (let i = 0; i < files.length; i++) {
-           formData.append('myImages', files[i]);
-       }
-       try {
-         const res = await axios.post('http://localhost:3000/upload', formData, {
-           headers: { 'Content-Type': 'multipart/form-data' }
-         });
-         console.log('Uploaded:', res.data);
+      for (let i = 0; i < files.length; i++) {
+        formData.append("myImages", files[i]);
+      }
+      try {
+        const res = await axios.post("http://localhost:3000/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        console.log("Uploaded:", res.data);
 
-
-         const extractText = await axios.get('http://localhost:3000/extract/getText');
-         setIsLoader(false);
+        const extractText = await axios.get(
+          "http://localhost:3000/extract/getText"
+        );
+        setIsLoader(false);
         //  const dataContents = await extractText.json();
-         console.log('Extracted text :: ', extractText.data.contents);
-         setReceipts(extractText.data.contents);
-         setReceiptContent(extractText.data.contents);
-         
-         alert(`${files.length} files uploaded!`);
-       } catch (err) {
-         console.error(err);
-       }
-    } else return
+        console.log("Extracted text :: ", extractText.data.contents);
+        setReceipts(extractText.data.contents);
+        setReceiptContent(extractText.data.contents);
 
-  }
+        alert(`${files.length} files uploaded!`);
+      } catch (err) {
+        console.error(err);
+      }
+    } else return;
+  };
 
-  // const handleImageUpload = (e) => {
+  const uploadInput = () => {
 
+    console.log('Input mode ::', inputMode);
+    switch (inputMode) {
+      case "manual":
+        console.log('true manual')
+        return uploadManualReceipt();
+      case "receipt":
+        return handleUploadReceipts();
+    }
+  };
 
-  //   // Simulate OCR processing
-  //   setTimeout(() => {
-  //     setFormData({
-  //       type: "expense",
-  //       name: "Receipt from Store",
-  //       amount: "56.25",
-  //       category: "Food",
-  //       date: new Date().toISOString().split("T")[0],
-  //       notes: "Extracted via OCR",
-  //     });
-  //   }, 1000);
-  // };
-
-  
   const addTransaction = () => {
     if (!formData.name || !formData.amount) return;
 
@@ -160,7 +201,6 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
     };
 
     setTransactions([newTransaction, ...transactions]);
-
     // Reset form
     setFormData({
       type: "expense",
@@ -186,7 +226,7 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
   return (
     <>
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] rounded">
           <DialogHeader>
             <DialogTitle>Add New Transaction</DialogTitle>
             <DialogDescription>
@@ -229,10 +269,9 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                 <div className="space-y-2">
                   <Label>Transaction Type</Label>
                   <Select
-                    value={formData.type}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, type: value })
-                    }
+                    value={manualReceipt.transaction_type}
+                    name="transaction_type"
+                    onValueChange={handleManualReceiptChange}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -249,10 +288,9 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                     type="number"
                     step="0.01"
                     placeholder="0.00"
-                    value={formData.amount}
-                    onChange={(e) =>
-                      setFormData({ ...formData, amount: e.target.value })
-                    }
+                    name="amount"
+                    value={manualReceipt.amount}
+                    onChange={handleManualReceiptChange}
                   />
                 </div>
               </div>
@@ -261,10 +299,9 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                 <Label>Description</Label>
                 <Input
                   placeholder="e.g., Grocery shopping, Salary..."
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  value={manualReceipt.name}
+                  name="description"
+                  onChange={handleManualReceiptChange}
                 />
               </div>
 
@@ -272,10 +309,9 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                 <div className="space-y-1">
                   <Label>Category</Label>
                   <Select
-                    value={formData.category}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, category: value })
-                    }
+                    value={manualReceipt.category}
+                    name="category"
+                    onValueChange={handleManualReceiptChange}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -293,10 +329,9 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                   <Label>Date</Label>
                   <Input
                     type="date"
-                    value={formData.date}
-                    onChange={(e) =>
-                      setFormData({ ...formData, date: e.target.value })
-                    }
+                    name="date"
+                    value={manualReceipt.date}
+                    onChange={handleManualReceiptChange}
                   />
                 </div>
               </div>
@@ -305,10 +340,9 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                 <Label>Notes (Optional)</Label>
                 <Textarea
                   placeholder="Add any additional details..."
-                  value={formData.notes}
-                  onChange={(e) =>
-                    setFormData({ ...formData, notes: e.target.value })
-                  }
+                  value={manualReceipt.notes}
+                  name="notes"
+                  onChange={handleManualReceiptChange}
                   rows={3}
                 />
               </div>
@@ -329,16 +363,27 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
                 <Input
                   type="file"
                   accept="image/*"
-                  multiple 
+                  multiple
                   className="hidden"
                   id="image-upload"
                   onChange={handleFileChanges}
                 />
-                  <label htmlFor="image-upload" className="cursor-pointer flex justify-center items-center">
-                       {/* Add pointer-events-none so the click ignores the button and hits the label */}
-                  {isLoading ? <Spinner/> : (<Button type="button" variant="outline" className="pointer-events-none">
-                        Upload Image
-                  </Button>)}
+                <label
+                  htmlFor="image-upload"
+                  className="cursor-pointer flex justify-center items-center"
+                >
+                  {/* Add pointer-events-none so the click ignores the button and hits the label */}
+                  {isLoading ? (
+                    <Spinner />
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="pointer-events-none"
+                    >
+                      Upload Image
+                    </Button>
+                  )}
                 </label>
               </div>
 
@@ -391,10 +436,10 @@ export function DialogForm({transactions, setTransactions, isAddDialogOpen, setI
               Cancel
             </Button>
 
-            <Button 
+            <Button
               disabled={isLoading}
               className="bg-gradient-to-r from-emerald-600 to-teal-600"
-              onClick={handleUploadReceipts}
+              onClick={uploadInput}
             >
               {isLoading && <Loader2 className="animate-spin" />}
               Save Transaction
