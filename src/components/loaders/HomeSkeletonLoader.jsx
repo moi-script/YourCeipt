@@ -23,7 +23,7 @@ const Skeleton = ({ className = "", variant = "default" }) => {
   );
 };
 
-const TransactionDashboardSkeleton = () => {
+ const TransactionDashboardSkeleton = () => {
   return (
     <main className="flex-1 overflow-auto p-6 bg-gray-50">
       <style>

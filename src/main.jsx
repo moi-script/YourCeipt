@@ -16,7 +16,7 @@ import { AnalyticsDashBoards } from "./Home/Analyts";
 import MultipleUpload from "./FileUploads";
 import VideoLoader from "./components/loaders/AnimatedLoader";
 import TransactionDashboardSkeleton from "./components/loaders/HomeSkeletonLoader";
-
+import AIModelDashboard from "./Home/MyModels";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

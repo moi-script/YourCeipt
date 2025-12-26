@@ -35,7 +35,7 @@ export function DialogForm({
   const [isLoading, setIsLoader] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState(null);
   const [receiptContent, setReceiptContent] = useState(null);
-
+  const [color, setColor] = useState("from-emerald-600");
   // const { setReceipts } = useAuth();
 
   // const [text, setExtractedText] = useState(null);
@@ -68,10 +68,6 @@ export function DialogForm({
   };
 
   const { user, receipts, uploadReceipts, setReceipts } = useAuth(); // _id
-
-  useEffect(() => {
-    console.log("Reciept object handleUpload ::", receiptContent);
-  }, [receiptContent]);
 
   const [manualReceipt, setManualReceipt] = useState({
     transaction_type: "expense",
@@ -175,43 +171,61 @@ export function DialogForm({
     } else return;
   };
 
-  const uploadInput = () => {
+  // uploadQuick
 
-    console.log('Input mode ::', inputMode);
-    switch (inputMode) {
-      case "manual":
-        console.log('true manual')
-        return uploadManualReceipt();
-      case "receipt":
-        return handleUploadReceipts();
+  const handleParseText = async () => {
+    try {
+      setIsLoader(true);
+      const res = await fetch("http://localhost:3000/extract/quickText", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ userId: user._id, quickText: quickText }),
+      });
+      const data = await res.json()
+      setColor("bg-orange-500");
+      console.log('Res output ::', data);
+      setQuickText(data);
+      setIsLoader(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
-  const addTransaction = () => {
-    if (!formData.name || !formData.amount) return;
+  const hanldeUploadQuickText = async () => {
+    try {
+      setIsLoader(true);
+      console.log('Uploading quickText ',  quickText.output);
+      const res = await fetch("http://localhost:3000/extract/uploadQuick", {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify({ userId: user._id, quickText: quickText.output }),
+      });
+      setIsLoader(false);
+      if (res.ok === 200) {
+        setQuickText("");
+      }
+      setColor("from-emerald-600");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-    const newTransaction = {
-      id: Date.now(),
-      name: formData.name,
-      amount: Number(formData.amount),
-      category: formData.category || "Other",
-      date: formData.date || new Date().toISOString().split("T")[0],
-      type: formData.type,
-      notes: formData.notes,
-    };
-
-    setTransactions([newTransaction, ...transactions]);
-    // Reset form
-    setFormData({
-      type: "expense",
-      name: "",
-      amount: "",
-      category: "",
-      date: "",
-      notes: "",
-    });
-    setQuickText("");
-    setIsAddDialogOpen(false);
+  const uploadInput = () => {
+    console.log("Input mode ::", inputMode);
+    // setColor("from-emerald-600");
+    switch (inputMode) {
+      case "manual":
+        console.log("true manual");
+        return uploadManualReceipt();
+      case "receipt":
+        return handleUploadReceipts();
+      case "quick":
+        return hanldeUploadQuickText();
+    }
   };
 
   const [formData, setFormData] = useState({
@@ -222,6 +236,8 @@ export function DialogForm({
     date: "",
     notes: "",
   });
+
+
 
   return (
     <>
@@ -408,7 +424,7 @@ export function DialogForm({
                 />
               </div>
 
-              <Button variant="secondary" onClick={handleQuickParse}>
+              <Button variant="secondary" onClick={handleParseText}>
                 Parse Text
               </Button>
 
@@ -438,7 +454,7 @@ export function DialogForm({
 
             <Button
               disabled={isLoading}
-              className="bg-gradient-to-r from-emerald-600 to-teal-600"
+              className={`bg-gradient-to-r ${color} to-teal-600`}
               onClick={uploadInput}
             >
               {isLoading && <Loader2 className="animate-spin" />}

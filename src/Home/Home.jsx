@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,6 +37,8 @@ import {
 } from "lucide-react";
 
 import { DialogForm } from "@/Input/DialogForm";
+import { useAuth } from "@/context/AuthContext";
+import TransactionDashboardSkeleton from "@/components/loaders/HomeSkeletonLoader";
 
 const stats = [
   {
@@ -94,7 +96,6 @@ export function Home({
   sidebarOpen,
   setSidebarOpen,
   handleBellClick,
-  setIsAddDialogOpen,
   isAddDialogOpen,
 }) {
   const [transactions, setTransactions] = useState([
@@ -189,6 +190,8 @@ export function Home({
       notes: "Item return refund",
     },
   ]);
+  const { isReceiptsLoading, userReceipts, user  }  = useAuth();
+
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -198,11 +201,21 @@ export function Home({
       t.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+
   const deleteTransaction = (id) => {
     if (window.confirm("Delete this transaction?")) {
       setTransactions(transactions.filter((t) => t.id !== id));
     }
   };
+
+  useEffect(() => {
+    console.log('Is receipt loading ::', isReceiptsLoading);
+    console.log('Receipt type :: ', userReceipts);
+  }, [isReceiptsLoading, userReceipts]) 
+
+  if(isReceiptsLoading) {
+    return <TransactionDashboardSkeleton/>
+  }
 
   return (
     <>
@@ -210,7 +223,7 @@ export function Home({
         {/* Welcome Section */}
         <div>
           <h1 className="text-3xl font-bold text-slate-900">
-            Welcome back, John! 👋
+            Welcome back, {user.nickname}
           </h1>
           <p className="text-slate-500 mt-1">
             Here's what's happening with your money today.

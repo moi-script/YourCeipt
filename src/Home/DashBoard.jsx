@@ -44,6 +44,7 @@ import {
   Wallet,
   CreditCard,
   PieChart,
+  Brain,
   Settings,
   Bell,
   Search,
@@ -59,7 +60,7 @@ import {
   Calendar,
   Receipt,
 } from "lucide-react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { href, Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 
@@ -77,6 +78,7 @@ export function BudgetDashboard() {
   const [quickText, setQuickText] = useState("");
   const [homeDefault, setHomeDefault] = useState("Home");
   // const [userId, setUserId] = useState();
+
 
 
   const [transactions, setTransactions] = useState([
@@ -242,6 +244,7 @@ export function BudgetDashboard() {
     { title: "Home", icon: Home, href: "/user/" },
     { title: "Transactions", icon: CreditCard, href: "/user/transactions" },
     { title: "Budgets", icon: PieChart, href: "/user/budgets" },
+    {title : 'AI Models', icon : Brain, href : '/user/models'},
     { title: "Analytics", icon: TrendingUp, href: "/user/analytics" },
     { title: "Settings", icon: Settings, href: "/user/settings" },
   ];
@@ -453,6 +456,7 @@ export function BudgetDashboard() {
           {(homeDefault === 'Home')  && (
              <UserHome
               setIsAddDialogOpen={setIsAddDialogOpen}
+             
               isAddDialogOpen={isAddDialogOpen}
             />
           ) }
