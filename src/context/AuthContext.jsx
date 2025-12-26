@@ -19,12 +19,7 @@ export const AuthProvider = ({ children }) => {
   const [receipts, setReceipts] = useState(null);
 
   // fetching user receipt list
-  const [userReceipts, setUserReceipts] = useState(null);
-  const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
-  const [receiptType, setReceiptType] = useState({
-    manual: null,
-    smart: null,
-  });
+ 
 
   // useEffect(() => {
   //   console.log("Reciepts contents ::", receipts);
@@ -46,30 +41,7 @@ export const AuthProvider = ({ children }) => {
     return upload;
   }, []);
 
-  const getReceiptType = (data) => {
-    try {
-      const manualList = [];
-      const smartList = data.contents.map((res, index) => {
-          if (!Array.isArray(res)) {
-            // console.log("Object type :: ", res);
-            return res;
-          }
-          manualList.push(res.pop());
-          return null;
-        }).filter((remain) => typeof remain !== null);
-
-      // console.log("Smart list :: ", smartList);
-      // console.log("Manual list :: ", manualList.flat());
-
-      return {
-        manualList: manualList.flat(),
-        smartList,
-      };
-    } catch (err) {
-      console.log("Unable to process the type of receipt" + err);
-    }
-  };
-
+  
   useEffect(() => {
     console.log("Running the check sessions");
     const checkSession = async () => {
@@ -97,34 +69,6 @@ export const AuthProvider = ({ children }) => {
     checkSession();
   }, []);
 
-  useEffect(() => {
-    const getUserReceipts = async () => {
-      // console.log("Running get user receipts user id ::", user);
-      try {
-        setIsReceiptsLoading(true);
-        const receipts = await fetch("http://localhost:3000/user/receipts", {
-          method: "POST",
-          headers: {
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify({ userId: user?._id }),
-        });
-        // console.log("User receipts ::", receipts);
-
-        const data = await receipts.json();
-
-        const receiptTypeInteg = getReceiptType(data);
-        // console.log("receipt type ::", receiptTypeInteg);
-
-        setUserReceipts(receiptTypeInteg);
-        setIsReceiptsLoading(false);
-      } catch (err) {
-        console.error("Unable to get receipts");
-      }
-    };
-    getUserReceipts();
-  }, [user]);
-
   const logout = useCallback(() => {
     setUser(null);
   }, []);
@@ -141,11 +85,11 @@ export const AuthProvider = ({ children }) => {
       uploadReceipts,
       receipts,
       setReceipts,
-      userReceipts,
-      isReceiptsLoading,
+      // userReceipts,
+      // isReceiptsLoading,
       // handleReceiptType,
-      setReceiptType,
-      receiptType,
+      // setReceiptType,
+      // receiptType,
       registerLoading,
       setRegisterLoading,
     }),
@@ -157,11 +101,11 @@ export const AuthProvider = ({ children }) => {
       isLoading,
       register,
       registerLoading,
-      userReceipts,
-      isReceiptsLoading,
+      // userReceipts,
+      // isReceiptsLoading,
       // handleReceiptType,
-      receiptType,
-      setReceiptType,
+      // receiptType,
+      // setReceiptType,
     ]
   );
 

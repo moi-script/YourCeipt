@@ -97,7 +97,9 @@ export function Home({
   setSidebarOpen,
   handleBellClick,
   isAddDialogOpen,
+  setIsAddDialogOpen
 }) {
+
   const [transactions, setTransactions] = useState([
     {
       id: 1,
@@ -190,7 +192,11 @@ export function Home({
       notes: "Item return refund",
     },
   ]);
-  const { isReceiptsLoading, userReceipts, user  }  = useAuth();
+
+  const [userReceipts, setUserReceipts] = useState(null);
+  const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
+ 
+  const { user }  = useAuth();
 
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -201,17 +207,73 @@ export function Home({
       t.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-
   const deleteTransaction = (id) => {
     if (window.confirm("Delete this transaction?")) {
       setTransactions(transactions.filter((t) => t.id !== id));
     }
   };
 
+    const getReceiptType = (data) => {
+      try {
+        const manualList = [];
+        const smartList = data.contents.map((res, index) => {
+            if (!Array.isArray(res)) {
+              // console.log("Object type :: ", res);
+              return res;
+            }
+            manualList.push(res);
+            return null;
+          }).filter((remain) => remain !== null);
+  
+        // console.log("Smart list :: ", smartList);
+        // console.log("Manual list :: ", manualList.flat());
+  
+        return {
+          manualList: manualList.flat(),
+          smartList,
+        };
+      } catch (err) {
+        console.log("Unable to process the type of receipt" + err);
+        return {manualList : [], smartList : []}
+      }
+    };
+  
+    useEffect(() => {
+      const getUserReceipts = async () => {
+        console.log("Running get user receipts user id ::", user);
+        try {
+          setIsReceiptsLoading(true);
+          const receipts = await fetch("http://localhost:3000/user/receipts", {
+            method: "POST",
+            headers: {
+              "Content-type": "application/json",
+            },
+            body: JSON.stringify({ userId: user?._id }),
+          });
+          // console.log("User receipts ::", receipts);
+  
+          const data = await receipts.json();
+  
+          const receiptTypeInteg = getReceiptType(data);
+          // console.log("receipt type ::", receiptTypeInteg);
+  
+          setUserReceipts(receiptTypeInteg);
+          setIsReceiptsLoading(false);
+        } catch (err) {
+          console.error("Unable to get receipts");
+        }
+      };
+      getUserReceipts();
+    }, [user._id]);
+  
+
   useEffect(() => {
     console.log('Is receipt loading ::', isReceiptsLoading);
     console.log('Receipt type :: ', userReceipts);
-  }, [isReceiptsLoading, userReceipts]) 
+    // setSmartList(userReceipts?.smartList);
+    // setManualList(userReceipts?.manualList);
+
+  }, [userReceipts]) 
 
   if(isReceiptsLoading) {
     return <TransactionDashboardSkeleton/>
@@ -320,104 +382,234 @@ export function Home({
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredTransactions.map((transaction) => (
-                  <Card
-                    key={transaction.id}
-                    className="group border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300"
-                  >
-                    <CardContent className="p-0">
-                      {/* IMAGE */}
-                      <div className="aspect-square w-full overflow-hidden relative">
-                        <img
-                          src={
-                            transaction.image ||
-                            "https://logos-world.net/wp-content/uploads/2021/08/7-Eleven-Logo.jpg"
-                          }
-                          alt={transaction.name}
-                          className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
+           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+               {userReceipts?.smartList &&
+                 userReceipts?.smartList.map((transaction) => {
+      // Helper: Access metadata safely
+      const meta = transaction.metadata || {};
 
-                        {/* FLOATING AMOUNT */}
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold">
-                          ${transaction.amount.toFixed(2)}
-                        </div>
-                      </div>
+      // Helper: Determine Image
+      const displayImage =
+        meta.image ||
+        "https://logos-world.net/wp-content/uploads/2021/08/7-Eleven-Logo.jpg";
+      
+      return (
+        <Card
+          key={
+            transaction._id || transaction.transaction?.transaction_number
+          }
+          className="group border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
+        >
+          <CardContent className="p-0 flex flex-col h-full">
+            {/* IMAGE SECTION - CHANGED: h-32 instead of aspect-square */}
+            <div className="h-32 w-full overflow-hidden relative shrink-0">
+              <img
+                src={displayImage}
+                alt={transaction.store || "Store"}
+                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
 
-                      {/* CONTENT */}
-                      <div className="relative p-4 flex flex-col justify-between h-[140px]">
-                        <div>
-                          <p className="font-semibold text-slate-900 truncate">
-                            {transaction.name}
-                          </p>
-
-                          <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{transaction.date}</span>
-                          </div>
-
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            <Badge variant="secondary" className="text-[10px]">
-                              {transaction.category}
-                            </Badge>
-
-                            <Badge
-                              className={`text-[10px] ${
-                                transaction.type === "income"
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-orange-100 text-orange-700"
-                              }`}
-                            >
-                              {transaction.type}
-                            </Badge>
-                          </div>
-
-                          {transaction.notes && (
-                            <p className="text-xs text-slate-600 mt-2 line-clamp-2">
-                              {transaction.notes}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* TYPE LABEL */}
-                        <div
-                          className={`text-xs font-semibold ${
-                            transaction.type === "income"
-                              ? "text-emerald-600"
-                              : "text-slate-800"
-                          }`}
-                        >
-                          {transaction.type === "income" ? "Income" : "Expense"}
-                        </div>
-
-                        <div
-                          className="absolute bottom-3 right-3 flex gap-2
-                                    opacity-0 pointer-events-none
-                                    group-hover:opacity-100 group-hover:pointer-events-auto
-                                    transition-all z-20"
-                        >
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                            onClick={() => deleteTransaction(transaction.id)}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+              {/* FLOATING AMOUNT */}
+              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold shadow-sm">
+                ${transaction.total || 0}
               </div>
+            </div>
+
+            {/* CONTENT SECTION - CHANGED: Removed fixed h-[140px] so it grows with text */}
+            <div className="relative p-3 flex flex-col flex-grow justify-between gap-3">
+              <div>
+                {/* STORE NAME - CHANGED: line-clamp-2 so long names wrap instead of cutting off */}
+                <p className="font-semibold text-slate-900 text-sm sm:text-base line-clamp-2 leading-tight">
+                  {transaction.store || "Unknown Store"}
+                </p>
+
+                {/* DATE */}
+                <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">
+                    {meta.datetime
+                      ? new Date(meta.datetime).toLocaleDateString()
+                      : "No Date"}
+                  </span>
+                </div>
+
+                {/* TAGS */}
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <Badge variant="secondary" className="text-[10px] px-1 h-5">
+                    {meta.category || "General"}
+                  </Badge>
+
+                  <Badge
+                    className={`text-[10px] px-1 h-5 ${
+                      meta.type === "income"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                  >
+                    {meta.type || "expense"}
+                  </Badge>
+                </div>
+
+                {/* NOTES */}
+                {meta.notes && (
+                  <p className="text-xs text-slate-600 mt-2 line-clamp-2 break-words">
+                    {meta.notes}
+                  </p>
+                )}
+              </div>
+
+              {/* BOTTOM ROW: TYPE & ACTIONS */}
+              <div className="flex items-center justify-between mt-auto pt-2">
+                <div
+                  className={`text-xs font-semibold ${
+                    meta.type === "income"
+                      ? "text-emerald-600"
+                      : "text-slate-800"
+                  }`}
+                >
+                  {meta.type === "income" ? "Income" : "Expense"}
+                </div>
+
+                {/* ACTION BUTTONS (Always visible on mobile, hover on desktop) */}
+                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-slate-500 hover:text-blue-600"
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-slate-500 hover:text-red-600"
+                    onClick={() => deleteTransaction(transaction._id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+                 })}
+
+                 {userReceipts?.manualList &&
+               userReceipts.manualList.map((transaction, index) => {
+      // 1. Image: ManualScheme doesn't have an image, so we use a static fallback
+      const displayImage =
+                "https://logos-world.net/wp-content/uploads/2021/08/7-Eleven-Logo.jpg";
+
+      // 2. Amount: Schema defines 'ammount' (typo in schema) as String.
+      // We parse it to float to fix decimal points.
+      const amountValue = parseFloat(transaction.ammount || 0);
+
+      // 3. Type: Check strictly against your schema field
+      const isIncome = transaction.transaction_type?.toLowerCase() === "income";
+
+      return (
+        <Card
+          key={index}
+          className="group border-slate-200 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col"
+        >
+          <CardContent className="p-0 flex flex-col h-full">
+            {/* IMAGE SECTION (Fixed h-32) */}
+            <div className="h-32 w-full overflow-hidden relative shrink-0">
+              <img
+                src={displayImage}
+                alt={transaction.description || "Transaction"}
+                className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+
+              {/* FLOATING AMOUNT */}
+              <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold shadow-sm">
+                ${amountValue.toFixed(2)}
+              </div>
+            </div>
+
+            {/* CONTENT SECTION */}
+            <div className="relative p-3 flex flex-col flex-grow justify-between gap-3">
+              <div>
+                {/* DESCRIPTION (Used as Title) */}
+                <p className="font-semibold text-slate-900 text-sm sm:text-base line-clamp-2 leading-tight">
+                  {transaction.description || "No Description"}
+                </p>
+
+                {/* DATE */}
+                <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+                  <Calendar className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">
+                    {/* Schema 'date' is a String, render directly or format if needed */}
+                    {transaction.date || new Date(transaction.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+
+                {/* TAGS */}
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <Badge variant="secondary" className="text-[10px] px-1 h-5">
+                    {transaction.category || "General"}
+                  </Badge>
+
+                  <Badge
+                    className={`text-[10px] px-1 h-5 ${
+                      isIncome
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-orange-100 text-orange-700"
+                    }`}
+                  >
+                    {transaction.transaction_type || "Expense"}
+                  </Badge>
+                </div>
+
+                {/* NOTES */}
+                {transaction.notes && (
+                  <p className="text-xs text-slate-600 mt-2 line-clamp-2 break-words">
+                    {transaction.notes}
+                  </p>
+                )}
+              </div>
+
+              {/* BOTTOM ROW: TYPE & ACTIONS */}
+              <div className="flex items-center justify-between mt-auto pt-2">
+                <div
+                  className={`text-xs font-semibold ${
+                    isIncome ? "text-emerald-600" : "text-slate-800"
+                  }`}
+                >
+                  {isIncome ? "Income" : "Expense"}
+                </div>
+
+                {/* ACTION BUTTONS */}
+                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-slate-500 hover:text-blue-600"
+                  >
+                    <Edit className="w-3 h-3" />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 text-slate-500 hover:text-red-600"
+                    onClick={() => deleteTransaction(transaction._id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+               })}
+
+            </div>
+
+            
             )}
           </TabsContent>
 
