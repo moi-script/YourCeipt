@@ -17,7 +17,7 @@ import MultipleUpload from "./FileUploads";
 import VideoLoader from "./components/loaders/AnimatedLoader";
 import TransactionDashboardSkeleton from "./components/loaders/HomeSkeletonLoader";
 import AIModelDashboard from "./Home/MyModels";
-
+import UserMenu from "./Home/Logout";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />

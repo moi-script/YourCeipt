@@ -17,8 +17,30 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setLoading] = useState(true);
   const [registerLoading, setRegisterLoading] = useState(true);
   const [receipts, setReceipts] = useState(null);
-
+  const [isModelLoading, setIsModelLoading] = useState(true);
   // fetching user receipt list
+
+
+  const [models, setModels] = useState(null);
+  
+    // ... (Your existing useEffects remain the same) ...
+    useEffect(() => {
+      console.error('Fetching ai models ');
+      const fetchAi = async () => {
+      console.log('Fetching ai --> ');
+        try {
+          setIsModelLoading(true);
+          const res = await fetch("http://localhost:3000/extract/getModels");
+          const data = await res.json();
+          setModels(data.models);
+          setIsModelLoading(false);
+        } catch (err) {
+          console.error("Unable to fetch ai models");
+        }
+      };
+      fetchAi();
+  
+    }, []);
  
 
   // useEffect(() => {
@@ -32,8 +54,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = useCallback(async (endpoint, options = {}) => {
-    const loginRes = await loginFetch(endpoint, options);
-    return loginRes;
+    const loginRes =  await loginFetch(endpoint, options);
+    // console.log('Login res --> ',await loginRes.json());
+    return await loginRes.json();
   }, []);
 
   const uploadReceipts = useCallback(async (endpoint, options = {}) => {
@@ -76,6 +99,10 @@ export const AuthProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       user,
+      setIsModelLoading,
+      isModelLoading,
+      models,
+      setModels,
       setUser,
       login,
       logout,
@@ -95,6 +122,10 @@ export const AuthProvider = ({ children }) => {
     }),
     [
       user,
+      setIsModelLoading,
+      isModelLoading,
+      models,
+      setModels,
       setUser,
       login,
       logout,

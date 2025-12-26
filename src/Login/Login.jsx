@@ -21,7 +21,8 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [error, setError] = useState(null);
+ 
   const { login, user, setUser} = useAuth();
 
   const steps = [
@@ -63,16 +64,24 @@ const Login = () => {
         },
         body : JSON.stringify({email, password})
       })
+      // const data = await res.json();
 
       if(res.status === 200) {
         console.log('Succesfully login');
-        console.log('Setting a user ::', res);
+        console.log('Setting a user ::',  res);
         setUser(res);
         navigate(from, { replace: true });
         
-      };
+      } else {
+
+      }
     } catch(err) {
       console.error('Error login', err);
+      setError("Invalid email or password");
+      setTimeout(() => {
+      setError(null);
+      setPassword("");
+      }, 3000);
     }
 
   };
@@ -253,6 +262,8 @@ const Login = () => {
                       )}
                     </button>
                   </div>
+                  <p style={{color : 'red'}}>{error && error}</p>
+
                 </div>
 
                 {/* Forgot Password */}

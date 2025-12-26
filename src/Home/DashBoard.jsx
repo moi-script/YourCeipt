@@ -62,6 +62,7 @@ import {
 } from "lucide-react";
 import { href, Link, NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import UserMenu from "./Logout";
 
 
 
@@ -394,17 +395,8 @@ export function BudgetDashboard() {
           sidebarOpen ? "w-64" : "w-0"
         } transition-all duration-300 bg-white border-r border-slate-200 flex flex-col overflow-hidden`}
       >
-        <div className="p-6 border-b border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-2 rounded-xl">
-              <DollarSign className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-slate-900">BudgetMaster</h2>
-              <p className="text-xs text-slate-500">Financial Freedom</p>
-            </div>
-          </div>
-        </div>
+
+         <UserMenu/>
 
         <nav className="flex-1 p-4 space-y-1">
           <p className="text-slate-500 text-xs uppercase px-3 mb-2 font-semibold">
@@ -426,19 +418,9 @@ export function BudgetDashboard() {
           ))}
         </nav>
 
-        <div className="p-6 border-t border-slate-200">
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback className="bg-emerald-100 text-emerald-600">
-                JD
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-900">John Doe</p>
-              <p className="text-xs text-slate-500">john@example.com</p>
-            </div>
-          </div>
-        </div>
+       
+
+        
       </aside>
 
       {/* ========================================================================

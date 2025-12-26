@@ -30,5 +30,5 @@ export async function loginFetch(endpoint, options = {}) {
 
   if (!res.ok) throw res;
 
-  return await res.json();
+  return  res;
 }

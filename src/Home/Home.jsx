@@ -218,15 +218,12 @@ export function Home({
         const manualList = [];
         const smartList = data.contents.map((res, index) => {
             if (!Array.isArray(res)) {
-              // console.log("Object type :: ", res);
               return res;
             }
             manualList.push(res);
             return null;
           }).filter((remain) => remain !== null);
   
-        // console.log("Smart list :: ", smartList);
-        // console.log("Manual list :: ", manualList.flat());
   
         return {
           manualList: manualList.flat(),
@@ -267,13 +264,6 @@ export function Home({
     }, [user._id]);
   
 
-  useEffect(() => {
-    console.log('Is receipt loading ::', isReceiptsLoading);
-    console.log('Receipt type :: ', userReceipts);
-    // setSmartList(userReceipts?.smartList);
-    // setManualList(userReceipts?.manualList);
-
-  }, [userReceipts]) 
 
   if(isReceiptsLoading) {
     return <TransactionDashboardSkeleton/>
