@@ -6,45 +6,37 @@ import {
   Plus,
   X
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDialogOpen}) {
-    const headerRef = useRef(null);
-    const [headerSize, setHeaderSize] = useState({ width: 0, height: 0 });
-
+    const { user } = useAuth();
     // 2. Add this hook to listen for screen resize
     useEffect(() => {
         const handleResize = () => {
-            // Tailwind's 'sm' breakpoint is usually 640px.
-            // If screen is smaller than 640px, close the sidebar.
-            if (headerSize.width < 640) {
-              console.log('Window with ::', window.innerWidth);
+        const width = window.innerWidth;
+
+            // console.log('Being triggered', window.innerHeight);
+          
+            if (width < 640) {
+            //   console.log('Window with ::', window);
                 setSidebarOpen(false);
+            } else {
+                // console.log('Trigger large');
+                setSidebarOpen(true);
             }
         };
 
-        // Add event listener
+        handleResize();
+
         window.addEventListener('resize', handleResize);
 
-        // Cleanup listener on component unmount
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
 
+    }, [user, window.innerWidth]);
 
-  useEffect(() => {
-    if (headerRef.current) {
-      // clientWidth/clientHeight includes padding but not borders
-      // offsetWidth/offsetHeight includes padding AND borders
-      const width = headerRef.current.offsetWidth;
-      const height = headerRef.current.offsetHeight;
-      
-      console.log("Header Width:", width, "Header Height:", height);
-      
-      setHeaderSize({ width, height });
-    }
-  }, []); // Empty dependency array runs this once on mount
 
     return (
-        <header ref={headerRef} className="bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4">
+        <header  className="bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4">
             <div className="flex items-center justify-between gap-2">
                 {/* Left side - Menu and Search */}
                 <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">

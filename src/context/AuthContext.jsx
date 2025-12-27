@@ -18,6 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [registerLoading, setRegisterLoading] = useState(true);
   const [receipts, setReceipts] = useState(null);
   const [isModelLoading, setIsModelLoading] = useState(true);
+  const [refreshPage, setRefreshPage] = useState(false);
   // fetching user receipt list
 
 
@@ -99,6 +100,8 @@ export const AuthProvider = ({ children }) => {
   const value = useMemo(
     () => ({
       user,
+      refreshPage,
+      setRefreshPage,
       setIsModelLoading,
       isModelLoading,
       models,
@@ -122,6 +125,8 @@ export const AuthProvider = ({ children }) => {
     }),
     [
       user,
+      refreshPage,
+      setRefreshPage,
       setIsModelLoading,
       isModelLoading,
       models,

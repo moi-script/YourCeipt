@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Camera, Upload, FileText, Loader2 } from "lucide-react";
+import { Camera, Upload, X, FileText, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function DialogForm({
@@ -36,7 +36,6 @@ export function DialogForm({
   const [selectedFiles, setSelectedFiles] = useState(null);
   const [receiptContent, setReceiptContent] = useState(null);
   const [color, setColor] = useState("from-emerald-600");
-  // const { setReceipts } = useAuth();
 
   // const [text, setExtractedText] = useState(null);
   const categories = [
@@ -67,7 +66,7 @@ export function DialogForm({
     });
   };
 
-  const { user, receipts, uploadReceipts, setReceipts } = useAuth(); // _id
+  const { user, uploadReceipts, setReceipts, refreshPage, setRefreshPage } = useAuth(); // _id
 
   const [manualReceipt, setManualReceipt] = useState({
     transaction_type: "expense",
@@ -76,6 +75,7 @@ export function DialogForm({
     category: "",
     date: "",
     notes: "",
+    currency : "PHP" // set for default 
   });
 
   const handleManualReceiptChange = (e) => {
@@ -97,6 +97,7 @@ export function DialogForm({
   };
 
   const uploadManualReceipt = async () => {
+    console.log('Manual receipt', manualReceipt);
     try {
       const res = await fetch("http://localhost:3000/receipt/uploadManual", {
         method: "POST",
@@ -214,12 +215,20 @@ export function DialogForm({
     }
   };
 
+  const handleClearUploads = async () => {
+    try {
+      const res = await fetch('/clearUploads');
+    } catch(err){
+      console.error('Unable to clean uploads ::', err);
+    }
+  }
+
   const uploadInput = () => {
     console.log("Input mode ::", inputMode);
     // setColor("from-emerald-600");
+
     switch (inputMode) {
       case "manual":
-        console.log("true manual");
         return uploadManualReceipt();
       case "receipt":
         return handleUploadReceipts();
@@ -236,8 +245,6 @@ export function DialogForm({
     date: "",
     notes: "",
   });
-
-
 
   return (
     <>
@@ -448,14 +455,22 @@ export function DialogForm({
 
           {/* DIALOG ACTIONS */}
           <div className="flex justify-end gap-3 pt-6">
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              handleClearUploads();
+              setIsAddDialogOpen(false);
+            }}>
               Cancel
             </Button>
 
             <Button
               disabled={isLoading}
               className={`bg-gradient-to-r ${color} to-teal-600`}
-              onClick={uploadInput}
+              onClick={() => {
+                setRefreshPage(true);
+                uploadInput();
+                setIsAddDialogOpen(false);
+                // setRefreshPage(false);
+              }}
             >
               {isLoading && <Loader2 className="animate-spin" />}
               Save Transaction

@@ -16,7 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // import { toast } from "sonner";
 
 import {
-  //   DollarSign,
+    DollarSign,
+    PhilippinePeso,
   TrendingUp,
   TrendingDown,
   Wallet,
@@ -36,9 +37,10 @@ import {
   Receipt,
 } from "lucide-react";
 
-import { DialogForm } from "@/Input/DialogForm";
+// import { DialogForm } from "@/Input/DialogForm";
 import { useAuth } from "@/context/AuthContext";
 import TransactionDashboardSkeleton from "@/components/loaders/HomeSkeletonLoader";
+import { DeleteAlert } from "@/components/DeleteAlert";
 
 const stats = [
   {
@@ -91,6 +93,17 @@ const getColorClass = (color, type = "bg") => {
   };
   return colors[color] || "";
 };
+
+
+
+const CurrencySign = ({currency, total}) => {
+  return (
+    <span className="inline-flex items-center gap-1"> 
+      {currency === "USD" ? <DollarSign size={14} /> : <PhilippinePeso size={14} />}
+      <span>{total}</span>
+    </span>
+  )
+}
 
 export function Home({
   sidebarOpen,
@@ -195,10 +208,7 @@ export function Home({
 
   const [userReceipts, setUserReceipts] = useState(null);
   const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
- 
-  const { user }  = useAuth();
-
-
+  const { user, refreshPage, setRefreshPage }  = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredTransactions = transactions.filter(
@@ -255,14 +265,31 @@ export function Home({
           // console.log("receipt type ::", receiptTypeInteg);
   
           setUserReceipts(receiptTypeInteg);
+          console.log('Refresh state ::', refreshPage);
           setIsReceiptsLoading(false);
         } catch (err) {
           console.error("Unable to get receipts");
         }
       };
       getUserReceipts();
-    }, [user._id]);
-  
+      setRefreshPage(false);
+    }, [user._id, refreshPage]);
+
+
+
+    const handleDeleteReceipts = async (id, type) => {
+
+     try {
+       const res = await fetch(`http://localhost:3000/receipt/delete?id=${id}&type=${type}`,{
+        method : "DELETE"
+       });
+      const data = await res.json();
+      setRefreshPage(true);
+      console.log('Triggering refresh');
+     } catch(err){
+      console.error('Unable to delete', err);
+     } 
+    }
 
 
   if(isReceiptsLoading) {
@@ -359,7 +386,7 @@ export function Home({
             </div>
 
             {/* Transaction Cards */}
-            {filteredTransactions.length === 0 ? (
+            {(userReceipts?.smartList.length === 0 && userReceipts?.manualList.length === 0 ) ? (
               <Card className="border-slate-200">
                 <CardContent className="p-12">
                   <div className="text-center text-slate-500">
@@ -394,14 +421,16 @@ export function Home({
             {/* IMAGE SECTION - CHANGED: h-32 instead of aspect-square */}
             <div className="h-32 w-full overflow-hidden relative shrink-0">
               <img
-                src={displayImage}
-                alt={transaction.store || "Store"}
+                src={meta.image_source || displayImage}
+                alt={displayImage || "Store"}
                 className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
 
               {/* FLOATING AMOUNT */}
               <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold shadow-sm">
-                ${transaction.total || 0}
+                
+               <p> {transaction?.metadata?.currency && <CurrencySign currency={transaction?.metadata?.currency}
+                 total={(transaction.total || transaction.subtotal) || 0}/>}</p>
               </div>
             </div>
 
@@ -419,7 +448,7 @@ export function Home({
                   <span className="truncate">
                     {meta.datetime
                       ? new Date(meta.datetime).toLocaleDateString()
-                      : "No Date"}
+                      : transaction.createdAt.split('T')[0]}
                   </span>
                 </div>
 
@@ -470,14 +499,11 @@ export function Home({
                     <Edit className="w-3 h-3" />
                   </Button>
 
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 text-slate-500 hover:text-red-600"
-                    onClick={() => deleteTransaction(transaction._id)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                   <DeleteAlert 
+                   onDelete={() => handleDeleteReceipts(transaction._id, "smart")}
+                  itemName={transaction.store}
+                  // onClick={() => }
+                  />
                 </div>
               </div>
             </div>
@@ -485,6 +511,22 @@ export function Home({
         </Card>
       );
                  })}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                 
 
                  {userReceipts?.manualList &&
                userReceipts.manualList.map((transaction, index) => {
@@ -494,7 +536,7 @@ export function Home({
 
       // 2. Amount: Schema defines 'ammount' (typo in schema) as String.
       // We parse it to float to fix decimal points.
-      const amountValue = parseFloat(transaction.ammount || 0);
+      const amountValue = parseFloat(transaction.amount || 0);
 
       // 3. Type: Check strictly against your schema field
       const isIncome = transaction.transaction_type?.toLowerCase() === "income";
@@ -515,7 +557,8 @@ export function Home({
 
               {/* FLOATING AMOUNT */}
               <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-1 rounded-lg text-sm font-bold shadow-sm">
-                ${amountValue.toFixed(2)}
+                 <p> {transaction?.currency && <CurrencySign currency={transaction?.currency}
+                 total={amountValue || 0}/>}</p>
               </div>
             </div>
 
@@ -581,14 +624,10 @@ export function Home({
                     <Edit className="w-3 h-3" />
                   </Button>
 
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 text-slate-500 hover:text-red-600"
-                    onClick={() => deleteTransaction(transaction._id)}
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
+                  <DeleteAlert 
+                  onDelete={() => handleDeleteReceipts(transaction._id, "manual")} 
+                  itemName={transaction.store}
+                  />
                 </div>
               </div>
             </div>
