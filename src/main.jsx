@@ -18,6 +18,8 @@ import VideoLoader from "./components/loaders/AnimatedLoader";
 import TransactionDashboardSkeleton from "./components/loaders/HomeSkeletonLoader";
 import AIModelDashboard from "./Home/MyModels";
 import UserMenu from "./Home/Logout";
+import ProfilePage from "./Home/Profile";
+import OrganicPrivacyPage from "./Home/PrivacySecurity";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />

@@ -1,25 +1,5 @@
 import { useState } from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 import {
   Settings,
   Palette,
@@ -31,12 +11,139 @@ import {
   Plus,
   Trash2,
   Edit,
-  ChevronRight,
   Moon,
-  Sun,
   Layout,
-  DollarSign,
+  Sparkles
 } from "lucide-react";
+
+// --- CUSTOM ORGANIC COMPONENTS ---
+
+const Card = ({ children, className = "" }) => (
+  <div className={`backdrop-blur-md border border-white/50 dark:border-white/5 bg-white/60 dark:bg-stone-900/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden transition-all duration-300 ${className}`}>
+    {children}
+  </div>
+);
+
+const CardHeader = ({ children, className = "" }) => (
+  <div className={`p-8 pb-4 ${className}`}>{children}</div>
+);
+
+const CardTitle = ({ children, className = "" }) => (
+  <h3 className={`text-xl font-serif text-stone-800 dark:text-stone-100 ${className}`}>{children}</h3>
+);
+
+const CardDescription = ({ children, className = "" }) => (
+  <p className={`text-sm text-stone-500 dark:text-stone-400 mt-1 ${className}`}>{children}</p>
+);
+
+const CardContent = ({ children, className = "" }) => (
+  <div className={`p-8 pt-0 ${className}`}>{children}</div>
+);
+
+const Input = ({ className = "", ...props }) => (
+  <input
+    className={`w-full px-5 py-3 bg-white/50 dark:bg-stone-800/50 border border-transparent rounded-full text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 focus:bg-white dark:focus:bg-stone-800 transition-all shadow-sm ${className}`}
+    {...props}
+  />
+);
+
+const Label = ({ children, className = "", htmlFor }) => (
+  <label htmlFor={htmlFor} className={`block text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2 ml-4 ${className}`}>
+    {children}
+  </label>
+);
+
+const Separator = () => (
+  <div className="h-px w-full bg-gradient-to-r from-transparent via-stone-200 dark:via-stone-700 to-transparent my-6" />
+);
+
+const Badge = ({ children, variant = "default", className = "" }) => {
+  const styles = variant === "secondary" 
+    ? "bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300" 
+    : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800";
+  
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${styles} ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+const Button = ({ children, variant = "default", disabled, onClick, className = "" }) => {
+  const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-300 rounded-full h-11 px-6 text-sm disabled:opacity-50 disabled:cursor-not-allowed";
+  const variants = {
+    default: "bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/10",
+    outline: "border-2 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:border-emerald-200 dark:hover:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 bg-transparent",
+    ghost: "hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 text-stone-400 dark:text-stone-500 bg-transparent",
+  };
+  
+  return (
+    <button onClick={onClick} disabled={disabled} className={`${baseStyles} ${variants[variant]} ${className}`}>
+      {children}
+    </button>
+  );
+};
+
+// Custom Tabs Components
+const Tabs = ({ children, defaultValue }) => {
+  const [activeTab, setActiveTab] = useState(defaultValue);
+  
+  // Pass activeTab state to children
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, { activeTab, setActiveTab });
+    }
+    return child;
+  });
+
+  return <div className="space-y-6">{childrenWithProps}</div>;
+};
+
+const TabsList = ({ children, activeTab, setActiveTab }) => (
+  <div className="bg-white/40 dark:bg-stone-900/40 border border-white/50 dark:border-white/5 backdrop-blur-md p-1.5 rounded-full inline-flex flex-wrap gap-1">
+    {React.Children.map(children, child => 
+      React.cloneElement(child, { activeTab, setActiveTab })
+    )}
+  </div>
+);
+
+const TabsTrigger = ({ children, value, activeTab, setActiveTab, className = "" }) => (
+  <button
+    onClick={() => setActiveTab(value)}
+    className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 ${
+      activeTab === value 
+        ? "bg-emerald-700 dark:bg-emerald-600 text-white shadow-md" 
+        : "text-stone-500 dark:text-stone-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-white/50 dark:hover:bg-stone-800/50"
+    } ${className}`}
+  >
+    {children}
+  </button>
+);
+
+const TabsContent = ({ children, value, activeTab }) => {
+  if (activeTab !== value) return null;
+  return <div className="animate-in fade-in zoom-in-95 duration-300">{children}</div>;
+};
+
+// Custom Select Component
+const Select = ({ value, onValueChange, options, placeholder }) => (
+  <div className="relative">
+    <select
+      value={value}
+      onChange={(e) => onValueChange(e.target.value)}
+      className="w-full px-5 py-3 appearance-none bg-white/50 dark:bg-stone-800/50 border border-transparent rounded-full text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 focus:bg-white dark:focus:bg-stone-800 transition-all shadow-sm cursor-pointer"
+    >
+      {options.map((opt) => (
+        <option key={opt.value} value={opt.value}>{opt.label}</option>
+      ))}
+    </select>
+    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+  </div>
+);
+
+import React from 'react';
 
 export default function SettingsDashboard() {
   // ============================================================================
@@ -60,54 +167,10 @@ export default function SettingsDashboard() {
         { title: "Settings", icon: "Settings", href: "/settings" },
       ],
     },
-    stats: [
-      {
-        key: "totalBalance",
-        title: "Total Balance",
-        value: 24580,
-        change: "+12.5%",
-        positive: true,
-        icon: "Wallet",
-        color: "emerald",
-      },
-      {
-        key: "monthlyIncome",
-        title: "Monthly Income",
-        value: 8420,
-        change: "+8.2%",
-        positive: true,
-        icon: "TrendingUp",
-        color: "blue",
-      },
-      {
-        key: "monthlyExpenses",
-        title: "Monthly Expenses",
-        value: 5230,
-        change: "-3.1%",
-        positive: false,
-        icon: "TrendingDown",
-        color: "orange",
-      },
-      {
-        key: "savingsGoal",
-        title: "Savings Goal",
-        value: 0.68,
-        change: "Target: $10k",
-        positive: true,
-        icon: "PieChart",
-        color: "purple",
-      },
-    ],
+    // ... stats removed for brevity as they aren't displayed in settings UI ...
     categories: {
       transactionCategories: [
-        "Food",
-        "Transportation",
-        "Entertainment",
-        "Shopping",
-        "Utilities",
-        "Income",
-        "Healthcare",
-        "Other",
+        "Food", "Transportation", "Entertainment", "Shopping", "Utilities", "Income", "Healthcare", "Other",
       ],
       budgetCategories: [
         { name: "Food & Dining", spent: 450, budget: 600, color: "emerald" },
@@ -118,144 +181,73 @@ export default function SettingsDashboard() {
     },
     notifications: {
       list: [
-        {
-          title: "Salary Credited",
-          message: "₱4,200 has been added to your balance.",
-          type: "success",
-        },
-        {
-          title: "Budget Warning",
-          message: "You are close to exceeding your Food budget.",
-          type: "warning",
-        },
-        {
-          title: "Subscription Charged",
-          message: "Netflix charged ₱15.99",
-          type: "info",
-        },
+        { title: "Salary Credited", message: "₱4,200 has been added to your balance.", type: "success" },
+        { title: "Budget Warning", message: "You are close to exceeding your Food budget.", type: "warning" },
+        { title: "Subscription Charged", message: "Netflix charged ₱15.99", type: "info" },
       ],
-      behavior: {
-        staggerDelayMs: 300,
-        showDotIndicator: true,
-      },
+      behavior: { staggerDelayMs: 300, showDotIndicator: true },
     },
     transactions: {
-      schema: {
-        id: "number",
-        name: "string",
-        amount: "number",
-        category: "string",
-        date: "string",
-        type: "expense | income",
-        notes: "string",
-        image: "string | null",
-      },
-      ui: {
-        showImagePreview: true,
-        hoverActions: ["edit", "delete"],
-        searchEnabled: true,
-      },
+      ui: { showImagePreview: true, hoverActions: ["edit", "delete"], searchEnabled: true },
     },
     addTransactionModal: {
       inputModes: [
-        { id: "manual", label: "Manual Entry", icon: "FileText" },
-        { id: "receipt", label: "Scan Receipt", icon: "Camera" },
-        { id: "quick", label: "Quick Text", icon: "Upload" },
+        { id: "manual", label: "Manual Entry" },
+        { id: "receipt", label: "Scan Receipt" },
+        { id: "quick", label: "Quick Text" },
       ],
-      manualFields: ["type", "name", "amount", "category", "date", "notes"],
       ocrPreviewEnabled: true,
-      quickTextParsing: {
-        detectAmount: true,
-        detectType: true,
-        extractName: true,
-      },
+      quickTextParsing: { detectAmount: true, detectType: true, extractName: true },
     },
-    tabs: [
-      { id: "overview", title: "Overview" },
-      { id: "transactions", title: "Transactions" },
-      { id: "budgets", title: "Budgets" },
-    ],
   };
 
-  // ============================================================================
-  // STATE MANAGEMENT
-  // ============================================================================
   const [config, setConfig] = useState(initialConfig);
   const [hasChanges, setHasChanges] = useState(false);
   const [newCategory, setNewCategory] = useState("");
-  const [newBudgetCategory, setNewBudgetCategory] = useState({
-    name: "",
-    budget: "",
-    color: "emerald",
-  });
+  const [newBudgetCategory, setNewBudgetCategory] = useState({ name: "", budget: "", color: "emerald" });
 
-  // ============================================================================
-  // HANDLERS
-  // ============================================================================
+  // Helper to deep update state
   const updateConfig = (path, value) => {
     setConfig((prev) => {
       const updated = { ...prev };
       const keys = path.split(".");
       let current = updated;
-
       for (let i = 0; i < keys.length - 1; i++) {
         current[keys[i]] = { ...current[keys[i]] };
         current = current[keys[i]];
       }
-
       current[keys[keys.length - 1]] = value;
       return updated;
     });
     setHasChanges(true);
   };
 
-  const handleSave = () => {
-    console.log("Saving configuration:", config);
-    setHasChanges(false);
-    // Here you would typically save to localStorage or send to API
-  };
-
-  const handleReset = () => {
-    setConfig(initialConfig);
-    setHasChanges(false);
-  };
+  const handleSave = () => { console.log("Saving:", config); setHasChanges(false); };
+  const handleReset = () => { setConfig(initialConfig); setHasChanges(false); };
 
   const addTransactionCategory = () => {
     if (newCategory.trim()) {
-      updateConfig("categories.transactionCategories", [
-        ...config.categories.transactionCategories,
-        newCategory.trim(),
-      ]);
+      updateConfig("categories.transactionCategories", [...config.categories.transactionCategories, newCategory.trim()]);
       setNewCategory("");
     }
   };
 
   const removeTransactionCategory = (index) => {
-    const updated = config.categories.transactionCategories.filter(
-      (_, i) => i !== index
-    );
+    const updated = config.categories.transactionCategories.filter((_, i) => i !== index);
     updateConfig("categories.transactionCategories", updated);
   };
 
   const addBudgetCategory = () => {
     if (newBudgetCategory.name && newBudgetCategory.budget) {
-      updateConfig("categories.budgetCategories", [
-        ...config.categories.budgetCategories,
-        {
-          name: newBudgetCategory.name,
-          spent: 0,
-          budget: parseFloat(newBudgetCategory.budget),
-          color: newBudgetCategory.color,
-        },
-      ]);
+      updateConfig("categories.budgetCategories", [...config.categories.budgetCategories, {
+        name: newBudgetCategory.name, spent: 0, budget: parseFloat(newBudgetCategory.budget), color: newBudgetCategory.color
+      }]);
       setNewBudgetCategory({ name: "", budget: "", color: "emerald" });
     }
   };
 
   const removeBudgetCategory = (index) => {
-    const updated = config.categories.budgetCategories.filter(
-      (_, i) => i !== index
-    );
+    const updated = config.categories.budgetCategories.filter((_, i) => i !== index);
     updateConfig("categories.budgetCategories", updated);
   };
 
@@ -265,23 +257,26 @@ export default function SettingsDashboard() {
     updateConfig("navigation.items", updated);
   };
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
   return (
-    <div className="min-h-screen bg-slate-50">
+    // 1. MAIN BG: Warm bone white (Light) / Deep Stone (Dark)
+    <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 transition-colors duration-300">
+      
+      {/* Decorative Blobs */}
+      <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/20 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-30 pointer-events-none animate-pulse"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/20 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-30 pointer-events-none"></div>
+
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+      <div className="bg-white/40 dark:bg-stone-900/40 backdrop-blur-md border-b border-white/50 dark:border-white/5 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                <Settings className="w-8 h-8 text-emerald-600" />
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800/30 backdrop-blur-sm shadow-sm mb-2">
+                 <Settings className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
+                 <span className="text-[10px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold">Configuration</span>
+              </div>
+              <h1 className="text-3xl font-serif italic text-stone-900 dark:text-stone-100">
                 Settings
               </h1>
-              <p className="text-slate-500 mt-1">
-                Manage app preferences, categories, and behavior
-              </p>
             </div>
             <div className="flex gap-3">
               <Button
@@ -295,7 +290,6 @@ export default function SettingsDashboard() {
               <Button
                 onClick={handleSave}
                 disabled={!hasChanges}
-                className="bg-gradient-to-r from-emerald-600 to-teal-600"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Save Changes
@@ -307,45 +301,23 @@ export default function SettingsDashboard() {
       
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="bg-white border border-slate-200 p-1">
-            <TabsTrigger value="general" className="gap-2">
-              <Layout className="w-4 h-4" />
-              General
-            </TabsTrigger>
-            <TabsTrigger value="appearance" className="gap-2">
-              <Palette className="w-4 h-4" />
-              Appearance
-            </TabsTrigger>
-            <TabsTrigger value="navigation" className="gap-2">
-              <Navigation className="w-4 h-4" />
-              Navigation
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="gap-2">
-              <Tag className="w-4 h-4" />
-              Categories
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="w-4 h-4" />
-              Notifications
-            </TabsTrigger>
-            <TabsTrigger value="advanced" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Advanced
-            </TabsTrigger>
+      <div className="max-w-7xl mx-auto px-6 py-8 relative z-10">
+        <Tabs defaultValue="general">
+          <TabsList>
+            <TabsTrigger value="general"><Layout className="w-4 h-4" /> General</TabsTrigger>
+            <TabsTrigger value="appearance"><Palette className="w-4 h-4" /> Appearance</TabsTrigger>
+            <TabsTrigger value="navigation"><Navigation className="w-4 h-4" /> Navigation</TabsTrigger>
+            <TabsTrigger value="categories"><Tag className="w-4 h-4" /> Categories</TabsTrigger>
+            <TabsTrigger value="notifications"><Bell className="w-4 h-4" /> Notifications</TabsTrigger>
+            <TabsTrigger value="advanced"><Sparkles className="w-4 h-4" /> Advanced</TabsTrigger>
           </TabsList>
 
-          {/* ====================================================================
-              GENERAL TAB
-          ==================================================================== */}
-          <TabsContent value="general" className="space-y-6">
+          {/* ================= GENERAL TAB ================= */}
+          <TabsContent value="general">
             <Card>
               <CardHeader>
                 <CardTitle>Application Information</CardTitle>
-                <CardDescription>
-                  Basic details about your budget application
-                </CardDescription>
+                <CardDescription>Basic details about your budget application</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
@@ -363,165 +335,121 @@ export default function SettingsDashboard() {
                   <Input
                     id="tagline"
                     value={config.app.tagline}
-                    onChange={(e) =>
-                      updateConfig("app.tagline", e.target.value)
-                    }
+                    onChange={(e) => updateConfig("app.tagline", e.target.value)}
                     placeholder="Enter tagline"
                   />
                 </div>
 
                 <Separator />
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
                   <div className="space-y-1">
-                    <div className="font-medium">Currency Display</div>
-                    <div className="text-sm text-slate-500">
-                      Set your preferred currency symbol
-                    </div>
+                    <div className="font-bold text-stone-800 dark:text-stone-200">Currency Display</div>
+                    <div className="text-sm text-stone-500 dark:text-stone-400">Set your preferred currency symbol</div>
                   </div>
-                  <Select defaultValue="usd">
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="usd">$ USD</SelectItem>
-                      <SelectItem value="php">₱ PHP</SelectItem>
-                      <SelectItem value="eur">€ EUR</SelectItem>
-                      <SelectItem value="gbp">£ GBP</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="w-40">
+                    <Select 
+                        value="usd" 
+                        onValueChange={() => {}} 
+                        options={[
+                            {value: "usd", label: "$ USD"},
+                            {value: "php", label: "₱ PHP"},
+                            {value: "eur", label: "€ EUR"}
+                        ]}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* ====================================================================
-              APPEARANCE TAB
-          ==================================================================== */}
-          <TabsContent value="appearance" className="space-y-6">
+          {/* ================= APPEARANCE TAB ================= */}
+          <TabsContent value="appearance">
             <Card>
               <CardHeader>
                 <CardTitle>Theme Settings</CardTitle>
-                <CardDescription>
-                  Customize the visual appearance of your app
-                </CardDescription>
+                <CardDescription>Customize the visual appearance</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
                   <div className="space-y-1">
-                    <div className="font-medium flex items-center gap-2">
-                      <Moon className="w-4 h-4" />
-                      Dark Mode
+                    <div className="font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
+                      <Moon className="w-4 h-4" /> Dark Mode
                     </div>
-                    <div className="text-sm text-slate-500">
-                      Enable dark theme option for users
-                    </div>
+                    <div className="text-sm text-stone-500 dark:text-stone-400">Enable dark theme option</div>
                   </div>
                   <Switch
                     checked={config.app.theme.allowDarkMode}
-                    onCheckedChange={(checked) =>
-                      updateConfig("app.theme.allowDarkMode", checked)
-                    }
+                    onCheckedChange={(checked) => updateConfig("app.theme.allowDarkMode", checked)}
+                    className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
                   <div className="space-y-1">
-                    <div className="font-medium flex items-center gap-2">
-                      <Layout className="w-4 h-4" />
-                      Collapsed Sidebar by Default
+                    <div className="font-bold flex items-center gap-2 text-stone-800 dark:text-stone-200">
+                      <Layout className="w-4 h-4" /> Sidebar Collapsed
                     </div>
-                    <div className="text-sm text-slate-500">
-                      Start with sidebar minimized
-                    </div>
+                    <div className="text-sm text-stone-500 dark:text-stone-400">Start minimized by default</div>
                   </div>
                   <Switch
                     checked={config.app.theme.sidebarCollapsed}
-                    onCheckedChange={(checked) =>
-                      updateConfig("app.theme.sidebarCollapsed", checked)
-                    }
+                    onCheckedChange={(checked) => updateConfig("app.theme.sidebarCollapsed", checked)}
+                    className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
                   />
                 </div>
 
                 <Separator />
 
                 <div className="space-y-3">
-                  <Label>Primary Color</Label>
+                  <Label>Accent Color</Label>
                   <div className="grid grid-cols-6 gap-3">
-                    {[
-                      "emerald",
-                      "blue",
-                      "purple",
-                      "orange",
-                      "pink",
-                      "indigo",
-                    ].map((color) => (
-                      <button
-                        key={color}
-                        className={`h-12 rounded-lg border-2 transition-all hover:scale-105 ${
-                          color === "emerald"
-                            ? "bg-emerald-500 border-emerald-600"
-                            : color === "blue"
-                            ? "bg-blue-500 border-blue-600"
-                            : color === "purple"
-                            ? "bg-purple-500 border-purple-600"
-                            : color === "orange"
-                            ? "bg-orange-500 border-orange-600"
-                            : color === "pink"
-                            ? "bg-pink-500 border-pink-600"
-                            : "bg-indigo-500 border-indigo-600"
-                        }`}
-                      />
-                    ))}
+                    {["emerald", "blue", "purple", "orange", "pink", "indigo"].map((color) => {
+                       const colors = {
+                           emerald: "bg-emerald-500", blue: "bg-blue-500", purple: "bg-purple-500",
+                           orange: "bg-orange-500", pink: "bg-pink-500", indigo: "bg-indigo-500"
+                       };
+                       return (
+                        <button
+                            key={color}
+                            className={`h-12 rounded-2xl border-4 border-white dark:border-stone-800 shadow-md transition-all hover:scale-105 ${colors[color]}`}
+                        />
+                       );
+                    })}
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* ====================================================================
-              NAVIGATION TAB
-          ==================================================================== */}
-          <TabsContent value="navigation" className="space-y-6">
+          {/* ================= NAVIGATION TAB ================= */}
+          <TabsContent value="navigation">
             <Card>
               <CardHeader>
                 <CardTitle>Navigation Menu</CardTitle>
-                <CardDescription>
-                  Configure sidebar navigation items
-                </CardDescription>
+                <CardDescription>Configure sidebar navigation items</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {config.navigation.items.map((item, index) => (
-                  <div
-                    key={index}
-                    className="p-4 border border-slate-200 rounded-lg space-y-3"
-                  >
+                  <div key={index} className="p-4 border border-stone-200 dark:border-stone-700 rounded-[1.5rem] bg-white/50 dark:bg-stone-800/30 space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="font-medium text-slate-900">
-                        Menu Item {index + 1}
-                      </div>
+                      <div className="font-medium text-stone-900 dark:text-stone-100">Menu Item {index + 1}</div>
                       <Badge variant="secondary">{item.icon}</Badge>
                     </div>
-
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <Label className="text-xs">Title</Label>
+                        <Label>Title</Label>
                         <Input
                           value={item.title}
-                          onChange={(e) =>
-                            updateNavigationItem(index, "title", e.target.value)
-                          }
+                          onChange={(e) => updateNavigationItem(index, "title", e.target.value)}
                           placeholder="Menu title"
                         />
                       </div>
-
                       <div className="space-y-2">
-                        <Label className="text-xs">Path</Label>
+                        <Label>Path</Label>
                         <Input
                           value={item.href}
-                          onChange={(e) =>
-                            updateNavigationItem(index, "href", e.target.value)
-                          }
+                          onChange={(e) => updateNavigationItem(index, "href", e.target.value)}
                           placeholder="/path"
                         />
                       </div>
@@ -532,17 +460,12 @@ export default function SettingsDashboard() {
             </Card>
           </TabsContent>
 
-          {/* ====================================================================
-              CATEGORIES TAB
-          ==================================================================== */}
-          <TabsContent value="categories" className="space-y-6">
-            {/* Transaction Categories */}
+          {/* ================= CATEGORIES TAB ================= */}
+          <TabsContent value="categories">
             <Card>
               <CardHeader>
                 <CardTitle>Transaction Categories</CardTitle>
-                <CardDescription>
-                  Manage categories for classifying transactions
-                </CardDescription>
+                <CardDescription>Manage categories for classifying transactions</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex gap-2">
@@ -553,23 +476,14 @@ export default function SettingsDashboard() {
                     onKeyPress={(e) => e.key === "Enter" && addTransactionCategory()}
                   />
                   <Button onClick={addTransactionCategory}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
+                    <Plus className="w-4 h-4 mr-2" /> Add
                   </Button>
                 </div>
-
                 <div className="flex flex-wrap gap-2">
                   {config.categories.transactionCategories.map((cat, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="px-3 py-1.5 text-sm flex items-center gap-2"
-                    >
+                    <Badge key={index} variant="secondary" className="px-3 py-1.5 text-sm flex items-center gap-2">
                       {cat}
-                      <button
-                        onClick={() => removeTransactionCategory(index)}
-                        className="hover:text-red-600"
-                      >
+                      <button onClick={() => removeTransactionCategory(index)} className="hover:text-orange-600 transition-colors">
                         <Trash2 className="w-3 h-3" />
                       </button>
                     </Badge>
@@ -578,169 +492,111 @@ export default function SettingsDashboard() {
               </CardContent>
             </Card>
 
-            {/* Budget Categories */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Budget Categories</CardTitle>
-                <CardDescription>
-                  Set budget limits for different spending categories
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Add New Budget Category */}
-                <div className="p-4 border-2 border-dashed border-slate-200 rounded-lg space-y-3">
-                  <div className="font-medium text-sm text-slate-600">
-                    Add New Budget Category
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <Input
-                      placeholder="Category name"
-                      value={newBudgetCategory.name}
-                      onChange={(e) =>
-                        setNewBudgetCategory({
-                          ...newBudgetCategory,
-                          name: e.target.value,
-                        })
-                      }
-                    />
-                    <Input
-                      type="number"
-                      placeholder="Budget amount"
-                      value={newBudgetCategory.budget}
-                      onChange={(e) =>
-                        setNewBudgetCategory({
-                          ...newBudgetCategory,
-                          budget: e.target.value,
-                        })
-                      }
-                    />
-                    <Select
-                      value={newBudgetCategory.color}
-                      onValueChange={(value) =>
-                        setNewBudgetCategory({
-                          ...newBudgetCategory,
-                          color: value,
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="emerald">Emerald</SelectItem>
-                        <SelectItem value="blue">Blue</SelectItem>
-                        <SelectItem value="purple">Purple</SelectItem>
-                        <SelectItem value="orange">Orange</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button onClick={addBudgetCategory} className="w-full">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Budget Category
-                  </Button>
-                </div>
-
-                {/* Existing Budget Categories */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  {config.categories.budgetCategories.map((cat, index) => (
-                    <div
-                      key={index}
-                      className="p-4 border border-slate-200 rounded-lg space-y-3"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <div className="font-semibold text-slate-900">
-                            {cat.name}
-                          </div>
-                          <div className="text-sm text-slate-500 mt-1">
-                            Budget: <span className="font-medium">${cat.budget}</span> |
-                            Spent: <span className="font-medium">${cat.spent}</span>
-                          </div>
+            <div className="mt-6">
+                <Card>
+                <CardHeader>
+                    <CardTitle>Budget Categories</CardTitle>
+                    <CardDescription>Set budget limits for different spending categories</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    {/* Add New Budget Category */}
+                    <div className="p-6 border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/30 space-y-3">
+                        <div className="font-medium text-sm text-stone-600 dark:text-stone-400">Add New Budget Category</div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <Input
+                                placeholder="Category name"
+                                value={newBudgetCategory.name}
+                                onChange={(e) => setNewBudgetCategory({ ...newBudgetCategory, name: e.target.value })}
+                            />
+                            <Input
+                                type="number"
+                                placeholder="Budget amount"
+                                value={newBudgetCategory.budget}
+                                onChange={(e) => setNewBudgetCategory({ ...newBudgetCategory, budget: e.target.value })}
+                            />
+                            <Select 
+                                value={newBudgetCategory.color}
+                                onValueChange={(val) => setNewBudgetCategory({ ...newBudgetCategory, color: val })}
+                                options={[
+                                    {value: 'emerald', label: 'Emerald'},
+                                    {value: 'blue', label: 'Blue'},
+                                    {value: 'purple', label: 'Purple'},
+                                    {value: 'orange', label: 'Orange'},
+                                ]}
+                            />
                         </div>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-8 w-8 hover:bg-red-50 hover:text-red-600"
-                          onClick={() => removeBudgetCategory(index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
+                        <Button onClick={addBudgetCategory} className="w-full mt-2">
+                            <Plus className="w-4 h-4 mr-2" /> Add Budget Category
                         </Button>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          className={`${
-                            cat.color === "emerald"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : cat.color === "blue"
-                              ? "bg-blue-100 text-blue-700"
-                              : cat.color === "purple"
-                              ? "bg-purple-100 text-purple-700"
-                              : "bg-orange-100 text-orange-700"
-                          }`}
-                        >
-                          {cat.color}
-                        </Badge>
-                        <Badge variant="outline">
-                          {Math.round((cat.spent / cat.budget) * 100)}% used
-                        </Badge>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+
+                    {/* Existing Budget Categories */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                    {config.categories.budgetCategories.map((cat, index) => (
+                        <div key={index} className="p-4 border border-stone-200 dark:border-stone-700 rounded-[1.5rem] bg-white/50 dark:bg-stone-800/30 space-y-3">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <div className="font-semibold text-stone-900 dark:text-stone-100">{cat.name}</div>
+                                <div className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+                                    Budget: <span className="font-medium text-stone-700 dark:text-stone-300">${cat.budget}</span> | 
+                                    Spent: <span className="font-medium text-stone-700 dark:text-stone-300">${cat.spent}</span>
+                                </div>
+                            </div>
+                            <Button size="icon" variant="ghost" onClick={() => removeBudgetCategory(index)} className="h-8 w-8 hover:bg-orange-50 hover:text-orange-600">
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Badge className={
+                                cat.color === 'emerald' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' :
+                                cat.color === 'blue' ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300' :
+                                cat.color === 'orange' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300' :
+                                'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                            }>
+                                {cat.color}
+                            </Badge>
+                            <Badge variant="secondary">
+                                {Math.round((cat.spent / cat.budget) * 100)}% used
+                            </Badge>
+                        </div>
+                        </div>
+                    ))}
+                    </div>
+                </CardContent>
+                </Card>
+            </div>
           </TabsContent>
 
-          {/* ====================================================================
-              NOTIFICATIONS TAB
-          ==================================================================== */}
-          <TabsContent value="notifications" className="space-y-6">
+          {/* ================= NOTIFICATIONS TAB ================= */}
+          <TabsContent value="notifications">
             <Card>
               <CardHeader>
                 <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>
-                  Configure notification behavior and appearance
-                </CardDescription>
+                <CardDescription>Configure notification behavior</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="stagger-delay">
-                    Stagger Delay (milliseconds)
-                  </Label>
+                  <Label htmlFor="stagger-delay">Stagger Delay (ms)</Label>
                   <Input
                     id="stagger-delay"
                     type="number"
                     value={config.notifications.behavior.staggerDelayMs}
-                    onChange={(e) =>
-                      updateConfig(
-                        "notifications.behavior.staggerDelayMs",
-                        Number(e.target.value)
-                      )
-                    }
+                    onChange={(e) => updateConfig("notifications.behavior.staggerDelayMs", Number(e.target.value))}
                   />
-                  <p className="text-xs text-slate-500">
-                    Time delay between displaying multiple notifications
-                  </p>
+                  <p className="text-xs text-stone-500 dark:text-stone-400">Delay between multiple notifications</p>
                 </div>
 
                 <Separator />
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
                   <div className="space-y-1">
-                    <div className="font-medium">Notification Dot Indicator</div>
-                    <div className="text-sm text-slate-500">
-                      Show red dot on bell icon when notifications are present
-                    </div>
+                    <div className="font-bold text-stone-800 dark:text-stone-200">Dot Indicator</div>
+                    <div className="text-sm text-stone-500 dark:text-stone-400">Show red dot on bell icon</div>
                   </div>
                   <Switch
                     checked={config.notifications.behavior.showDotIndicator}
-                    onCheckedChange={(checked) =>
-                      updateConfig(
-                        "notifications.behavior.showDotIndicator",
-                        checked
-                      )
-                    }
+                    onCheckedChange={(checked) => updateConfig("notifications.behavior.showDotIndicator", checked)}
+                    className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
                   />
                 </div>
 
@@ -752,18 +608,14 @@ export default function SettingsDashboard() {
                     {config.notifications.list.map((notif, index) => (
                       <div
                         key={index}
-                        className={`p-3 rounded-lg border-l-4 ${
-                          notif.type === "success"
-                            ? "bg-emerald-50 border-emerald-500"
-                            : notif.type === "warning"
-                            ? "bg-orange-50 border-orange-500"
-                            : "bg-blue-50 border-blue-500"
+                        className={`p-3 rounded-2xl border-l-4 bg-white/60 dark:bg-stone-900/60 shadow-sm ${
+                          notif.type === "success" ? "bg-emerald-50/30 border-emerald-500 dark:border-emerald-600" :
+                          notif.type === "warning" ? "bg-orange-50/30 border-orange-500 dark:border-orange-600" :
+                          "bg-sky-50/30 border-sky-500 dark:border-sky-600"
                         }`}
                       >
-                        <div className="font-medium text-sm">{notif.title}</div>
-                        <div className="text-xs text-slate-600 mt-1">
-                          {notif.message}
-                        </div>
+                        <div className="font-bold text-sm text-stone-800 dark:text-stone-200">{notif.title}</div>
+                        <div className="text-xs text-stone-600 dark:text-stone-400 mt-1">{notif.message}</div>
                       </div>
                     ))}
                   </div>
@@ -772,117 +624,68 @@ export default function SettingsDashboard() {
             </Card>
           </TabsContent>
 
-          {/* ====================================================================
-              ADVANCED TAB
-          ==================================================================== */}
-          <TabsContent value="advanced" className="space-y-6">
+          {/* ================= ADVANCED TAB ================= */}
+          <TabsContent value="advanced">
             <Card>
               <CardHeader>
-                <CardTitle>Transaction UI Settings</CardTitle>
-                <CardDescription>
-                  Advanced configuration for transaction display
-                </CardDescription>
+                <CardTitle>Advanced UI Settings</CardTitle>
+                <CardDescription>Fine-tune transaction display</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
                   <div className="space-y-1">
-                    <div className="font-medium">Show Image Preview</div>
-                    <div className="text-sm text-slate-500">
-                      Display receipt images in transaction cards
-                    </div>
+                    <div className="font-bold text-stone-800 dark:text-stone-200">Show Image Preview</div>
+                    <div className="text-sm text-stone-500 dark:text-stone-400">Display receipts in list</div>
                   </div>
                   <Switch
                     checked={config.transactions.ui.showImagePreview}
-                    onCheckedChange={(checked) =>
-                      updateConfig("transactions.ui.showImagePreview", checked)
-                    }
+                    onCheckedChange={(checked) => updateConfig("transactions.ui.showImagePreview", checked)}
+                    className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
+                <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
                   <div className="space-y-1">
-                    <div className="font-medium">Enable Search</div>
-                    <div className="text-sm text-slate-500">
-                      Allow users to search and filter transactions
-                    </div>
+                    <div className="font-bold text-stone-800 dark:text-stone-200">Enable Search</div>
+                    <div className="text-sm text-stone-500 dark:text-stone-400">Allow filtering transactions</div>
                   </div>
                   <Switch
                     checked={config.transactions.ui.searchEnabled}
-                    onCheckedChange={(checked) =>
-                      updateConfig("transactions.ui.searchEnabled", checked)
-                    }
+                    onCheckedChange={(checked) => updateConfig("transactions.ui.searchEnabled", checked)}
+                    className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
                   />
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <Label>Hover Actions</Label>
-                  <div className="flex gap-2">
-                    {config.transactions.ui.hoverActions.map((action, index) => (
-                      <Badge key={index} variant="outline" className="px-3 py-1.5">
-                        {action}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Add Transaction Modal</CardTitle>
-                <CardDescription>
-                  Configure input modes and parsing behavior
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <Label>Input Modes</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {config.addTransactionModal.inputModes.map((mode, index) => (
-                      <Badge key={index} variant="secondary" className="px-3 py-1.5 flex items-center gap-2">
-                        {mode.label}
-                        <Edit className="w-3 h-3" />
-                      </Badge>
-                    ))}
-                  </div>
                 </div>
 
                 <Separator />
 
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50">
-                    <div className="space-y-1">
-                      <div className="font-medium">Enable OCR Preview</div>
-                      <div className="text-sm text-slate-500">Show extracted text when scanning receipts</div>
-                    </div>
-                    <Switch
-                      checked={config.addTransactionModal.ocrPreviewEnabled}
-                      onCheckedChange={(checked) =>
-                        updateConfig("addTransactionModal.ocrPreviewEnabled", checked)
-                      }
-                    />
-                  </div>
+                   <div className="flex items-center justify-between p-4 rounded-[1.5rem] bg-stone-50/50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
+                      <div className="space-y-1">
+                         <div className="font-bold text-stone-800 dark:text-stone-200">OCR Preview</div>
+                         <div className="text-sm text-stone-500 dark:text-stone-400">Show text extraction</div>
+                      </div>
+                      <Switch
+                        checked={config.addTransactionModal.ocrPreviewEnabled}
+                        onCheckedChange={(checked) => updateConfig("addTransactionModal.ocrPreviewEnabled", checked)}
+                        className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
+                      />
+                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Quick Text Parsing</Label>
-                    <div className="p-4 bg-slate-50 rounded-lg space-y-3">
-                      {Object.entries(config.addTransactionModal.quickTextParsing).map(
-                        ([key, value]) => (
-                          <div key={key} className="flex items-center justify-between">
-                            <div className="capitalize text-sm text-slate-700">{key.replace(/([A-Z])/g, " $1")}</div>
-                            <Switch
-                              checked={value}
-                              onCheckedChange={(checked) =>
-                                updateConfig(`addTransactionModal.quickTextParsing.${key}`, checked)
-                              }
-                            />
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
+                   <div className="space-y-2">
+                      <Label>Quick Text Parsing</Label>
+                      <div className="p-4 bg-stone-50/50 dark:bg-stone-800/50 rounded-[1.5rem] space-y-3 border border-stone-200 dark:border-stone-700">
+                         {Object.entries(config.addTransactionModal.quickTextParsing).map(([key, value]) => (
+                            <div key={key} className="flex items-center justify-between">
+                               <div className="capitalize text-sm font-medium text-stone-700 dark:text-stone-300">{key.replace(/([A-Z])/g, " $1")}</div>
+                               <Switch
+                                  checked={value}
+                                  onCheckedChange={(checked) => updateConfig(`addTransactionModal.quickTextParsing.${key}`, checked)}
+                                  className="data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500"
+                               />
+                            </div>
+                         ))}
+                      </div>
+                   </div>
                 </div>
               </CardContent>
             </Card>

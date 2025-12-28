@@ -24,6 +24,7 @@ export function RegisterForm({
     console.log("Uploading user data");
 
     try {
+      console.log('Form data --> ', formData);
       const response = await register("http://localhost:3000/user" + location.pathname, {
         credentials: "include",
         method: "POST",

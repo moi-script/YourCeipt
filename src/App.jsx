@@ -14,7 +14,8 @@ import ForgotPassword from "./Login/Forgot";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./context/authContext";
 import AIModelDashboard from "./Home/MyModels";
-
+import ProfilePage from "./Home/Profile";
+import OrganicPrivacyPage from "./Home/PrivacySecurity";
 function App() {
   return (
     <>
@@ -30,12 +31,16 @@ function App() {
         
         <Route element={<ProtectedRoute/>}>
          <Route path="/user" element={<BudgetDashboard/>}>
-           <Route path="/user/home" element={<Home/>}></Route>
+           <Route path="/user/" element={<Home/>}></Route>
            <Route path="/user/budgets" element={<BudgetPage/>}></Route>
            <Route path="/user/models" element={<AIModelDashboard/>}/>
            <Route path="/user/transactions" element={<TransactionsPage/>}></Route>
            <Route path="/user/analytics" element={<AnalyticsDashBoards/>}></Route>
            <Route path="/user/settings" element={<SettingsDashboard/>}></Route>
+           <Route path="/user/profile" element={<ProfilePage/>}></Route>
+           <Route path="/user/privacy" element={<OrganicPrivacyPage/>}></Route>
+
+
          </Route>
       </Route>
       

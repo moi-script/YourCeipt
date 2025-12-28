@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   
     // ... (Your existing useEffects remain the same) ...
     useEffect(() => {
-      console.error('Fetching ai models ');
+      console.log('Fetching ai models ');
       const fetchAi = async () => {
       console.log('Fetching ai --> ');
         try {
@@ -42,6 +42,20 @@ export const AuthProvider = ({ children }) => {
       fetchAi();
   
     }, []);
+
+
+     useEffect(() => {
+        const root = window.document.documentElement;
+        // Check the boolean state 'isDarkMode', not the string "dark"
+        if (user?.theme === "dark") {
+          root.classList.add("dark");
+          root.style.colorScheme = "dark"; 
+        } else {
+          root.classList.remove("dark");
+          root.style.colorScheme = "light";
+        }
+      }, [user]);
+    
  
 
   // useEffect(() => {
@@ -79,6 +93,7 @@ export const AuthProvider = ({ children }) => {
           console.log("Response user --> session ", response.user);
           setUser(response.user);
         }
+        console.log('User list ;:', response.user);
       } catch (error) {
         console.log("No valid session found");
         setUser(null);

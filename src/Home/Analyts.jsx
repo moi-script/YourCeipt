@@ -1,40 +1,127 @@
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
+import React, { useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
-  DollarSign,
-  PieChart,
-  Calendar,
   Store,
-  AlertTriangle,
-  CheckCircle,
-  ArrowUpRight,
-  ArrowDownRight,
   Target,
   Activity,
-  ShoppingBag,
-  Utensils,
-  Car,
   Home,
-  Heart,
-  Zap,
-  ChevronRight,
-  Flame,
   Coffee,
   Wallet,
   AlertCircle,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownRight,
+  CheckCircle,
+  Leaf
 } from "lucide-react";
+
+// --- REUSABLE ORGANIC COMPONENTS (Dark Mode Adapted) ---
+
+const Card = ({ children, className = "" }) => (
+  <div className={`backdrop-blur-md border border-white/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden transition-all duration-300 ${className}`}>
+    {children}
+  </div>
+);
+
+const CardHeader = ({ children, className = "" }) => (
+  <div className={`p-6 pb-2 ${className}`}>{children}</div>
+);
+
+const CardTitle = ({ children, className = "" }) => (
+  <h3 className={`text-xl font-serif text-stone-800 dark:text-stone-100 ${className}`}>{children}</h3>
+);
+
+const CardDescription = ({ children, className = "" }) => (
+  <p className={`text-sm text-stone-500 dark:text-stone-400 mt-1 ${className}`}>{children}</p>
+);
+
+const CardContent = ({ children, className = "" }) => (
+  <div className={`p-6 ${className}`}>{children}</div>
+);
+
+const Badge = ({ children, className = "", variant = "default" }) => {
+  return (
+    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${className}`}>
+      {children}
+    </span>
+  );
+};
+
+const Button = ({ children, variant = "default", size = "default", className = "", ...props }) => {
+    const baseStyles = "inline-flex items-center justify-center font-medium transition-all duration-300 disabled:opacity-50 rounded-full shadow-sm hover:shadow-md active:scale-95";
+    const variants = {
+      default: "bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white",
+      outline: "border-2 border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:border-emerald-200 dark:hover:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:text-emerald-700 dark:hover:text-emerald-400 bg-transparent shadow-none",
+      ghost: "hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-orange-600 dark:hover:text-orange-400 text-stone-400 dark:text-stone-500 bg-transparent shadow-none",
+    };
+    const sizes = {
+      default: "px-4 py-2 text-xs uppercase tracking-wider",
+      sm: "px-3 py-1.5 text-[10px]",
+    };
+    
+    return (
+      <button className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
+        {children}
+      </button>
+    );
+};
+
+const Tabs = ({ children, defaultValue, className = "" }) => {
+    const [activeTab, setActiveTab] = useState(defaultValue);
+    
+    const childrenWithProps = React.Children.map(children, child => {
+      if (React.isValidElement(child)) {
+        return React.cloneElement(child, { activeTab, setActiveTab });
+      }
+      return child;
+    });
+  
+    return <div className={className}>{childrenWithProps}</div>;
+};
+  
+const TabsList = ({ children, activeTab, setActiveTab, className = "" }) => (
+  <div 
+    className={`
+      flex gap-2 p-1.5 rounded-full 
+      overflow-x-auto w-full flex-nowrap justify-start no-scrollbar 
+      ${className}
+    `}
+  >
+    {React.Children.map(children, child => 
+      React.cloneElement(child, { activeTab, setActiveTab })
+    )}
+  </div>
+);
+
+const TabsTrigger = ({ children, value, activeTab, setActiveTab }) => (
+    <button
+        onClick={() => setActiveTab(value)}
+        className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+            activeTab === value 
+            ? "bg-white dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 shadow-sm" 
+            : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-white/50 dark:hover:bg-stone-800/50"
+        }`}
+    >
+        {children}
+    </button>
+);
+  
+const TabsContent = ({ children, value, activeTab, className = "" }) => {
+    if (activeTab !== value) return null;
+    return <div className={`animate-in fade-in zoom-in-95 duration-300 ${className}`}>{children}</div>;
+};
+
+const Progress = ({ value = 0, className = "" }) => (
+  <div className={`w-full bg-stone-100 dark:bg-stone-800 rounded-full h-3 overflow-hidden ${className}`}>
+    <div 
+      className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-500 ease-out"
+      style={{ width: `${Math.min(value, 100)}%` }}
+    />
+  </div>
+);
+
+// --- DUMMY DATA ---
 
 const dummyMonthlyData = {
   totalIncome: 50000,
@@ -116,40 +203,40 @@ const dummyDailySpending = Array.from({ length: 30 }, (_, i) => ({
   amount: Math.floor(Math.random() * 12000), // random amount between 0-12k
 }));
 
-// Dummy getColorClass function
+// Function to map colors to Organic/Emerald palette (Updated for Dark Mode)
 function dummyGetColorClass(color) {
   const mapping = {
     emerald: {
-      bg: "bg-emerald-100",
-      text: "text-emerald-600",
-      border: "border-emerald-200",
+      bg: "bg-emerald-50 dark:bg-emerald-900/20",
+      text: "text-emerald-700 dark:text-emerald-300",
+      border: "border-emerald-100 dark:border-emerald-800/30",
     },
     blue: {
-      bg: "bg-blue-100",
-      text: "text-blue-600",
-      border: "border-blue-200",
+      bg: "bg-sky-50 dark:bg-sky-900/20",
+      text: "text-sky-700 dark:text-sky-300",
+      border: "border-sky-100 dark:border-sky-800/30",
     },
     orange: {
-      bg: "bg-orange-100",
-      text: "text-orange-600",
-      border: "border-orange-200",
+      bg: "bg-orange-50 dark:bg-orange-900/20",
+      text: "text-orange-700 dark:text-orange-300",
+      border: "border-orange-100 dark:border-orange-800/30",
     },
     purple: {
-      bg: "bg-purple-100",
-      text: "text-purple-600",
-      border: "border-purple-200",
+      bg: "bg-purple-50 dark:bg-purple-900/20",
+      text: "text-purple-700 dark:text-purple-300",
+      border: "border-purple-100 dark:border-purple-800/30",
     },
     teal: {
-      bg: "bg-teal-100",
-      text: "text-teal-600",
-      border: "border-teal-200",
+      bg: "bg-teal-50 dark:bg-teal-900/20",
+      text: "text-teal-700 dark:text-teal-300",
+      border: "border-teal-100 dark:border-teal-800/30",
     },
   };
   return (
     mapping[color] || {
-      bg: "bg-slate-100",
-      text: "text-slate-600",
-      border: "border-slate-200",
+      bg: "bg-stone-50 dark:bg-stone-800/50",
+      text: "text-stone-600 dark:text-stone-300",
+      border: "border-stone-200 dark:border-stone-700",
     }
   );
 }
@@ -180,140 +267,146 @@ export default function Analytics({
   const [selectedPeriod, setSelectedPeriod] = useState("month");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    // 1. BACKGROUND: 
+    // Light: Warm bone white (#f2f0e9) 
+    // Dark: Deep Stone (#0c0a09)
+    <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 p-4 sm:p-6 pb-20 transition-colors duration-300">
+      
+      {/* Decorative Blobs - Adjusted opacity for Dark Mode */}
+      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none animate-pulse"></div>
+      <div className="absolute top-[20%] right-[-5%] w-[400px] h-[400px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none"></div>
+
+      <div className="max-w-7xl mx-auto space-y-8 relative z-10">
+        
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-              Analytics
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              Deep insights into your spending patterns
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-stone-800/40 border border-white/60 dark:border-white/10 backdrop-blur-md mb-3 shadow-sm">
+               <Sparkles className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
+               <span className="text-[10px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold">Deep Dive</span>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-serif italic text-[#2c2c2c] dark:text-stone-100">Analytics Flow</h1>
+            <p className="text-stone-500 dark:text-stone-400 mt-2 font-medium">
+              Insights into your financial ecosystem.
             </p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          
+          {/* Period Selector */}
+          <div className="bg-white/40 dark:bg-stone-900/40 p-1.5 rounded-full border border-white/50 dark:border-white/5 backdrop-blur-sm flex gap-1">
             {["week", "month", "quarter", "year"].map((period) => (
-              <Button
+              <button
                 key={period}
-                variant={selectedPeriod === period ? "default" : "outline"}
-                size="sm"
                 onClick={() => setSelectedPeriod(period)}
-                className="capitalize"
+                className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
+                    selectedPeriod === period 
+                    ? "bg-emerald-700 dark:bg-emerald-600 text-white shadow-md" 
+                    : "text-stone-500 dark:text-stone-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-white/50 dark:hover:bg-stone-700/50"
+                }`}
               >
                 {period}
-              </Button>
+              </button>
             ))}
           </div>
         </div>
 
-        {/* Big Picture Stats */}
+        {/* Big Picture Stats - "Floating Pebbles" */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {/* Total Income */}
-          <Card className="border-secondary/20 bg-gradient-to-br from-secondary/10 to-card">
-            <CardContent className="p-4 sm:p-6">
+          
+          {/* Total Income (Emerald) */}
+          <Card className="bg-white/60 dark:bg-stone-900/40 border-white/60 dark:border-white/5">
+            <CardContent>
               <div className="flex items-center justify-between mb-3">
-                <div className="bg-secondary/20 p-2 rounded-lg">
-                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl text-emerald-600 dark:text-emerald-400">
+                  <TrendingUp className="w-5 h-5" />
                 </div>
-                <Badge className="bg-secondary/20 text-secondary border-secondary/30 text-xs">
+                <Badge className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/30">
                   +12%
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Total Income
               </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
                 ₱{monthlyData.totalIncome.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
 
-          {/* Total Expenses */}
-          <Card className="border-primary/20 bg-gradient-to-br from-primary/10 to-card">
-            <CardContent className="p-4 sm:p-6">
+          {/* Total Expenses (Orange) */}
+          <Card className="bg-white/60 dark:bg-stone-900/40 border-white/60 dark:border-white/5">
+            <CardContent>
               <div className="flex items-center justify-between mb-3">
-                <div className="bg-primary/20 p-2 rounded-lg">
-                  <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-xl text-orange-600 dark:text-orange-400">
+                  <TrendingDown className="w-5 h-5" />
                 </div>
-                <Badge className="bg-primary/20 text-primary border-primary/30 text-xs">
+                <Badge className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-100 dark:border-orange-800/30">
                   +8%
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Total Expenses
               </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
                 ₱{monthlyData.totalExpenses.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
 
-          {/* Net Savings */}
-          <Card className="border-accent/20 bg-gradient-to-br from-accent/10 to-card">
-            <CardContent className="p-4 sm:p-6">
+          {/* Net Savings (Blue/Teal) */}
+          <Card className="bg-white/60 dark:bg-stone-900/40 border-white/60 dark:border-white/5">
+            <CardContent>
               <div className="flex items-center justify-between mb-3">
-                <div className="bg-accent/20 p-2 rounded-lg">
-                  <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+                <div className="bg-sky-100 dark:bg-sky-900/30 p-2.5 rounded-xl text-sky-600 dark:text-sky-400">
+                  <Wallet className="w-5 h-5" />
                 </div>
-                <Badge className="bg-accent/20 text-accent border-accent/30 text-xs">
+                <Badge className="bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-300 border border-sky-100 dark:border-sky-800/30">
                   Healthy
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Net Savings
               </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
                 ₱{monthlyData.netSavings.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
 
-          {/* Savings Rate */}
-          <Card className="border-chart-5/20 bg-gradient-to-br from-chart-5/10 to-card">
-            <CardContent className="p-4 sm:p-6">
+          {/* Savings Rate (Emerald) */}
+          <Card className="bg-white/60 dark:bg-stone-900/40 border-white/60 dark:border-white/5">
+            <CardContent>
               <div className="flex items-center justify-between mb-3">
-                <div className="bg-chart-5/20 p-2 rounded-lg">
-                  <Target
-                    className="w-4 h-4 sm:w-5 sm:h-5"
-                    style={{ color: "hsl(var(--chart-5))" }}
-                  />
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl text-emerald-600 dark:text-emerald-400">
+                  <Target className="w-5 h-5" />
                 </div>
-                <Badge
-                  className="text-xs"
-                  style={{
-                    backgroundColor: "hsl(var(--chart-5) / 0.2)",
-                    color: "hsl(var(--chart-5))",
-                    borderColor: "hsl(var(--chart-5) / 0.3)",
-                  }}
-                >
+                <Badge className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/30">
                   On Track
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Savings Rate
               </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
                 {monthlyData.savingsRate}%
               </h3>
             </CardContent>
           </Card>
 
-          {/* Income Stability */}
-          <Card className="border-secondary/30 bg-gradient-to-br from-secondary/15 to-card">
-            <CardContent className="p-4 sm:p-6">
+          {/* Income Stability (Purple) */}
+          <Card className="bg-white/60 dark:bg-stone-900/40 border-white/60 dark:border-white/5">
+            <CardContent>
               <div className="flex items-center justify-between mb-3">
-                <div className="bg-secondary/20 p-2 rounded-lg">
-                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" />
+                <div className="bg-purple-100 dark:bg-purple-900/30 p-2.5 rounded-xl text-purple-600 dark:text-purple-400">
+                  <Activity className="w-5 h-5" />
                 </div>
-                <Badge className="bg-secondary/20 text-secondary border-secondary/30 text-xs">
+                <Badge className="bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-100 dark:border-purple-800/30">
                   Excellent
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+              <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Income Stability
               </p>
-              <h3 className="text-xl sm:text-2xl font-bold text-foreground">
+              <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
                 {monthlyData.incomeStability}%
               </h3>
             </CardContent>
@@ -322,7 +415,7 @@ export default function Analytics({
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="bg-white border border-slate-200">
+          <TabsList className="bg-white/40 dark:bg-stone-900/40 border border-white/50 dark:border-white/5 backdrop-blur-md p-1.5">
             <TabsTrigger value="overview">Spending Overview</TabsTrigger>
             <TabsTrigger value="categories">Category Insights</TabsTrigger>
             <TabsTrigger value="merchants">Merchant Insights</TabsTrigger>
@@ -333,39 +426,41 @@ export default function Analytics({
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Monthly Spending Trend */}
-              <Card>
+              <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
                 <CardHeader>
-                  <CardTitle>Monthly Spending Trend</CardTitle>
+                  <CardTitle>Monthly Trend</CardTitle>
                   <CardDescription>
                     Income vs Expenses over time
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {spendingTrend.map((data, idx) => (
                       <div key={idx}>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-slate-700">
+                          <span className="text-sm font-bold text-stone-600 dark:text-stone-400 uppercase tracking-wide">
                             {data.month}
                           </span>
-                          <div className="flex gap-4 text-xs">
-                            <span className="text-emerald-600">
+                          <div className="flex gap-4 text-xs font-medium">
+                            <span className="text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
                               ↑ ₱{data.income.toLocaleString()}
                             </span>
-                            <span className="text-orange-600">
+                            <span className="text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 rounded-full">
                               ↓ ₱{data.expense.toLocaleString()}
                             </span>
                           </div>
                         </div>
-                        <div className="relative h-8 bg-slate-100 rounded-lg overflow-hidden">
+                        <div className="relative h-6 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+                          {/* Income Bar (Background, lighter) */}
                           <div
-                            className="absolute left-0 top-0 h-full bg-emerald-500 opacity-30"
-                            style={{ width: `${(data.income / 50000) * 100}%` }}
+                            className="absolute left-0 top-0 h-full bg-emerald-200 dark:bg-emerald-800/50"
+                            style={{ width: `${(data.income / 55000) * 100}%` }}
                           />
+                          {/* Expense Bar (Foreground, stronger) */}
                           <div
-                            className="absolute left-0 top-0 h-full bg-orange-500"
+                            className="absolute left-0 top-0 h-full bg-orange-400/80 dark:bg-orange-600/80 rounded-r-full"
                             style={{
-                              width: `${(data.expense / 50000) * 100}%`,
+                              width: `${(data.expense / 55000) * 100}%`,
                             }}
                           />
                         </div>
@@ -376,13 +471,13 @@ export default function Analytics({
               </Card>
 
               {/* Category Breakdown */}
-              <Card>
+              <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
                 <CardHeader>
                   <CardTitle>Category Breakdown</CardTitle>
                   <CardDescription>Where your money goes</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {categoryInsights.slice(0, 6).map((category, idx) => {
                       const percentage =
                         (category.spent / monthlyData.totalExpenses) * 100;
@@ -390,27 +485,27 @@ export default function Analytics({
                       return (
                         <div key={idx}>
                           <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className={`p-1.5 rounded-lg ${colors.bg}`}>
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-xl ${colors.bg}`}>
                                 <category.icon
                                   className={`w-4 h-4 ${colors.text}`}
                                 />
                               </div>
-                              <span className="text-sm font-medium text-slate-700">
+                              <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
                                 {category.name}
                               </span>
                             </div>
-                            <span className="text-sm font-bold text-slate-900">
+                            <span className="text-sm font-bold text-stone-900 dark:text-stone-100">
                               ₱{category.spent.toLocaleString()}
                             </span>
                           </div>
-                          <div className="relative h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="relative h-2 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
                             <div
-                              className={`absolute left-0 top-0 h-full ${colors.bg.replace(
-                                "100",
+                              className={`absolute left-0 top-0 h-full rounded-full ${colors.bg.replace(
+                                "50",
                                 "500"
                               )}`}
-                              style={{ width: `${percentage}%` }}
+                              style={{ width: `${percentage}%`, backgroundColor: category.color === 'emerald' ? '#10b981' : category.color === 'blue' ? '#0ea5e9' : '#f97316' }}
                             />
                           </div>
                         </div>
@@ -422,50 +517,52 @@ export default function Analytics({
             </div>
 
             {/* Spending Insights */}
-            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white">
+            <Card className="border-orange-200/50 dark:border-orange-900/20 bg-orange-50/30 dark:bg-orange-900/10">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                <CardTitle className="flex items-center gap-2 text-orange-900 dark:text-orange-200">
+                  <div className="bg-orange-100 dark:bg-orange-900/40 p-1.5 rounded-full">
+                    <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  </div>
                   Key Insights
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-white rounded-lg p-4 border border-amber-200">
+                  <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-5 h-5 text-orange-600" />
-                      <h4 className="font-semibold text-slate-900">
+                      <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      <h4 className="font-bold text-stone-800 dark:text-stone-100">
                         Spending Spike
                       </h4>
                     </div>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-stone-600 dark:text-stone-400">
                       Shopping increased by{" "}
-                      <span className="font-bold text-orange-600">62%</span>{" "}
+                      <span className="font-bold text-orange-600 dark:text-orange-400">62%</span>{" "}
                       this month
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-emerald-200">
+                  <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-5 h-5 text-emerald-600" />
-                      <h4 className="font-semibold text-slate-900">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      <h4 className="font-bold text-stone-800 dark:text-stone-100">
                         Doing Well
                       </h4>
                     </div>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-stone-600 dark:text-stone-400">
                       Entertainment spending down by{" "}
-                      <span className="font-bold text-emerald-600">12%</span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">12%</span>
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-blue-200">
+                  <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
                     <div className="flex items-center gap-2 mb-2">
-                      <Activity className="w-5 h-5 text-blue-600" />
-                      <h4 className="font-semibold text-slate-900">
+                      <Activity className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                      <h4 className="font-bold text-stone-800 dark:text-stone-100">
                         Income Stable
                       </h4>
                     </div>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-stone-600 dark:text-stone-400">
                       Consistent income at{" "}
-                      <span className="font-bold text-blue-600">
+                      <span className="font-bold text-sky-600 dark:text-sky-400">
                         ₱45,000/mo
                       </span>
                     </p>
@@ -478,52 +575,55 @@ export default function Analytics({
           {/* 2. Category Insights */}
           <TabsContent value="categories" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="border-emerald-200 bg-gradient-to-br from-emerald-50 to-white">
+              {/* Top Category (Emerald) */}
+              <Card className="border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-900/10">
                 <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-emerald-100 p-2 rounded-lg">
-                      <Coffee className="w-5 h-5 text-emerald-600" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl">
+                      <Coffee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-600">Top Category</p>
-                      <h4 className="font-bold text-slate-900">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">Top Category</p>
+                      <h4 className="font-serif text-lg text-emerald-900 dark:text-emerald-100">
                         Food & Dining
                       </h4>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-emerald-600">₱8,420</p>
+                  <p className="text-3xl font-serif text-emerald-700 dark:text-emerald-300">₱8,420</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white">
+              {/* Least Spending (Blue) */}
+              <Card className="border-sky-100 dark:border-sky-900/30 bg-sky-50/50 dark:bg-sky-900/10">
                 <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-blue-100 p-2 rounded-lg">
-                      <Home className="w-5 h-5 text-blue-600" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-sky-100 dark:bg-sky-900/30 p-2.5 rounded-xl">
+                      <Home className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-600">Least Spending</p>
-                      <h4 className="font-bold text-slate-900">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600/70 dark:text-sky-400/70">Least Spending</p>
+                      <h4 className="font-serif text-lg text-sky-900 dark:text-sky-100">
                         Entertainment
                       </h4>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-blue-600">₱1,850</p>
+                  <p className="text-3xl font-serif text-sky-700 dark:text-sky-300">₱1,850</p>
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white">
+              {/* Overspending (Orange) */}
+              <Card className="border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10">
                 <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-orange-100 p-2 rounded-lg">
-                      <AlertCircle className="w-5 h-5 text-orange-600" />
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-xl">
+                      <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                      <p className="text-xs text-slate-600">Overspending</p>
-                      <h4 className="font-bold text-slate-900">Shopping</h4>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70">Overspending</p>
+                      <h4 className="font-serif text-lg text-orange-900 dark:text-orange-100">Shopping</h4>
                     </div>
                   </div>
-                  <p className="text-2xl font-bold text-orange-600">+36%</p>
+                  <p className="text-3xl font-serif text-orange-700 dark:text-orange-300">+36%</p>
                 </CardContent>
               </Card>
             </div>
@@ -537,63 +637,62 @@ export default function Analytics({
                 return (
                   <Card
                     key={idx}
-                    className={`border-2 ${colors.border} hover:shadow-lg transition-shadow cursor-pointer`}
+                    className={`border border-white/60 dark:border-white/5 bg-white/40 dark:bg-stone-900/40 hover:bg-white/80 dark:hover:bg-stone-900/60 hover:shadow-lg transition-all duration-300 cursor-pointer`}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-3 rounded-xl ${colors.bg}`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`p-3 rounded-2xl shadow-sm bg-white dark:bg-stone-800`}>
                             <category.icon
                               className={`w-6 h-6 ${colors.text}`}
                             />
                           </div>
                           <div>
-                            <h3 className="font-bold text-slate-900 text-lg">
+                            <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">
                               {category.name}
                             </h3>
-                            <p className="text-sm text-slate-500">
-                              ₱{category.spent.toLocaleString()} of ₱
+                            <p className="text-xs font-medium text-stone-400 dark:text-stone-500">
+                              ₱{category.spent.toLocaleString()} / ₱
                               {category.budget.toLocaleString()}
                             </p>
                           </div>
                         </div>
                         <Badge
-                          variant={
+                          className={
                             category.status === "alert"
-                              ? "destructive"
-                              : "secondary"
+                              ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
+                              : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
                           }
-                          className="capitalize"
                         >
                           {category.status}
                         </Badge>
                       </div>
 
-                      <Progress value={budgetUsage} className="h-3 mb-4" />
+                      <Progress value={budgetUsage} className="h-2 mb-4" />
 
                       <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 bg-white/50 dark:bg-stone-800/50 px-3 py-1 rounded-full">
                           {category.trend === "up" && (
-                            <ArrowUpRight className="w-4 h-4 text-orange-500" />
+                            <ArrowUpRight className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                           )}
                           {category.trend === "down" && (
-                            <ArrowDownRight className="w-4 h-4 text-emerald-500" />
+                            <ArrowDownRight className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                           )}
                           <span
-                            className={
+                            className={`font-bold ${
                               category.trend === "up"
-                                ? "text-orange-600"
+                                ? "text-orange-600 dark:text-orange-400"
                                 : category.trend === "down"
-                                ? "text-emerald-600"
-                                : "text-slate-600"
-                            }
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-stone-600 dark:text-stone-400"
+                            }`}
                           >
                             {category.trend === "stable"
                               ? "Stable"
                               : `${changeAbs.toFixed(1)}% vs last month`}
                           </span>
                         </div>
-                        <span className="text-slate-500">
+                        <span className="text-stone-400 dark:text-stone-500 text-xs">
                           Last: ₱{category.lastMonth.toLocaleString()}
                         </span>
                       </div>
@@ -606,9 +705,9 @@ export default function Analytics({
 
           {/* 3. Merchant Insights */}
           <TabsContent value="merchants" className="space-y-6">
-            <Card>
+            <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
               <CardHeader>
-                <CardTitle>Top Merchants This Month</CardTitle>
+                <CardTitle>Top Merchants</CardTitle>
                 <CardDescription>
                   Where you shop most frequently
                 </CardDescription>
@@ -618,31 +717,31 @@ export default function Analytics({
                   {merchantInsights.map((merchant, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-4 bg-white/50 dark:bg-stone-800/40 rounded-[1.5rem] border border-stone-100 dark:border-white/5 hover:bg-white dark:hover:bg-stone-800/60 hover:shadow-md transition-all cursor-pointer"
                     >
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-3 rounded-xl">
+                        <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-3 rounded-2xl shadow-emerald-200 dark:shadow-emerald-900/20 shadow-lg">
                           <Store className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-slate-900">
+                          <h4 className="font-serif text-lg text-stone-800 dark:text-stone-100">
                             {merchant.name}
                           </h4>
-                          <div className="flex items-center gap-3 text-sm text-slate-500">
-                            <span>{merchant.visits} visits</span>
+                          <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+                            <span className="font-bold bg-stone-100 dark:bg-stone-700/50 px-2 py-0.5 rounded-full">{merchant.visits} visits</span>
                             <span>•</span>
-                            <Badge variant="secondary" className="text-xs">
+                            <span className="uppercase tracking-wider">
                               {merchant.category}
-                            </Badge>
+                            </span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-xl font-bold text-slate-900">
+                        <p className="text-lg font-bold text-stone-800 dark:text-stone-100">
                           ₱{merchant.totalSpent.toLocaleString()}
                         </p>
-                        <p className="text-sm text-slate-500">
-                          ~₱{merchant.avgSpent} per visit
+                        <p className="text-xs text-stone-400 dark:text-stone-500">
+                          ~₱{merchant.avgSpent} / visit
                         </p>
                       </div>
                     </div>
@@ -651,34 +750,34 @@ export default function Analytics({
               </CardContent>
             </Card>
 
-            <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white">
+            <Card className="border-orange-100 dark:border-orange-900/20 bg-orange-50/30 dark:bg-orange-900/10">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-amber-600" />
-                  Spending Patterns
+                <CardTitle className="flex items-center gap-2 text-orange-900 dark:text-orange-200">
+                  <Target className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  Patterns
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-white rounded-lg p-4 border border-amber-200">
-                    <h4 className="font-semibold text-slate-900 mb-2">
+                  <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-orange-100 dark:border-orange-900/20 shadow-sm">
+                    <h4 className="font-bold text-stone-800 dark:text-stone-100 mb-2">
                       Most Frequent
                     </h4>
-                    <p className="text-2xl font-bold text-amber-600 mb-1">
+                    <p className="text-2xl font-serif text-orange-600 dark:text-orange-400 mb-1">
                       7-Eleven
                     </p>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-stone-500 dark:text-stone-400">
                       18 visits this month
                     </p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-emerald-200">
-                    <h4 className="font-semibold text-slate-900 mb-2">
+                  <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-emerald-100 dark:border-emerald-900/20 shadow-sm">
+                    <h4 className="font-bold text-stone-800 dark:text-stone-100 mb-2">
                       Biggest Spender
                     </h4>
-                    <p className="text-2xl font-bold text-emerald-600 mb-1">
+                    <p className="text-2xl font-serif text-emerald-600 dark:text-emerald-400 mb-1">
                       SM Supermarket
                     </p>
-                    <p className="text-sm text-slate-600">₱4,200 total spent</p>
+                    <p className="text-sm text-stone-500 dark:text-stone-400">₱4,200 total spent</p>
                   </div>
                 </div>
               </CardContent>
@@ -687,15 +786,15 @@ export default function Analytics({
 
           {/* 4. Cash Flow Timeline */}
           <TabsContent value="cashflow" className="space-y-6">
-            <Card>
+            <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
               <CardHeader>
-                <CardTitle>Daily Spending Heatmap</CardTitle>
+                <CardTitle>Daily Heatmap</CardTitle>
                 <CardDescription>
-                  Visualize your spending patterns throughout the month
+                  Spending intensity throughout the month
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-10 gap-2">
+                <div className="grid grid-cols-7 sm:grid-cols-10 gap-2">
                   {dailySpending.map((day) => {
                     const intensity =
                       day.amount > 10000
@@ -710,24 +809,26 @@ export default function Analytics({
 
                     const colorClass =
                       day.amount > 10000
-                        ? "bg-emerald-500"
+                        ? "bg-emerald-600 dark:bg-emerald-500 shadow-lg shadow-emerald-200 dark:shadow-none"
                         : intensity === "high"
-                        ? "bg-red-500"
+                        ? "bg-orange-500 dark:bg-orange-600"
                         : intensity === "medium"
-                        ? "bg-orange-400"
+                        ? "bg-orange-300 dark:bg-orange-800/70"
                         : intensity === "low"
-                        ? "bg-yellow-300"
-                        : "bg-slate-200";
+                        ? "bg-emerald-200 dark:bg-emerald-900/50"
+                        : "bg-stone-200 dark:bg-stone-800";
 
                     return (
                       <div
                         key={day.day}
-                        className={`aspect-square rounded ${colorClass} flex items-center justify-center cursor-pointer hover:scale-110 transition-transform relative group`}
+                        className={`aspect-square rounded-xl ${colorClass} flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-300 relative group`}
                       >
-                        <span className="text-xs font-medium text-white drop-shadow">
+                        <span className={`text-[10px] font-bold ${day.amount > 10000 ? "text-white" : "text-stone-600/50 dark:text-stone-400/50"}`}>
                           {day.day}
                         </span>
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                        
+                        {/* Tooltip */}
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-stone-800 dark:bg-stone-700 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20 shadow-xl">
                           Day {day.day}: ₱{day.amount.toLocaleString()}
                           {day.amount > 10000 && " 💰"}
                         </div>
@@ -737,26 +838,26 @@ export default function Analytics({
                 </div>
 
                 {/* Legend */}
-                <div className="flex items-center justify-center gap-6 mt-6 text-sm">
+                <div className="flex flex-wrap items-center justify-center gap-4 mt-8 text-[10px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-slate-200 rounded"></div>
-                    <span className="text-slate-600">Minimal (&lt;₱500)</span>
+                    <div className="w-3 h-3 bg-stone-200 dark:bg-stone-800 rounded-full"></div>
+                    <span>Minimal</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-yellow-300 rounded"></div>
-                    <span className="text-slate-600">Low (₱500-1k)</span>
+                    <div className="w-3 h-3 bg-emerald-200 dark:bg-emerald-900/50 rounded-full"></div>
+                    <span>Low</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-orange-400 rounded"></div>
-                    <span className="text-slate-600">Medium (₱1k-2k)</span>
+                    <div className="w-3 h-3 bg-orange-300 dark:bg-orange-800/70 rounded-full"></div>
+                    <span>Medium</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-500 rounded"></div>
-                    <span className="text-slate-600">High (&gt;₱2k)</span>
+                    <div className="w-3 h-3 bg-orange-500 dark:bg-orange-600 rounded-full"></div>
+                    <span>High</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-emerald-500 rounded"></div>
-                    <span className="text-slate-600">Special (&gt;₱10k)</span>
+                    <div className="w-3 h-3 bg-emerald-600 dark:bg-emerald-500 rounded-full shadow-sm"></div>
+                    <span className="text-emerald-700 dark:text-emerald-400">Special</span>
                   </div>
                 </div>
               </CardContent>
