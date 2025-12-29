@@ -21,56 +21,56 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 // --- YOUR DATA STRUCTURE ---
-const initialBudgets = [
-  {
-    _id: 1,
-    category: "groceries",
-    budgetName: "Groceries",
-    budgetAmount: 15000,
-    spent: 12500,
-    color: "#059669"
-  },
-  {
-    _id: 2,
-    category: "housing",
-    budgetName: "Housing",
-    budgetAmount: 25000,
-    spent: 25000,
-    color: "#ea580c"
-  },
-  {
-    _id: 3,
-    category: "transportation",
-    budgetName: "Transportation",
-    budgetAmount: 8000,
-    spent: 9200,
-    color: "#d97706"
-  },
-  {
-    _id: 4,
-    category: "dining",
-    budgetName: "Dining Out",
-    budgetAmount: 6000,
-    spent: 4800,
-    color: "#10b981"
-  },
-  {
-    _id: 5,
-    category: "entertainment",
-    budgetName: "Entertainment",
-    budgetAmount: 5000,
-    spent: 3200,
-    color: "#34d399"
-  },
-  {
-    _id: 6,
-    category: "utilities",
-    budgetName: "Utilities",
-    budgetAmount: 4000,
-    spent: 3800,
-    color: "#f97316"
-  }
-];
+// const initialBudgets = [
+//   {
+//     _id: 1,
+//     category: "groceries",
+//     budgetName: "Groceries",
+//     budgetAmount: 15000,
+//     spent: 12500,
+//     color: "#059669"
+//   },
+//   {
+//     _id: 2,
+//     category: "housing",
+//     budgetName: "Housing",
+//     budgetAmount: 25000,
+//     spent: 25000,
+//     color: "#ea580c"
+//   },
+//   {
+//     _id: 3,
+//     category: "transportation",
+//     budgetName: "Transportation",
+//     budgetAmount: 8000,
+//     spent: 9200,
+//     color: "#d97706"
+//   },
+//   {
+//     _id: 4,
+//     category: "dining",
+//     budgetName: "Dining Out",
+//     budgetAmount: 6000,
+//     spent: 4800,
+//     color: "#10b981"
+//   },
+//   {
+//     _id: 5,
+//     category: "entertainment",
+//     budgetName: "Entertainment",
+//     budgetAmount: 5000,
+//     spent: 3200,
+//     color: "#34d399"
+//   },
+//   {
+//     _id: 6,
+//     category: "utilities",
+//     budgetName: "Utilities",
+//     budgetAmount: 4000,
+//     spent: 3800,
+//     color: "#f97316"
+//   }
+// ];
 
 // --- SIMULATED SHADCN UI COMPONENTS (Customized for Organic Look & Dark Mode) ---
 
@@ -181,7 +181,7 @@ const categoryIcons = {
 };
 
 const BudgetPage = () => {
-  const [budgets, setBudgets] = useState(initialBudgets);
+  const [budgets, setBudgets] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   
@@ -193,25 +193,28 @@ const BudgetPage = () => {
     color: '#10b981' 
   });
   
-  const { user } = useAuth();
+  const { user, budgetList } = useAuth();
 
   // UPDATED: Calculate totals using budgetAmount
-  const totalBudget = budgets.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + Number(b.spent), 0);
+  const totalBudget = budgets?.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
+  const totalSpent = budgets?.reduce((sum, b) => sum + Number(b.spent), 0);
   const totalRemaining = totalBudget - totalSpent;
   const spentPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
   // UPDATED: Detect overspending using budgetAmount
-  const overspendingCategories = budgets.filter(b => b.spent > b.budgetAmount);
-  const nearLimitCategories = budgets.filter(b => (b.spent / b.budgetAmount) >= 0.9 && b.spent <= b.budgetAmount);
+  const overspendingCategories = budgets?.filter(b => b.spent > b.budgetAmount);
+  const nearLimitCategories = budgets?.filter(b => (b.spent / b.budgetAmount) >= 0.9 && b.spent <= b.budgetAmount);
 
-  const handleAddEdit = () => {
+  const handleAddEdit = async () => {
+    console.log('Handle add edit triggered');
     if (editingBudget) {
       // Edit Mode
-      setBudgets(budgets.map(b => b._id === editingBudget._id 
+      setBudgets(budgets?.map(b => b._id === editingBudget._id 
         ? { ...b, ...formData, budgetAmount: parseFloat(formData.budgetAmount) }
         : b
       ));
+
+      await handleUpdateItem(editingBudget)
     } else {
       // Add Mode
       setBudgets([...budgets, { 
@@ -220,13 +223,19 @@ const BudgetPage = () => {
         budgetAmount: parseFloat(formData.budgetAmount),
         spent: 0 
       }]);
+
+      // console.log('Form data value :: ', formData);
+      await handleAddItem(formData);
     }
+
+    
     setIsDialogOpen(false);
     setEditingBudget(null);
     setFormData({ category: 'groceries', budgetName: '', budgetAmount: '', color: '#10b981' });
   };
 
   const handleEdit = (budget) => {
+    console.log('Handle edit for budget --> ', budget);
     setEditingBudget(budget);
     // Map existing data to form state
     setFormData({ 
@@ -238,37 +247,34 @@ const BudgetPage = () => {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id) => {
-    setBudgets(budgets.filter(b => b._id !== id));
-  };
-
-
-  
-// delete budget item 
-const handleDeleteItem = async () => {
-
-    // const budgetForm = useState({
-    //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
-    // })
-
+  const handleDelete = async (id) => {
+    console.log("Handle delete with id :: ", ...budgets);
+    console.log('user id', user._id);
+    
     try {
         const res = await fetch('http://localhost:3000/budget', {
             method: "DELETE",
             headers: {
-                'Content-type': 'application'
+                'Content-type': 'application/json'
             },
-            body: JSON.stringify(budgetForm)
+            body: JSON.stringify({userId : user._id, budget_id : id} )
         })
 
     } catch (err) {
         console.log('Unable to delete the item ::', err);
     }
+    setBudgets(budgets.filter(b => b._id !== id));
+  };
 
 
-}
+  useEffect(() => {
+    setBudgets(budgetList);
+  }, [budgetList])
+
+
 
 // add budget item
-const handleAddItem = async () => {
+const handleAddItem = async (formData) => {
 
     // const budgetForm = useState({
     //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
@@ -277,9 +283,9 @@ const handleAddItem = async () => {
         const res = await fetch('http://localhost:3000/budget', {
         method: "POST",
         headers: {
-            'Content-type': 'application'
+            'Content-type': 'application/json'
         },
-        body: JSON.stringify(budgetForm)
+        body: JSON.stringify({...formData, userId : user?._id })
     })
     } catch(err) {
         console.error('Unable to add item ::', err);
@@ -287,17 +293,19 @@ const handleAddItem = async () => {
 }
 
 // update budget items
-const handleUpdateItem = async () => {
+const handleUpdateItem = async (itemData) => {
     // const budgetForm = useState({
     //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
     // })
+    console.log("Item data --> ", itemData);
+    console.log('Form - data ::', formData);
     try {
-        const res = await fetch('http://localhost:3000/budget', {
-            method: "UPDATE",
+        const res = await fetch('http://localhost:3000/update/budget', {
+            method: "POST",
             headers: {
-                'Content-type': 'application'
+                'Content-type': 'application/json'
             },
-            body: JSON.stringify(budgetForm)
+            body: JSON.stringify({userId : user._id, ...formData, budget_id : itemData._id})
         })
 
     } catch (err) {
@@ -346,7 +354,7 @@ const handleGetBudgetItemList = async () => {
         </div>
 
         {/* Alerts - UPDATED to use budgetName */}
-        {overspendingCategories.length > 0 && (
+        {overspendingCategories?.length > 0 && (
           <Alert variant="destructive">
             <div className="flex items-start gap-4">
               <div className="p-2 bg-orange-100 dark:bg-orange-900/40 rounded-full text-orange-600 dark:text-orange-400 mt-1">
@@ -362,7 +370,7 @@ const handleGetBudgetItemList = async () => {
           </Alert>
         )}
 
-        {nearLimitCategories.length > 0 && (
+        {nearLimitCategories?.length > 0 && (
           <Alert>
             <div className="flex items-start gap-4">
               <div className="p-2 bg-emerald-100 dark:bg-emerald-900/40 rounded-full text-emerald-600 dark:text-emerald-400 mt-1">
@@ -392,7 +400,7 @@ const handleGetBudgetItemList = async () => {
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Total Budget</p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{totalBudget.toLocaleString()}
+                ₱{totalBudget?.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
@@ -408,7 +416,7 @@ const handleGetBudgetItemList = async () => {
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Total Spent</p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{totalSpent.toLocaleString()}
+                ₱{totalSpent?.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
@@ -426,7 +434,7 @@ const handleGetBudgetItemList = async () => {
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Remaining</p>
               <h3 className={`text-2xl font-serif ${totalRemaining >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                ₱{Math.abs(totalRemaining).toLocaleString()}
+                ₱{Math.abs(totalRemaining)?.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
@@ -438,11 +446,11 @@ const handleGetBudgetItemList = async () => {
                 <div className="bg-stone-100 dark:bg-stone-800 p-2.5 rounded-xl text-stone-600 dark:text-stone-300">
                   <Calendar className="w-5 h-5" />
                 </div>
-                <Badge className="bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">{budgets.length}</Badge>
+                <Badge className="bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">{budgets?.length}</Badge>
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Categories</p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {budgets.length} Active
+                {budgets?.length} Active
               </h3>
             </CardContent>
           </Card>
@@ -475,7 +483,7 @@ const handleGetBudgetItemList = async () => {
 
         {/* Budget Categories Grid - UPDATED with correct keys */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {budgets.map((budget) => {
+          {budgets?.map((budget) => {
             const percentage = (budget.spent / budget.budgetAmount) * 100;
             const isOverBudget = budget.spent > budget.budgetAmount;
             const Icon = categoryIcons[budget.category] || DollarSign;
@@ -510,7 +518,7 @@ const handleGetBudgetItemList = async () => {
                     <div className="flex justify-between text-sm items-end">
                       <span className="text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full text-xs font-medium">
                         {/* UPDATED: budget.budgetAmount */}
-                        ₱{budget.spent.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ₱{budget.budgetAmount.toLocaleString()}
+                        ₱{budget.spent?.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ₱{budget.budgetAmount?.toLocaleString()}
                       </span>
                       <span 
                         className="font-bold text-lg"
@@ -533,7 +541,7 @@ const handleGetBudgetItemList = async () => {
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-xs font-medium text-stone-400 dark:text-stone-500">
                         {/* UPDATED: budget.budgetAmount */}
-                        REMAINING: <span className="text-stone-600 dark:text-stone-300">₱{Math.max(0, budget.budgetAmount - budget.spent).toLocaleString()}</span>
+                        REMAINING: <span className="text-stone-600 dark:text-stone-300">₱{Math.max(0, budget.budgetAmount - budget.spent)?.toLocaleString()}</span>
                       </span>
                       {isOverBudget && (
                         <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Over Budget</Badge>
@@ -548,6 +556,11 @@ const handleGetBudgetItemList = async () => {
             );
           })}
         </div>
+
+
+
+
+
 
         {/* Add/Edit Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

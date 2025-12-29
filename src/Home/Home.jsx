@@ -30,7 +30,9 @@ import { useAuth } from "@/context/AuthContext";
 import TransactionDashboardSkeleton from "@/components/loaders/HomeSkeletonLoader";
 import { DeleteAlert } from "@/components/DeleteAlert";
 
-// --- ORGANIC DATA & HELPERS ---
+
+
+// statistics -> total balnce monlty income monthly expenses , savings goal
 
 const stats = [
   {
@@ -67,6 +69,8 @@ const stats = [
   },
 ];
 
+
+// in budget overview
 const budgetCategories = [
   { name: "Food & Dining", spent: 450, budget: 600, color: "bg-emerald-500" },
   { name: "Transportation", spent: 180, budget: 300, color: "bg-sky-500" },

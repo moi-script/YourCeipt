@@ -1,5 +1,5 @@
 // components/ProtectedRoute.jsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import VideoLoader from "./components/loaders/AnimatedLoader";
@@ -14,11 +14,6 @@ const ProtectedRoute = () => {
   if (isLoading) {
     return <VideoLoader />;
   }
-
-  useEffect(() => {
-    console.log('Refresshing protected routes');
-
-  }, [user]);
 
    if (!user) {
     console.log('Navigating to /', user);
