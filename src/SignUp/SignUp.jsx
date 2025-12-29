@@ -48,6 +48,7 @@ const BudgetSignup = () => {
     email: "",
     password: "",
     image_profile : "",
+    image_public_url : "",
     currency : "PHP",
     theme : "default",
     overSpending : false,

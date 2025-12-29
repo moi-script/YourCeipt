@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Lock, 
   ShieldCheck, 
@@ -13,9 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { DeleteConfirmation } from './DeleteConfirmation';
 
 export default function OrganicPrivacyPageColors() {
   const [showPassword, setShowPassword] = React.useState(false);
+  const [showDeleteConfirmation, setDeleteConfirmation] = useState(false);
 
   return (
     // 1. BACKGROUND: 
@@ -109,18 +111,11 @@ export default function OrganicPrivacyPageColors() {
               <p className="text-sm text-orange-800/70 dark:text-orange-300/70 mb-6 leading-relaxed">
                 Letting go is permanent. Deleting your account will return all your data to the void.
               </p>
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1 rounded-full border-orange-200 dark:border-orange-800 text-orange-700 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/20 hover:text-orange-800 bg-transparent">
-                  Purge Data
-                </Button>
-                <Button className="flex-1 rounded-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-600 text-white shadow-lg shadow-orange-200 dark:shadow-none">
-                  Delete
-                </Button>
-              </div>
+
+              <DeleteConfirmation/>
+
             </div>
-
           </div>
-
           {/* RIGHT COLUMN */}
           <div className="space-y-8 mt-0 md:mt-12">
             

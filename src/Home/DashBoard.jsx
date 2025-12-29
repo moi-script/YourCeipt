@@ -28,13 +28,7 @@ export function BudgetDashboard() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [homeDefault, setHomeDefault] = useState("Home");
   
-  // ... (Your existing transactions/stats data remains unchanged) ...
-  // Keeping the state logic exactly as is for brevity
-
   const location = useLocation();
-
-  
-
 
   const notificationList = [
     {
@@ -84,21 +78,14 @@ export function BudgetDashboard() {
     { title: "Settings", icon: Settings, href: "/user/settings" },
   ];
 
-  // const handleBellClick = () => {
-  //    toast.info("No new notifications");
-  // };
-
   // ============================================================================
   // RENDER
   // ============================================================================
   return (
-    // 1. MAIN CONTAINER: 
-    // Light: Warm bone (#f2f0e9) | Dark: Deep Stone (#0c0a09)
+    // 1. MAIN CONTAINER
     <div className="flex min-h-screen w-full bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 transition-colors duration-300">
       
-      {/* Decorative Blobs (Global) 
-          Dark mode: Lower opacity and slightly different blending to avoid "muddy" colors
-      */}
+      {/* Decorative Blobs */}
       <div className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-40 dark:opacity-20 pointer-events-none z-0"></div>
       <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-40 dark:opacity-20 pointer-events-none z-0"></div>
 
@@ -111,7 +98,6 @@ export function BudgetDashboard() {
         } transition-all duration-300 bg-white/60 dark:bg-stone-950/60 backdrop-blur-md border-r border-white/50 dark:border-stone-800 flex flex-col overflow-hidden z-20 shadow-sm`}
       >
         <div className="p-4 flex items-center gap-2 mb-2">
-            {/* Logo Icon Container */}
             <div className="bg-emerald-100 dark:bg-emerald-900/50 p-2 rounded-full transition-colors">
                 <Leaf className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
             </div>
@@ -136,9 +122,7 @@ export function BudgetDashboard() {
                 asChild
                 className={`w-full justify-start gap-3 rounded-full mb-1 transition-all duration-300 ${
                     isActive 
-                    // Active State: Emerald light bg in Light, Emerald dark glow in Dark
                     ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-bold shadow-sm" 
-                    // Inactive State: Stone text
                     : "text-stone-500 dark:text-stone-400 hover:bg-white/50 dark:hover:bg-stone-800/50 hover:text-stone-700 dark:hover:text-stone-200"
                 }`}
                 >
@@ -153,18 +137,25 @@ export function BudgetDashboard() {
       </aside>
 
       {/* ========================================================================
-          MAIN CONTENT
+          MAIN CONTENT - UPDATED FOR STICKY HEADER
           ======================================================================== */}
-      <div className="flex-1 flex flex-col min-w-0 z-10 relative">
-        <Header
-          setSidebarOpen={setSidebarOpen}
-          sidebarOpen={sidebarOpen}
-          handleBellClick={handleBellClick}
-          setIsAddDialogOpen={setIsAddDialogOpen}
-        />
+      {/* 1. 'overflow-y-auto' and 'h-screen' move the scrollbar to this container.
+          2. This allows children with 'sticky' to actually stick.
+      */}
+      <div className="flex-1 flex flex-col min-w-0 z-10 relative overflow-y-auto h-screen">
+        
+        {/* Sticky Wrapper for Header */}
+        <div className="sticky top-0 z-50 bg-white/0 dark:bg-stone-950/0 backdrop-blur-sm transition-all">
+            <Header
+            setSidebarOpen={setSidebarOpen}
+            sidebarOpen={sidebarOpen}
+            handleBellClick={handleBellClick}
+            setIsAddDialogOpen={setIsAddDialogOpen}
+            />
+        </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto">
+        {/* Content Area - Removed overflow-auto from here */}
+        <div className="flex-1">
             {(homeDefault === 'Home' && location.pathname === '/user/') ? (
             <UserHome
                 setIsAddDialogOpen={setIsAddDialogOpen}
@@ -179,19 +170,8 @@ export function BudgetDashboard() {
           setIsAddDialogOpen={setIsAddDialogOpen}
           isAddDialogOpen={isAddDialogOpen}
         />
-        {/* Toaster needs dark theme aware styling (Sonner usually handles this automatically based on system or explicit theme prop) */}
         <Toaster position="top-right" richColors />
       </div>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-

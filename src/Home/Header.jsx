@@ -63,7 +63,7 @@ export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDi
 
                 {/* Right side - Actions */}
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                    <Button
+                   {(window.innerWidth < 640 && !sidebarOpen || window.innerWidth > 640) &&  <Button
                         variant="ghost"
                         size="icon"
                         className="relative rounded-full hover:bg-white/50 dark:hover:bg-stone-800/50 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
@@ -75,7 +75,7 @@ export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDi
                         */}
                         <span className="absolute top-2 right-2.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-[#f2f0e9] dark:ring-stone-950"></span>
                     </Button>
-
+}
                     {/* Desktop button - Emerald Theme 
                         Slightly lighter emerald in dark mode (600) for better visibility
                     */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Plus, 
   TrendingUp, 
@@ -18,6 +18,59 @@ import {
   Sparkles,
   Leaf
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+
+// --- YOUR DATA STRUCTURE ---
+const initialBudgets = [
+  {
+    _id: 1,
+    category: "groceries",
+    budgetName: "Groceries",
+    budgetAmount: 15000,
+    spent: 12500,
+    color: "#059669"
+  },
+  {
+    _id: 2,
+    category: "housing",
+    budgetName: "Housing",
+    budgetAmount: 25000,
+    spent: 25000,
+    color: "#ea580c"
+  },
+  {
+    _id: 3,
+    category: "transportation",
+    budgetName: "Transportation",
+    budgetAmount: 8000,
+    spent: 9200,
+    color: "#d97706"
+  },
+  {
+    _id: 4,
+    category: "dining",
+    budgetName: "Dining Out",
+    budgetAmount: 6000,
+    spent: 4800,
+    color: "#10b981"
+  },
+  {
+    _id: 5,
+    category: "entertainment",
+    budgetName: "Entertainment",
+    budgetAmount: 5000,
+    spent: 3200,
+    color: "#34d399"
+  },
+  {
+    _id: 6,
+    category: "utilities",
+    budgetName: "Utilities",
+    budgetAmount: 4000,
+    spent: 3800,
+    color: "#f97316"
+  }
+];
 
 // --- SIMULATED SHADCN UI COMPONENTS (Customized for Organic Look & Dark Mode) ---
 
@@ -116,7 +169,6 @@ const Alert = ({ children, className = "", variant = "default" }) => {
 
 // --- DATA & LOGIC ---
 
-// Category icons mapping
 const categoryIcons = {
   groceries: ShoppingCart,
   housing: Home,
@@ -128,68 +180,148 @@ const categoryIcons = {
   other: DollarSign
 };
 
-// Using the Emerald/Orange palette
-const initialBudgets = [
-  { id: 1, category: 'groceries', name: 'Groceries', budget: 15000, spent: 12500, color: '#059669' }, // Emerald-600
-  { id: 2, category: 'housing', name: 'Housing', budget: 25000, spent: 25000, color: '#ea580c' }, // Orange-600
-  { id: 3, category: 'transportation', name: 'Transportation', budget: 8000, spent: 9200, color: '#d97706' }, // Amber-600 (Warning)
-  { id: 4, category: 'dining', name: 'Dining Out', budget: 6000, spent: 4800, color: '#10b981' }, // Emerald-500
-  { id: 5, category: 'entertainment', name: 'Entertainment', budget: 5000, spent: 3200, color: '#34d399' }, // Emerald-400
-  { id: 6, category: 'utilities', name: 'Utilities', budget: 4000, spent: 3800, color: '#f97316' } // Orange-500
-];
-
 const BudgetPage = () => {
   const [budgets, setBudgets] = useState(initialBudgets);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
-  const [formData, setFormData] = useState({ category: 'groceries', name: '', budget: '', color: '#10b981' });
+  
+  // UPDATED: formData now matches your specific property names
+  const [formData, setFormData] = useState({ 
+    category: 'groceries', 
+    budgetName: '', 
+    budgetAmount: '', 
+    color: '#10b981' 
+  });
+  
+  const { user } = useAuth();
 
-  // Calculate totals
-  const totalBudget = budgets.reduce((sum, b) => sum + b.budget, 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spent, 0);
+  // UPDATED: Calculate totals using budgetAmount
+  const totalBudget = budgets.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
+  const totalSpent = budgets.reduce((sum, b) => sum + Number(b.spent), 0);
   const totalRemaining = totalBudget - totalSpent;
   const spentPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-  // Detect overspending and recurring
-  const overspendingCategories = budgets.filter(b => b.spent > b.budget);
-  const nearLimitCategories = budgets.filter(b => (b.spent / b.budget) >= 0.9 && b.spent <= b.budget);
+  // UPDATED: Detect overspending using budgetAmount
+  const overspendingCategories = budgets.filter(b => b.spent > b.budgetAmount);
+  const nearLimitCategories = budgets.filter(b => (b.spent / b.budgetAmount) >= 0.9 && b.spent <= b.budgetAmount);
 
   const handleAddEdit = () => {
     if (editingBudget) {
-      setBudgets(budgets.map(b => b.id === editingBudget.id 
-        ? { ...b, ...formData, budget: parseFloat(formData.budget) }
+      // Edit Mode
+      setBudgets(budgets.map(b => b._id === editingBudget._id 
+        ? { ...b, ...formData, budgetAmount: parseFloat(formData.budgetAmount) }
         : b
       ));
     } else {
+      // Add Mode
       setBudgets([...budgets, { 
-        id: Date.now(), 
+        _id: Date.now(), // Generate a temp ID
         ...formData, 
-        budget: parseFloat(formData.budget),
+        budgetAmount: parseFloat(formData.budgetAmount),
         spent: 0 
       }]);
     }
     setIsDialogOpen(false);
     setEditingBudget(null);
-    setFormData({ category: 'groceries', name: '', budget: '', color: '#10b981' });
+    setFormData({ category: 'groceries', budgetName: '', budgetAmount: '', color: '#10b981' });
   };
 
   const handleEdit = (budget) => {
     setEditingBudget(budget);
-    setFormData({ category: budget.category, name: budget.name, budget: budget.budget.toString(), color: budget.color });
+    // Map existing data to form state
+    setFormData({ 
+      category: budget.category, 
+      budgetName: budget.budgetName, 
+      budgetAmount: budget.budgetAmount.toString(), 
+      color: budget.color 
+    });
     setIsDialogOpen(true);
   };
 
   const handleDelete = (id) => {
-    setBudgets(budgets.filter(b => b.id !== id));
+    setBudgets(budgets.filter(b => b._id !== id));
   };
 
+
+  
+// delete budget item 
+const handleDeleteItem = async () => {
+
+    // const budgetForm = useState({
+    //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
+    // })
+
+    try {
+        const res = await fetch('http://localhost:3000/budget', {
+            method: "DELETE",
+            headers: {
+                'Content-type': 'application'
+            },
+            body: JSON.stringify(budgetForm)
+        })
+
+    } catch (err) {
+        console.log('Unable to delete the item ::', err);
+    }
+
+
+}
+
+// add budget item
+const handleAddItem = async () => {
+
+    // const budgetForm = useState({
+    //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
+    // })
+    try {
+        const res = await fetch('http://localhost:3000/budget', {
+        method: "POST",
+        headers: {
+            'Content-type': 'application'
+        },
+        body: JSON.stringify(budgetForm)
+    })
+    } catch(err) {
+        console.error('Unable to add item ::', err);
+    }
+}
+
+// update budget items
+const handleUpdateItem = async () => {
+    // const budgetForm = useState({
+    //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
+    // })
+    try {
+        const res = await fetch('http://localhost:3000/budget', {
+            method: "UPDATE",
+            headers: {
+                'Content-type': 'application'
+            },
+            body: JSON.stringify(budgetForm)
+        })
+
+    } catch (err) {
+        console.error('Unable to update item', err);
+    }
+} 
+
+// get all budget of user
+const handleGetBudgetItemList = async () => {
+    try {
+        const res = await fetch('http://localhost:3000/budget');
+
+    } catch (err) {
+        console.error('Unable to fetch budget list', err);
+    }
+
+}
+
+
+
   return (
-    // 1. BACKGROUND: 
-    // Light: Warm bone white (#f2f0e9) 
-    // Dark: Deep Stone (#0c0a09)
     <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 p-4 sm:p-6 pb-20 transition-colors duration-300">
       
-      {/* Decorative Blobs - Reduced opacity for Dark Mode */}
+      {/* Decorative Blobs */}
       <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none animate-pulse"></div>
       <div className="absolute bottom-[0%] left-[-10%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none"></div>
 
@@ -213,7 +345,7 @@ const BudgetPage = () => {
           </Button>
         </div>
 
-        {/* Alerts */}
+        {/* Alerts - UPDATED to use budgetName */}
         {overspendingCategories.length > 0 && (
           <Alert variant="destructive">
             <div className="flex items-start gap-4">
@@ -223,7 +355,7 @@ const BudgetPage = () => {
               <div>
                 <h3 className="font-serif text-lg font-medium text-orange-800 dark:text-orange-300 mb-1">Overspending Alert!</h3>
                 <p className="text-sm text-orange-800/80 dark:text-orange-300/80 leading-relaxed">
-                  You've exceeded your budget in <span className="font-semibold">{overspendingCategories.map(b => b.name).join(', ')}</span>.
+                  You've exceeded your budget in <span className="font-semibold">{overspendingCategories.map(b => b.budgetName).join(', ')}</span>.
                 </p>
               </div>
             </div>
@@ -239,14 +371,14 @@ const BudgetPage = () => {
               <div>
                 <h3 className="font-serif text-lg font-medium text-emerald-900 dark:text-emerald-300 mb-1">Near Budget Limit</h3>
                 <p className="text-sm text-emerald-800/80 dark:text-emerald-300/80 leading-relaxed">
-                  <span className="font-semibold">{nearLimitCategories.map(b => b.name).join(', ')}</span> are at 90% or more of capacity.
+                  <span className="font-semibold">{nearLimitCategories.map(b => b.budgetName).join(', ')}</span> are at 90% or more of capacity.
                 </p>
               </div>
             </div>
           </Alert>
         )}
 
-        {/* Overview Cards - "Floating Pebbles" */}
+        {/* Overview Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Total Budget */}
@@ -331,7 +463,6 @@ const BudgetPage = () => {
                     {spentPercentage.toFixed(1)}% spent
                   </span>
                 </div>
-                {/* Custom Progress Bar with Emerald/Orange logic */}
                 <Progress 
                   value={spentPercentage} 
                   className="h-4" 
@@ -342,28 +473,25 @@ const BudgetPage = () => {
           </CardContent>
         </Card>
 
-        {/* Budget Categories Grid */}
+        {/* Budget Categories Grid - UPDATED with correct keys */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {budgets.map((budget) => {
-            const percentage = (budget.spent / budget.budget) * 100;
-            const isOverBudget = budget.spent > budget.budget;
+            const percentage = (budget.spent / budget.budgetAmount) * 100;
+            const isOverBudget = budget.spent > budget.budgetAmount;
             const Icon = categoryIcons[budget.category] || DollarSign;
-            
-            // Dynamic color logic based on state
-            const stateColor = isOverBudget ? '#ea580c' : budget.color; // orange-600 for error
+            const stateColor = isOverBudget ? '#ea580c' : budget.color;
 
             return (
-              <Card key={budget.id} className="hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-white/80 dark:bg-stone-900/80 border-white dark:border-stone-800">
+              <Card key={budget._id} className="hover:shadow-lg hover:-translate-y-1 transition-all duration-300 bg-white/80 dark:bg-stone-900/80 border-white dark:border-stone-800">
                 <CardContent>
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex items-center gap-4">
-                      <div 
-                        className="p-3 rounded-2xl shadow-sm bg-white dark:bg-stone-800"
-                      >
+                      <div className="p-3 rounded-2xl shadow-sm bg-white dark:bg-stone-800">
                         <Icon className="w-6 h-6" style={{ color: stateColor }} />
                       </div>
                       <div>
-                        <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">{budget.name}</h3>
+                        {/* UPDATED: budget.budgetName */}
+                        <h3 className="font-serif text-lg text-stone-800 dark:text-stone-100">{budget.budgetName}</h3>
                         <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">{budget.category}</p>
                       </div>
                     </div>
@@ -371,7 +499,8 @@ const BudgetPage = () => {
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(budget)}>
                         <Edit2 className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(budget.id)}>
+                      {/* UPDATED: budget._id */}
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(budget._id)}>
                         <Trash2 className="w-4 h-4 text-orange-500" />
                       </Button>
                     </div>
@@ -380,7 +509,8 @@ const BudgetPage = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between text-sm items-end">
                       <span className="text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full text-xs font-medium">
-                        ₱{budget.spent.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ₱{budget.budget.toLocaleString()}
+                        {/* UPDATED: budget.budgetAmount */}
+                        ₱{budget.spent.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ₱{budget.budgetAmount.toLocaleString()}
                       </span>
                       <span 
                         className="font-bold text-lg"
@@ -402,7 +532,8 @@ const BudgetPage = () => {
 
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-xs font-medium text-stone-400 dark:text-stone-500">
-                        REMAINING: <span className="text-stone-600 dark:text-stone-300">₱{Math.max(0, budget.budget - budget.spent).toLocaleString()}</span>
+                        {/* UPDATED: budget.budgetAmount */}
+                        REMAINING: <span className="text-stone-600 dark:text-stone-300">₱{Math.max(0, budget.budgetAmount - budget.spent).toLocaleString()}</span>
                       </span>
                       {isOverBudget && (
                         <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Over Budget</Badge>
@@ -449,8 +580,9 @@ const BudgetPage = () => {
                   Budget Name
                 </label>
                 <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  /* UPDATED: formData.budgetName */
+                  value={formData.budgetName}
+                  onChange={(e) => setFormData({ ...formData, budgetName: e.target.value })}
                   placeholder="e.g., Monthly Groceries"
                 />
               </div>
@@ -463,8 +595,9 @@ const BudgetPage = () => {
                     <span className="absolute left-5 top-3.5 text-stone-400 dark:text-stone-500">₱</span>
                     <Input
                     type="number"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                    /* UPDATED: formData.budgetAmount */
+                    value={formData.budgetAmount}
+                    onChange={(e) => setFormData({ ...formData, budgetAmount: e.target.value })}
                     placeholder="0.00"
                     className="pl-10"
                     />
@@ -492,7 +625,8 @@ const BudgetPage = () => {
               <div className="flex gap-4 pt-4">
                 <Button 
                   onClick={handleAddEdit}
-                  disabled={!formData.name || !formData.budget}
+                  /* UPDATED: validation for budgetName and budgetAmount */
+                  disabled={!formData.budgetName || !formData.budgetAmount}
                   className="flex-1"
                 >
                   {editingBudget ? 'Update Flow' : 'Create Flow'}
@@ -502,13 +636,15 @@ const BudgetPage = () => {
                   onClick={() => {
                     setIsDialogOpen(false);
                     setEditingBudget(null);
-                    setFormData({ category: 'groceries', name: '', budget: '', color: '#10b981' });
+                    setFormData({ category: 'groceries', budgetName: '', budgetAmount: '', color: '#10b981' });
                   }}
                   className="flex-1 rounded-full border-stone-300 dark:border-stone-600"
                 >
                   Cancel
                 </Button>
               </div>
+
+              
             </div>
           </div>
         </Dialog>

@@ -32,6 +32,7 @@ export default function UserMenu({setHomeDefault}) {
   const { user } = useAuth() || { user: null };
   const navigate = useNavigate();
 
+
   useEffect(() => {
     // console.log("User data for logout ---> ", user);
   }, [user]);
@@ -81,7 +82,7 @@ export default function UserMenu({setHomeDefault}) {
             <button className="flex items-center gap-3 w-full hover:bg-white/60 dark:hover:bg-stone-800/60 p-3 rounded-[1.5rem] transition-all duration-300 outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 text-left shadow-sm hover:shadow-md border border-transparent hover:border-white/50 dark:hover:border-stone-700 group">
               <div className="relative">
                 <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-stone-700 shadow-sm">
-                  <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" />
+                  <AvatarImage src={user?.image_profile} />
                   <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-emerald-600 text-white font-semibold">
                     JD
                   </AvatarFallback>

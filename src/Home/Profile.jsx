@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   User, Mail, CreditCard, Bell, Shield, Download, 
-  Moon, LogOut, Sparkles
+  Moon, LogOut, Sparkles,
+  Loader2
 } from 'lucide-react';
 import { 
   Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle 
@@ -15,15 +16,33 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from '@/context/AuthContext';
-
+import ProfilePicPage from '@/Input/ProfilePic';
+import { useNavigate } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, setRefreshPage } = useAuth();
   
   // STATE: specific states for UI control
   const [currency, setCurrency] = useState("php");
   const [isDarkMode, setIsDarkMode] = useState(false); // Changed to clear boolean
   const [overSpending, setOverSpending] = useState(false);
   const [nearLimit, setNearLimit] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [fullname, setFullName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [isChangingName, setIsChangingName] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const navigate = useNavigate();
 
   // 1. INITIAL SYNC
   useEffect(() => {
@@ -36,6 +55,9 @@ export default function ProfilePage() {
     
     if (user?.overSpending) setOverSpending(user.overSpending);
     if (user?.nearLimit) setNearLimit(user.nearLimit);
+    if(user?.fullname) setFullName(user?.fullname);
+    if(user?.nickname) setNickname(user?.nickname);
+
   }, [user]);
 
   // 2. THEME ENGINE (Logic Fix)
@@ -50,6 +72,8 @@ export default function ProfilePage() {
       root.style.colorScheme = "light";
     }
   }, [isDarkMode]);
+
+
 
   const updatePreferences = async (checked) => {
     // 1. Update UI Instantly
@@ -71,9 +95,6 @@ export default function ProfilePage() {
       setIsDarkMode(!checked);
     }
   }
-
-  // ... (Keep other update functions: updateCurrency, updateOverSpending, etc.) ...
-  // For brevity, I'm assuming those functions remain unchanged from your snippet.
 
   const updateCurrency = async (currency) => {
     setCurrency(currency);
@@ -122,6 +143,49 @@ export default function ProfilePage() {
     }
   }
 
+  const updateNames = async () => {
+    console.log('Updating names');
+    setIsChangingName(true);
+    const fullnameResponse = await fetch('http://localhost:3000/user/fullname', {
+        headers : {
+            'Content-type' : 'application/json'
+        },
+        method : "POST",
+        body : JSON.stringify({fullname : fullname, userId : user._id})
+    })
+     const nicknameResponse = await fetch('http://localhost:3000/user/nickname', {
+        headers : {
+            'Content-type' : 'application/json'
+        },
+        method : "POST",
+        body : JSON.stringify({nickname : nickname, userId : user._id})
+    })
+    setIsChangingName(false);
+  }
+
+   const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      const response = await fetch("http://localhost:3000/user/logout", {
+        method: "POST",
+        credentials : 'include',
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error("Logout failed");
+      }
+    } catch (err) {
+      console.error("Unable to logout");
+    } finally {
+      setShowLogoutDialog(false);
+      setIsLoggingOut(false);
+      setRefreshPage(true);
+      console.log("User logged out");
+      navigate("/", { replace: true });
+    }
+  };
+
 
   return (
     <>
@@ -141,7 +205,7 @@ export default function ProfilePage() {
                    <Sparkles className="h-3 w-3 text-orange-700 dark:text-orange-300" />
                    <span className="text-[10px] uppercase tracking-widest text-orange-700 dark:text-orange-300 font-bold">Personal Hub</span>
                 </div>
-                <h1 className="text-5xl font-serif italic text-[#2c2c2c] dark:text-stone-50">Profile & Aura</h1>
+                <h1 className="text-5xl font-serif italic text-[#2c2c2c] dark:text-stone-50">Profile</h1>
                 <p className="text-stone-600 dark:text-stone-400 mt-2 font-medium">Shape your digital presence and preferences.</p>
               </div>
             </div>
@@ -154,26 +218,8 @@ export default function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-8 p-8 pt-2">
                 
-                {/* Avatar Section */}
-                <div className="flex flex-col sm:flex-row items-center gap-8">
-                  <div className="relative">
-                    <Avatar className="h-32 w-32 border-4 border-white dark:border-stone-800 shadow-sm rounded-[2rem]">
-                      <AvatarImage src="/path-to-your-avatar.jpg" alt="Moi" />
-                      <AvatarFallback className="text-3xl bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-medium">JM</AvatarFallback>
-                    </Avatar>
-                    <button className="absolute bottom-0 right-0 bg-stone-800 dark:bg-stone-200 text-emerald-100 dark:text-emerald-900 p-2 rounded-full hover:bg-emerald-600 dark:hover:bg-emerald-400 transition-colors shadow-lg">
-                      <Sparkles className="h-4 w-4" />
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-3 text-center sm:text-left">
-                    <h3 className="text-xl font-medium text-stone-800 dark:text-stone-100">John Moises Nugal</h3>
-                    <p className="text-sm text-stone-500 dark:text-stone-400">Managed by Admin</p>
-                    <Button variant="outline" size="sm" className="rounded-full border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-white dark:hover:bg-stone-800 bg-transparent">
-                      Upload New Image
-                    </Button>
-                  </div>
-                </div>
+            
+                <ProfilePicPage/>
 
                 <div className="h-px w-full bg-gradient-to-r from-transparent via-stone-300 dark:via-stone-700 to-transparent opacity-50"></div>
 
@@ -186,17 +232,19 @@ export default function ProfilePage() {
                       {/* Note: Added dark styles for Input */}
                       <Input 
                         id="fullName" 
-                        defaultValue="John Moises Nugal" 
+                        defaultValue={user?.fullname}
+                        onChange={(fullname) => setFullName(fullname.target.value)} 
                         className="pl-10 rounded-full bg-white/80 dark:bg-stone-800/80 border-transparent shadow-sm h-12 focus-visible:ring-emerald-300/50 text-stone-800 dark:text-stone-100" 
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-3">
                     <Label htmlFor="nickname" className="text-stone-600 dark:text-stone-400 ml-4">Display Name</Label>
                     <Input 
                       id="nickname" 
-                      defaultValue="Moi" 
+                      defaultValue={user?.nickname}
+                      onChange={(nickname) => setNickname(nickname.target.value)}
                       className="rounded-full bg-white/80 dark:bg-stone-800/80 border-transparent shadow-sm h-12 px-6 focus-visible:ring-emerald-300/50 text-stone-800 dark:text-stone-100"
                     />
                   </div>
@@ -216,8 +264,13 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
               <CardFooter className="bg-white/40 dark:bg-black/20 p-6 flex justify-end">
-                <Button className="rounded-full bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white px-8 h-12 shadow-[0_4px_14px_rgb(4_120_87_/_30%)] transition-all duration-300">
-                  Save Changes
+                <Button
+                onClick={updateNames}
+                disabled={isChangingName} 
+                className="rounded-full bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white px-8 h-12 shadow-[0_4px_14px_rgb(4_120_87_/_30%)] transition-all duration-300"
+                >
+                  {isChangingName ? <Loader2/> : "Save Changes"}
+
                 </Button>
               </CardFooter>
             </Card>
@@ -325,12 +378,73 @@ export default function ProfilePage() {
                     <p className="font-medium text-orange-800 dark:text-orange-200">End Session</p>
                     <p className="text-xs text-orange-700/70 dark:text-orange-300/50">Sign out of this device.</p>
                   </div>
-                  <Button variant="ghost" size="sm" className="gap-2 text-orange-700 dark:text-orange-400 group-hover:text-orange-800 dark:group-hover:text-orange-300 group-hover:bg-orange-200/20">
+                  <Button  onClick={() => setShowLogoutDialog(true)} variant="ghost" size="sm" className="gap-2 text-orange-700 dark:text-orange-400 group-hover:text-orange-800 dark:group-hover:text-orange-300 group-hover:bg-orange-200/20">
                     <LogOut className="h-4 w-4" /> Log Out
                   </Button>
                 </div>
               </CardContent>
             </Card>
+
+            
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent className="max-w-md rounded-[2.5rem] bg-[#fcfcfc] dark:bg-stone-950 border border-white dark:border-stone-800 shadow-2xl p-8">
+          <AlertDialogHeader>
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 shadow-sm">
+              <LogOut className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            </div>
+            <AlertDialogTitle className="text-center text-xl font-serif text-stone-800 dark:text-stone-100">
+              Log out of your account?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center text-stone-500 dark:text-stone-400">
+              You'll need to sign in again to access your account and continue
+              where you left off.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter className="grid grid-cols-2 gap-3 sm:gap-3 sm:space-x-0 mt-6">
+            <AlertDialogCancel
+              className="w-full mt-0 font-bold rounded-full border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-200 h-12 bg-transparent"
+              disabled={isLoggingOut}
+            >
+              Cancel
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 focus:ring-orange-600 font-bold rounded-full h-12 shadow-lg shadow-orange-200 dark:shadow-none text-white"
+            >
+              {isLoggingOut ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Logging out...
+                </span>
+              ) : (
+                "Yes, log out"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
           </div>
         </div>
       )}

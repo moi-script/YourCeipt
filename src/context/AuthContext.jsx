@@ -8,6 +8,7 @@ import {
   createContext,
 } from "react";
 
+// import { useNavigate } from "react-router-dom";
 import { apiFetch, loginFetch } from "@/api/client";
 const AuthContext = createContext(null);
 
@@ -19,6 +20,8 @@ export const AuthProvider = ({ children }) => {
   const [receipts, setReceipts] = useState(null);
   const [isModelLoading, setIsModelLoading] = useState(true);
   const [refreshPage, setRefreshPage] = useState(false);
+  const [budgetList, setBudgetList] = useState(null);
+
   // fetching user receipt list
 
 
@@ -56,12 +59,6 @@ export const AuthProvider = ({ children }) => {
         }
       }, [user]);
     
- 
-
-  // useEffect(() => {
-  //   console.log("Reciepts contents ::", receipts);
-  //   console.log("User contents ::", user);
-  // }, [user, receipts]);
 
   const register = useCallback(async (url, options = {}) => {
     const status = await apiFetch(url, options);
@@ -78,6 +75,51 @@ export const AuthProvider = ({ children }) => {
     const upload = await apiFetch(endpoint, options);
     return upload;
   }, []);
+
+  useEffect(() => {
+      const handleGetBudgetItem = async () =>{
+          try {
+              const res = await fetch('http://localhost:3000/get/budget', {
+                method : "POST",
+                headers : {
+                  'Content-type' : 'application/json'
+                },
+                body : JSON.stringify({userId : user?._id})
+              });
+
+              const data = await res.json();
+              console.log('Budget list after fetch ::', data);
+              setBudgetList(data.budgetList);
+          } catch(err) {
+              console.error("Unable to get budget list:: ", err);
+          }
+      }
+
+      handleGetBudgetItem();
+  }, [user?._id])
+
+  // const logout = useCallback( async(setIsLoggingOut, setShowLogoutDialog) => {
+  //   try {
+  //     setIsLoggingOut(true);
+  //     const response = await fetch("http://localhost:3000/user/logout", {
+  //       method: "POST",
+  //       credentials : 'include',
+  //       headers: { "Content-Type": "application/json" },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Logout failed");
+  //     }
+  //   } catch (err) {
+  //     console.error("Unable to logout");
+  //   } finally {
+  //     setShowLogoutDialog(false);
+  //     setIsLoggingOut(false);
+  //     console.log("User logged out");
+  //     navigate("/", { replace: true });
+  //   }
+
+  // }, []);
 
   
   useEffect(() => {
@@ -106,24 +148,20 @@ export const AuthProvider = ({ children }) => {
       }
     };
     checkSession();
-  }, []);
-
-  const logout = useCallback(() => {
-    setUser(null);
-  }, []);
+  }, [refreshPage]);
 
   const value = useMemo(
     () => ({
       user,
       refreshPage,
       setRefreshPage,
+      budgetList,
       setIsModelLoading,
       isModelLoading,
       models,
       setModels,
       setUser,
       login,
-      logout,
       setLoading,
       isLoading,
       register,
@@ -142,13 +180,13 @@ export const AuthProvider = ({ children }) => {
       user,
       refreshPage,
       setRefreshPage,
+      budgetList,
       setIsModelLoading,
       isModelLoading,
       models,
       setModels,
       setUser,
       login,
-      logout,
       isLoading,
       register,
       registerLoading,
