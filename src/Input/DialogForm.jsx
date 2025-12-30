@@ -22,6 +22,7 @@ import {
 import { Camera, Loader2, Sparkles, Receipt, PenTool } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import { data } from "react-router-dom";
 
 export function DialogForm({
   isAddDialogOpen,
@@ -130,9 +131,10 @@ export function DialogForm({
         });
 
         const extractText = await axios.get(
-          "http://localhost:3000/extract/getText"
+          "http://localhost:3000/extract/azure"
         );
         setIsLoader(false);
+        console.log('Data contents ::', extractText.data.contents);
         setReceipts(extractText.data.contents);
         setReceiptContent(extractText.data.contents);
 

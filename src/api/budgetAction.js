@@ -70,7 +70,45 @@ const getTotalBalance = (budgetList) => {
 //  Last month -> scopes {1-30 days } || Current Month  {1-30 days}
 
 
+const getMonth = (date) => new Date(date).getMonth();
 
+const currentMonth = 10; // November (0-based)
+const lastMonth = 9;     // October
+
+const getMonthlyIncome = (month, transactions) =>
+  transactions
+    .filter(t => t.type === "income" && getMonth(t.date) === month)
+    .reduce((sum, t) => sum + t.amount, 0);
+
+
+const getMonthlyExpenses = (month, transactions) =>
+  transactions
+    .filter(t => t.type === "expense" && getMonth(t.date) === month)
+    .reduce((sum, t) => sum + t.amount, 0);
+    
+
+const percentageChange = (current, previous) => {
+      if (previous === 0) return 0;
+      return ((current - previous) / previous) * 100;
+};
+
+
+
+
+const savingsGoal = 10000;
+const totalBalance = 24580;
+
+const savingsProgress = (totalBalance / savingsGoal) * 100;
+
+
+const incomeCurrent = getMonthlyIncome(currentMonth);
+const incomeLast = getMonthlyIncome(lastMonth);
+
+const expenseCurrent = getMonthlyExpenses(currentMonth);
+const expenseLast = getMonthlyExpenses(lastMonth);
+
+const incomeChange = percentageChange(incomeCurrent, incomeLast);
+const expenseChange = percentageChange(expenseCurrent, expenseLast);
 
 
 // const stats = [

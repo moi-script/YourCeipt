@@ -21,56 +21,56 @@ import {
 import { useAuth } from '@/context/AuthContext';
 
 // --- YOUR DATA STRUCTURE ---
-// const initialBudgets = [
-//   {
-//     _id: 1,
-//     category: "groceries",
-//     budgetName: "Groceries",
-//     budgetAmount: 15000,
-//     spent: 12500,
-//     color: "#059669"
-//   },
-//   {
-//     _id: 2,
-//     category: "housing",
-//     budgetName: "Housing",
-//     budgetAmount: 25000,
-//     spent: 25000,
-//     color: "#ea580c"
-//   },
-//   {
-//     _id: 3,
-//     category: "transportation",
-//     budgetName: "Transportation",
-//     budgetAmount: 8000,
-//     spent: 9200,
-//     color: "#d97706"
-//   },
-//   {
-//     _id: 4,
-//     category: "dining",
-//     budgetName: "Dining Out",
-//     budgetAmount: 6000,
-//     spent: 4800,
-//     color: "#10b981"
-//   },
-//   {
-//     _id: 5,
-//     category: "entertainment",
-//     budgetName: "Entertainment",
-//     budgetAmount: 5000,
-//     spent: 3200,
-//     color: "#34d399"
-//   },
-//   {
-//     _id: 6,
-//     category: "utilities",
-//     budgetName: "Utilities",
-//     budgetAmount: 4000,
-//     spent: 3800,
-//     color: "#f97316"
-//   }
-// ];
+const initialBudgets = [
+  {
+    _id: 1,
+    category: "groceries",
+    budgetName: "Groceries",
+    budgetAmount: 15000,
+    spent: 12500,
+    color: "#059669"
+  },
+  {
+    _id: 2,
+    category: "housing",
+    budgetName: "Housing",
+    budgetAmount: 25000,
+    spent: 25000,
+    color: "#ea580c"
+  },
+  {
+    _id: 3,
+    category: "transportation",
+    budgetName: "Transportation",
+    budgetAmount: 8000,
+    spent: 9200,
+    color: "#d97706"
+  },
+  {
+    _id: 4,
+    category: "dining",
+    budgetName: "Dining Out",
+    budgetAmount: 6000,
+    spent: 4800,
+    color: "#10b981"
+  },
+  {
+    _id: 5,
+    category: "entertainment",
+    budgetName: "Entertainment",
+    budgetAmount: 5000,
+    spent: 3200,
+    color: "#34d399"
+  },
+  {
+    _id: 6,
+    category: "utilities",
+    budgetName: "Utilities",
+    budgetAmount: 4000,
+    spent: 3800,
+    color: "#f97316"
+  }
+];
 
 // --- SIMULATED SHADCN UI COMPONENTS (Customized for Organic Look & Dark Mode) ---
 
@@ -181,11 +181,10 @@ const categoryIcons = {
 };
 
 const BudgetPage = () => {
-  const [budgets, setBudgets] = useState(null);
+  const [budgets, setBudgets] = useState(initialBudgets);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   
-  // UPDATED: formData now matches your specific property names
   const [formData, setFormData] = useState({ 
     category: 'groceries', 
     budgetName: '', 
@@ -195,13 +194,11 @@ const BudgetPage = () => {
   
   const { user, budgetList } = useAuth();
 
-  // UPDATED: Calculate totals using budgetAmount
   const totalBudget = budgets?.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
   const totalSpent = budgets?.reduce((sum, b) => sum + Number(b.spent), 0);
   const totalRemaining = totalBudget - totalSpent;
   const spentPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 
-  // UPDATED: Detect overspending using budgetAmount
   const overspendingCategories = budgets?.filter(b => b.spent > b.budgetAmount);
   const nearLimitCategories = budgets?.filter(b => (b.spent / b.budgetAmount) >= 0.9 && b.spent <= b.budgetAmount);
 
@@ -266,10 +263,10 @@ const BudgetPage = () => {
     setBudgets(budgets.filter(b => b._id !== id));
   };
 
-
-  useEffect(() => {
-    setBudgets(budgetList);
-  }, [budgetList])
+  // will be turn on later if in production 
+  // useEffect(() => {
+  //   setBudgets(budgetList);
+  // }, [budgetList])
 
 
 
