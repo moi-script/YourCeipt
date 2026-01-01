@@ -20,6 +20,7 @@ import AIModelDashboard from "./Home/MyModels";
 import UserMenu from "./Home/Logout";
 import ProfilePage from "./Home/Profile";
 import OrganicPrivacyPage from "./Home/PrivacySecurity";
+import ReceiptDetailModal from "./components/ReceiptModal";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />

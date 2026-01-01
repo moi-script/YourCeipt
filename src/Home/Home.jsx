@@ -29,6 +29,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import TransactionDashboardSkeleton from "@/components/loaders/HomeSkeletonLoader";
 import { DeleteAlert } from "@/components/DeleteAlert";
+import ReceiptDetailModal from "@/components/ReceiptModal";
 
 
 
@@ -106,13 +107,7 @@ const PebbleCard = ({ children, className = "" }) => (
   </div>
 );
 
-export function Home({
-  sidebarOpen,
-  setSidebarOpen,
-  handleBellClick,
-  isAddDialogOpen,
-  setIsAddDialogOpen
-}) {
+export function Home() {
 
   const [transactions, setTransactions] = useState([
     { id: 1, name: "Grocery Store", amount: 125.5, category: "Food", date: "2024-12-01", type: "expense", notes: "Weekly groceries" },
@@ -124,8 +119,10 @@ export function Home({
 
   const [userReceipts, setUserReceipts] = useState(null);
   const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
-  const { user, refreshPage, setRefreshPage }  = useAuth();
+  const { user, refreshPage, setRefreshPage,  setIsAddDialogOpen }  = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  // const [receiptModal, setReceiptModal] = useState(false);
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   // ... (Your existing getReceiptType and useEffect logic remains unchanged) ...
   // For brevity, assuming helper functions exist here as in your snippet
@@ -149,7 +146,7 @@ export function Home({
         return {manualList : [], smartList : []}
       }
     };
-  
+
     useEffect(() => {
       const getUserReceipts = async () => {
         try {
@@ -317,7 +314,10 @@ export function Home({
           // Dark mode: bg-stone-800/40, border-stone-700
           className="group relative bg-white/70 dark:bg-stone-800/40 backdrop-blur-sm border border-white dark:border-stone-700 rounded-[2rem] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
         >
-          <div className="p-2 pb-0">
+          <div  className="p-2 pb-0"
+          onClick={() => setSelectedReceipt(transaction)}
+          
+          >
               {/* IMAGE SECTION */}
               <div className="h-32 w-full overflow-hidden relative shrink-0 rounded-[1.5rem]">
                 <img
@@ -393,6 +393,9 @@ export function Home({
               </div>
             </div>
           </div>
+
+       
+
         </div>
       );
                })}
@@ -620,6 +623,12 @@ export function Home({
           </TabsContent>
         </Tabs>
        </div>
+  
+     <ReceiptDetailModal 
+          isOpen={!!selectedReceipt}
+          onClose ={() => setSelectedReceipt(null)}
+          data={selectedReceipt}
+          />
     </main>
   );
 }

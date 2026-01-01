@@ -21,6 +21,8 @@ export const AuthProvider = ({ children }) => {
   const [isModelLoading, setIsModelLoading] = useState(true);
   const [refreshPage, setRefreshPage] = useState(false);
   const [budgetList, setBudgetList] = useState(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
 
   // fetching user receipt list
 
@@ -156,6 +158,8 @@ export const AuthProvider = ({ children }) => {
       refreshPage,
       setRefreshPage,
       budgetList,
+      isAddDialogOpen, 
+      setIsAddDialogOpen,
       setIsModelLoading,
       isModelLoading,
       models,
@@ -181,6 +185,8 @@ export const AuthProvider = ({ children }) => {
       refreshPage,
       setRefreshPage,
       budgetList,
+      isAddDialogOpen, 
+      setIsAddDialogOpen,
       setIsModelLoading,
       isModelLoading,
       models,

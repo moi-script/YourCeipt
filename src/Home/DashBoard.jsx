@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import UserMenu from "./Logout";
+import { useAuth } from "@/context/AuthContext";
 
 export function BudgetDashboard() {
   // ============================================================================
@@ -25,9 +26,11 @@ export function BudgetDashboard() {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [homeDefault, setHomeDefault] = useState("Home");
-  
+
+  const {isAddDialogOpen, setIsAddDialogOpen} = useAuth();
+
+
   const location = useLocation();
 
   const notificationList = [
@@ -158,8 +161,7 @@ export function BudgetDashboard() {
         <div className="flex-1">
             {(homeDefault === 'Home' && location.pathname === '/user/') ? (
             <UserHome
-                setIsAddDialogOpen={setIsAddDialogOpen}
-                isAddDialogOpen={isAddDialogOpen}
+             
             />
             ) : (
                 <Outlet />

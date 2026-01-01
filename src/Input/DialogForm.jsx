@@ -133,7 +133,14 @@ export function DialogForm({
         const extractText = await axios.get(
           "http://localhost:3000/extract/azure"
         );
+
+        if(extractText.status !== 200){
+          console.error('Unable to extrac text please try again ::');
         setIsLoader(false);
+
+        }
+        setIsLoader(false);
+        console.log("Axios object --> ", extractText);
         console.log('Data contents ::', extractText.data.contents);
         setReceipts(extractText.data.contents);
         setReceiptContent(extractText.data.contents);
