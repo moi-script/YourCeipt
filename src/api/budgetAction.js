@@ -75,6 +75,8 @@ const getMonth = (date) => new Date(date).getMonth();
 const currentMonth = 10; // November (0-based)
 const lastMonth = 9;     // October
 
+
+
 const getMonthlyIncome = (month, transactions) =>
   transactions
     .filter(t => t.type === "income" && getMonth(t.date) === month)

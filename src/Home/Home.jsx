@@ -31,6 +31,14 @@ import TransactionDashboardSkeleton from "@/components/loaders/HomeSkeletonLoade
 import { DeleteAlert } from "@/components/DeleteAlert";
 import ReceiptDetailModal from "@/components/ReceiptModal";
 
+import food from '../assets/food.png';
+import transport from '../assets/transportation.png';
+import utilities from '../assets/utilities.png';
+import shop from '../assets/shopping.png';
+import  health from '../assets/healthcare.png';
+import  income from '../assets/income.jpg';
+
+
 
 
 // statistics -> total balnce monlty income monthly expenses , savings goal
@@ -70,6 +78,40 @@ const stats = [
   },
 ];
 
+const getImageCategory = (category) => {
+  console.log('Category ::', category);
+  switch(category?.toLowerCase()) {
+    case "food" :
+      return food;
+    case "transportion" : 
+    return transport;
+    case "utilities" :
+      return utilities;
+    case "shopping" :
+      return shop;
+    case "healthcare" :
+      return health;
+    case "income" :
+      return income;
+      default :
+      return null
+  }
+}
+
+const getCategory = (transaction) => {
+  // console.log('Transction ::', transaction);
+  if(!transaction?.length) return null;
+
+  const category = transaction?.items[0]?.category || null;
+  //  console.log('Category ::', category);
+   try {
+    return getImageCategory(category);
+
+   } catch(err) {
+    console.error("Unable to get the image category");
+   }
+}
+
 
 // in budget overview
 const budgetCategories = [
@@ -107,6 +149,8 @@ const PebbleCard = ({ children, className = "" }) => (
   </div>
 );
 
+
+
 export function Home() {
 
   const [transactions, setTransactions] = useState([
@@ -117,60 +161,73 @@ export function Home() {
     { id: 5, name: "Freelance Project", amount: 850.0, category: "Income", date: "2024-11-28", type: "income", notes: "Web design" },
   ]);
 
-  const [userReceipts, setUserReceipts] = useState(null);
-  const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
-  const { user, refreshPage, setRefreshPage,  setIsAddDialogOpen }  = useAuth();
+  // const [userReceipts, setUserReceipts] = useState(null);
+  // const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
+  const { user,  setRefreshPage, userReceipts, isReceiptsLoading,  setIsAddDialogOpen }  = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   // const [receiptModal, setReceiptModal] = useState(false);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   // ... (Your existing getReceiptType and useEffect logic remains unchanged) ...
   // For brevity, assuming helper functions exist here as in your snippet
-  const getReceiptType = (data) => {
-      try {
-        const manualList = [];
-        const smartList = data.contents.map((res, index) => {
-            if (!Array.isArray(res)) {
-              return res;
-            }
-            manualList.push(res);
-            return null;
-          }).filter((remain) => remain !== null);
+  // const getReceiptType = (data) => {
+  //     try {
+  //       const manualList = [];
+  //       const smartList = data.contents.map((res, index) => {
+  //           if (!Array.isArray(res)) {
+  //             return res;
+  //           }
+  //           manualList.push(res);
+  //           return null;
+  //         }).filter((remain) => remain !== null);
   
-        return {
-          manualList: manualList.flat(),
-          smartList,
-        };
-      } catch (err) {
-        console.log("Unable to process the type of receipt" + err);
-        return {manualList : [], smartList : []}
-      }
-    };
+  //       return {
+  //         manualList: manualList.flat(),
+  //         smartList,
+  //       };
+  //     } catch (err) {
+  //       console.log("Unable to process the type of receipt" + err);
+  //       return {manualList : [], smartList : []}
+  //     }
+  //   };
 
-    useEffect(() => {
-      const getUserReceipts = async () => {
-        try {
-          setIsReceiptsLoading(true);
-          const receipts = await fetch("http://localhost:3000/user/receipts", {
-            method: "POST",
-            headers: { "Content-type": "application/json" },
-            body: JSON.stringify({ userId: user?._id }),
-          });
-          const data = await receipts.json();
-          const receiptTypeInteg = getReceiptType(data);
-          setUserReceipts(receiptTypeInteg);
-          setIsReceiptsLoading(false);
-        } catch (err) {
-          console.error("Unable to get receipts");
-        }
-      };
-      if(user?._id) getUserReceipts();
-      setRefreshPage(false);
-    }, [user?._id, refreshPage]);
+    // useEffect(() => {
+
+      
+    //   const sanitizeReceiptsFetchHelper = (transactions) => {
+    //     return transactions.filter(receipt =>  !(Array.isArray(receipt) && receipt.length === 0 ))
+    //       }
+
+
+    //   const getUserReceipts = async () => {
+    //     try {
+    //       setIsReceiptsLoading(true);
+    //       const receipts = await fetch("http://localhost:3000/user/receipts", {
+    //         method: "POST",
+    //         headers: { "Content-type": "application/json" },
+    //         body: JSON.stringify({ userId: user?._id }),
+    //       });
+    //       const data = await receipts.json();
+    //       // console.log("Undo the get receipt type ::", data);
+    //       console.log('All existed receipts ::', data.contents);
+    //       // const receiptTypeInteg = getReceiptType(data); // data.contents
+    //       setUserReceipts(sanitizeReceiptsFetchHelper(data.contents));
+
+    //       setIsReceiptsLoading(false);
+    //     } catch (err) {
+    //       console.error("Unable to get receipts");
+    //     }
+    //   };
+    //   if(user?._id) getUserReceipts();
+    //   setRefreshPage(false);
+    // }, [user?._id, refreshPage]);
 
     const handleDeleteReceipts = async (id, type) => {
+      console.log('Id --> ', id);
+      console.log('TYpe --> ', type);
+
       try {
-        await fetch(`http://localhost:3000/receipt/delete?id=${id}&type=${type}`,{
+        await fetch(`http://localhost:3000/receipt/delete?id=${id}`,{
          method : "DELETE"
         });
         setRefreshPage(true);
@@ -286,7 +343,7 @@ export function Home() {
             </div>
 
             {/* Transaction Cards */}
-            {(userReceipts?.smartList.length === 0 && userReceipts?.manualList.length === 0 ) ? (
+            {(userReceipts?.length === 0 && userReceipts?.length === 0 ) ? (
               <PebbleCard className="bg-white/40 dark:bg-stone-900/40">
                 <CardContent className="p-12">
                   <div className="text-center text-stone-400 dark:text-stone-500">
@@ -303,10 +360,10 @@ export function Home() {
             ) : (
            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                {/* SMART LIST (SCANNED) */}
-               {userReceipts?.smartList &&
-                 userReceipts?.smartList.map((transaction) => {
-      const meta = transaction.metadata || {};
-      const displayImage = meta.image || "https://logos-world.net/wp-content/uploads/2021/08/7-Eleven-Logo.jpg";
+               {userReceipts?.length > 0 &&
+                 userReceipts?.map((transaction) => {
+      const meta = transaction.metadata || {}; // create url handler
+      const displayImage = meta.image || getCategory(transaction || []);
       
       return (
         <div
@@ -316,10 +373,9 @@ export function Home() {
         >
           <div  className="p-2 pb-0"
           onClick={() => setSelectedReceipt(transaction)}
-          
           >
-              {/* IMAGE SECTION */}
-              <div className="h-32 w-full overflow-hidden relative shrink-0 rounded-[1.5rem]">
+            {/* IMAGE SECTION */}
+          <div className="h-32 w-full overflow-hidden relative shrink-0 rounded-[1.5rem]">
                 <img
                   src={meta.image_source || displayImage}
                   alt={displayImage || "Store"}
@@ -329,7 +385,7 @@ export function Home() {
                 <div className="absolute bottom-2 right-2 bg-white/90 dark:bg-stone-900/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow-sm text-stone-800 dark:text-stone-100">
                    <p> {transaction?.metadata?.currency && <CurrencySign currency={transaction?.metadata?.currency} total={(transaction.total || transaction.subtotal) || 0}/>}</p>
                 </div>
-              </div>
+            </div>
           </div>
 
           {/* CONTENT SECTION */}
@@ -342,7 +398,7 @@ export function Home() {
               <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-stone-400 dark:text-stone-500 mt-1 font-bold">
                 <Calendar className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">
-                  {meta.datetime ? new Date(meta.datetime).toLocaleDateString() : transaction.createdAt.split('T')[0]}
+                  {meta.datetime ? new Date(meta.datetime).toLocaleDateString() : transaction.createdAt?.split('T')[0]}
                 </span>
               </div>
 
@@ -382,7 +438,11 @@ export function Home() {
                 </Button>
 
                  <DeleteAlert 
-                 onDelete={() => handleDeleteReceipts(transaction._id, "smart")}
+                 onDelete={() => {
+                  console.log('Id of item --> ', transaction._id);
+                  handleDeleteReceipts(transaction._id);
+
+                 }}
                  itemName={transaction.store}
                  trigger={
                     <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full text-stone-400 dark:text-stone-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20">
@@ -392,96 +452,12 @@ export function Home() {
                  />
               </div>
             </div>
+            </div>
           </div>
-
-       
-
-        </div>
       );
                })}
 
-               {/* MANUAL LIST */}
-               {userReceipts?.manualList &&
-               userReceipts.manualList.map((transaction, index) => {
-      const amountValue = parseFloat(transaction.amount || 0);
-      const isIncome = transaction.transaction_type?.toLowerCase() === "income";
-
-      return (
-        <div
-          key={index}
-          className="group relative bg-white/70 dark:bg-stone-800/40 backdrop-blur-sm border border-white dark:border-stone-700 rounded-[2rem] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
-        >
-          <div className="p-2 pb-0">
-             {/* IMAGE PLACEHOLDER FOR MANUAL */}
-             <div className="h-32 w-full overflow-hidden relative shrink-0 rounded-[1.5rem] bg-stone-100 dark:bg-stone-900 flex items-center justify-center">
-                <div className="text-stone-300 dark:text-stone-700">
-                    <Receipt className="w-12 h-12" />
-                </div>
-                <div className="absolute bottom-2 right-2 bg-white/90 dark:bg-stone-800/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow-sm text-stone-800 dark:text-stone-100">
-                    <p> {transaction?.currency && <CurrencySign currency={transaction?.currency} total={amountValue || 0}/>}</p>
-                </div>
-             </div>
-          </div>
-
-          <div className="p-4 flex flex-col flex-grow justify-between gap-2">
-            <div>
-              <p className="font-serif text-stone-900 dark:text-stone-100 text-lg leading-tight line-clamp-2">
-                {transaction.description || "Manual Entry"}
-              </p>
-
-              <div className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-stone-400 dark:text-stone-500 mt-1 font-bold">
-                <Calendar className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">
-                  {transaction.date || new Date(transaction.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-1">
-                <Badge variant="secondary" className="text-[10px] px-2 py-0.5 h-auto bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-md">
-                  {transaction.category || "General"}
-                </Badge>
-
-                <Badge
-                  className={`text-[10px] px-2 py-0.5 h-auto rounded-md shadow-none ${
-                    isIncome
-                      ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                      : "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
-                  }`}
-                >
-                  {transaction.transaction_type || "Expense"}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between mt-auto pt-2 border-t border-stone-100/50 dark:border-stone-700/50">
-               <div className="bg-stone-100 dark:bg-stone-800 p-1.5 rounded-full text-stone-500 dark:text-stone-400">
-                   <Edit className="w-3 h-3" />
-               </div>
-
-              <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 rounded-full text-stone-400 dark:text-stone-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
-                >
-                  <Edit className="w-3 h-3" />
-                </Button>
-
-                 <DeleteAlert 
-                 onDelete={() => handleDeleteReceipts(transaction._id, "manual")} 
-                 itemName={transaction.description}
-                 trigger={
-                    <Button size="icon" variant="ghost" className="h-7 w-7 rounded-full text-stone-400 dark:text-stone-500 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20">
-                        <Trash2 className="w-3 h-3" />
-                    </Button>
-                 }
-                 />
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-               })}
+            
            </div>
            )}
          </TabsContent>

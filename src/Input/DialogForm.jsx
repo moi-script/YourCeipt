@@ -22,7 +22,6 @@ import {
 import { Camera, Loader2, Sparkles, Receipt, PenTool } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import { data } from "react-router-dom";
 
 export function DialogForm({
   isAddDialogOpen,
@@ -33,6 +32,24 @@ export function DialogForm({
   const [isLoading, setIsLoader] = useState(false);
   const [receiptContent, setReceiptContent] = useState(null);
   const [color, setColor] = useState("from-emerald-600");
+  const [manualReceipt, setManualReceipt] = useState({
+    transaction_type: "expense",
+    amount: "",
+    description: "",
+    category: "",
+    date: "",
+    notes: "",
+    currency : "PHP" 
+  });
+  const { user, uploadReceipts, setReceipts, setRefreshPage } = useAuth(); 
+  const [formData, setFormData] = useState({
+    type: "expense",
+    name: "",
+    amount: "",
+    category: "",
+    date: "",
+    notes: "",
+  });
 
   const categories = [
     "Food",
@@ -44,27 +61,6 @@ export function DialogForm({
     "Healthcare",
     "Other",
   ];
-
-  const { user, uploadReceipts, setReceipts, setRefreshPage } = useAuth(); 
-
-  const [manualReceipt, setManualReceipt] = useState({
-    transaction_type: "expense",
-    amount: "",
-    description: "",
-    category: "",
-    date: "",
-    notes: "",
-    currency : "PHP" 
-  });
-
-  const [formData, setFormData] = useState({
-    type: "expense",
-    name: "",
-    amount: "",
-    category: "",
-    date: "",
-    notes: "",
-  });
 
   const handleManualReceiptChange = (e) => {
     if (e === "expense" || e === "income") {
@@ -111,6 +107,8 @@ export function DialogForm({
         }),
       });
       alert("Uploaded Successfully");
+      setReceiptContent(null);
+
     } catch (err) {
       console.error("Unable to upload receipts", err);
     }
@@ -145,7 +143,6 @@ export function DialogForm({
         setReceipts(extractText.data.contents);
         setReceiptContent(extractText.data.contents);
 
-        alert(`${files.length} files uploaded!`);
       } catch (err) {
         console.error(err);
       }
@@ -200,7 +197,7 @@ export function DialogForm({
     }
   }
 
-  const uploadInput = () => {
+  const uploadInput   = () => {
     switch (inputMode) {
       case "manual":
         return uploadManualReceipt();

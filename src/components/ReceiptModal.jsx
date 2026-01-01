@@ -4,6 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -141,6 +142,10 @@ const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
           {data.slogan && (
             <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">"{data.slogan}"</p>
           )}
+
+          <DialogDescription className="text-sm text-stone-500 dark:text-stone-400 font-medium">
+              {data.slogan ? `"${data.slogan}"` : "Receipt Details"}
+          </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[70vh] w-full px-6 pb-6 relative z-10">

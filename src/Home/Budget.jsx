@@ -181,7 +181,7 @@ const categoryIcons = {
 };
 
 const BudgetPage = () => {
-  const [budgets, setBudgets] = useState(initialBudgets);
+  const [budgets, setBudgets] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState(null);
   
@@ -193,6 +193,10 @@ const BudgetPage = () => {
   });
   
   const { user, budgetList } = useAuth();
+
+  useEffect(() => {
+    setBudgets(budgetList);
+  }, [budgetList]);
 
   const totalBudget = budgets?.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
   const totalSpent = budgets?.reduce((sum, b) => sum + Number(b.spent), 0);

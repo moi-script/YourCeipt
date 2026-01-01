@@ -21,6 +21,9 @@ import UserMenu from "./Home/Logout";
 import ProfilePage from "./Home/Profile";
 import OrganicPrivacyPage from "./Home/PrivacySecurity";
 import ReceiptDetailModal from "./components/ReceiptModal";
+import { ManualEntryForm } from "./Input/ManualForm";
+import { DialogForm } from "./Input/DialogForm";
+import { AdvanceForm } from "./Input/AdvanceForm";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />

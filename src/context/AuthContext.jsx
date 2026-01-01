@@ -23,6 +23,11 @@ export const AuthProvider = ({ children }) => {
   const [budgetList, setBudgetList] = useState(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  const [userReceipts, setUserReceipts] = useState(null);
+  const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
+
+
+
 
   // fetching user receipt list
 
@@ -31,9 +36,9 @@ export const AuthProvider = ({ children }) => {
   
     // ... (Your existing useEffects remain the same) ...
     useEffect(() => {
-      console.log('Fetching ai models ');
+      // console.log('Fetching ai models ');
       const fetchAi = async () => {
-      console.log('Fetching ai --> ');
+      // console.log('Fetching ai --> ');
         try {
           setIsModelLoading(true);
           const res = await fetch("http://localhost:3000/extract/getModels");
@@ -47,8 +52,7 @@ export const AuthProvider = ({ children }) => {
       fetchAi();
   
     }, []);
-
-
+    
      useEffect(() => {
         const root = window.document.documentElement;
         // Check the boolean state 'isDarkMode', not the string "dark"
@@ -100,6 +104,39 @@ export const AuthProvider = ({ children }) => {
       handleGetBudgetItem();
   }, [user?._id])
 
+
+   useEffect(() => {
+
+      
+      const sanitizeReceiptsFetchHelper = (transactions) => {
+        return transactions.filter(receipt =>  !(Array.isArray(receipt) && receipt.length === 0 ))
+          }
+
+
+      const getUserReceipts = async () => {
+        try {
+          setIsReceiptsLoading(true);
+          const receipts = await fetch("http://localhost:3000/user/receipts", {
+            method: "POST",
+            headers: { "Content-type": "application/json" },
+            body: JSON.stringify({ userId: user?._id }),
+          });
+          const data = await receipts.json();
+          // console.log("Undo the get receipt type ::", data);
+          // console.log('All existed receipts ::', data.contents);
+          // const receiptTypeInteg = getReceiptType(data); // data.contents
+          setUserReceipts(sanitizeReceiptsFetchHelper(data.contents));
+
+          setIsReceiptsLoading(false);
+        } catch (err) {
+          console.error("Unable to get receipts");
+        }
+      };
+      if(user?._id) getUserReceipts();
+      setRefreshPage(false);
+
+    }, [user, refreshPage]);
+
   // const logout = useCallback( async(setIsLoggingOut, setShowLogoutDialog) => {
   //   try {
   //     setIsLoggingOut(true);
@@ -134,19 +171,17 @@ export const AuthProvider = ({ children }) => {
         });
 
         if (response.user) {
-          console.log("Response user --> session ", response.user);
+          // console.log("Response user --> session ", response.user);
           setUser(response.user);
         }
-        console.log('User list ;:', response.user);
+        // console.log('User list ;:', response.user);
       } catch (error) {
         console.log("No valid session found");
         setUser(null);
       } finally {
         // 3. Whether it works or fails, we are done loading
-        setTimeout(() => {
           console.log("After 5 seconds");
           setLoading(false);
-        }, 500);
       }
     };
     checkSession();
@@ -156,6 +191,8 @@ export const AuthProvider = ({ children }) => {
     () => ({
       user,
       refreshPage,
+      userReceipts,
+      isReceiptsLoading,
       setRefreshPage,
       budgetList,
       isAddDialogOpen, 
@@ -182,6 +219,8 @@ export const AuthProvider = ({ children }) => {
     }),
     [
       user,
+      userReceipts,
+      isReceiptsLoading,
       refreshPage,
       setRefreshPage,
       budgetList,

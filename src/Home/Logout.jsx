@@ -29,7 +29,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 export default function UserMenu({setHomeDefault}) {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { user } = useAuth() || { user: null };
+  const { user, setRefreshPage } = useAuth() || { user: null };
   const navigate = useNavigate();
 
 
@@ -55,6 +55,7 @@ export default function UserMenu({setHomeDefault}) {
       setShowLogoutDialog(false);
       setIsLoggingOut(false);
       console.log("User logged out");
+      setRefreshPage(true);
       navigate("/", { replace: true });
     }
   };

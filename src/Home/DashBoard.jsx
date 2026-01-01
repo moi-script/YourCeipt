@@ -18,6 +18,7 @@ import {
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import UserMenu from "./Logout";
 import { useAuth } from "@/context/AuthContext";
+import { AdvanceForm } from "@/Input/AdvanceForm";
 
 export function BudgetDashboard() {
   // ============================================================================
@@ -168,7 +169,7 @@ export function BudgetDashboard() {
             )}
         </div>
 
-        <DialogForm
+        <AdvanceForm
           setIsAddDialogOpen={setIsAddDialogOpen}
           isAddDialogOpen={isAddDialogOpen}
         />
