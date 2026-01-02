@@ -111,8 +111,8 @@
 
 
 
-const d = new Date('2023-12-10');
-console.log(d.getMonth());
+const d = new Date('2023-12-09');
+console.log(d.getDate());
 
 
 

@@ -86,7 +86,7 @@ const getPreviousMonthlyExpensesOrIncome = (transaction, receiptType) => {
       }
     })
     .reduce((sum, spent) => {
-      return sum + parseFloat(spent.total);
+      return sum + parseFloat(spent.total)?.toFixed(2);
     }, 0);
 };
 
@@ -133,6 +133,101 @@ const getSavings = (monthlyIncome, monthlyExpenses) => {
   return monthlyIncome - monthlyExpenses;
 };
 
+const getRecentTransaction = (transactions) => {
+  const now = new Date();
+  const threeDays = 1 * 24 * 60 * 60 * 1000;
+
+  const threeDaysAgo = new Date(now.getTime() - threeDays);
+
+  const filteredTransactions = transactions.filter((tx) => {
+    const txDate = new Date(tx.metadata.datetime);
+    return txDate >= threeDaysAgo && txDate <= now;
+  });
+  const sortedTransactions = filteredTransactions.sort(
+    (a, b) => new Date(b.metadata.datetime) - new Date(a.metadata.datetime)
+  );
+
+  const simplifiedList = sortedTransactions?.map((tx, index) => ({
+      id: index + 1,
+      name: tx.store ?? tx.transaction.store_number ?? "Unknown",
+      amount: tx.total ?? 0,
+      category: tx.items?.[0]?.category ?? "Other",
+      date: tx.metadata?.datetime.split('T')[0] ?? null,
+      type: tx.metadata?.type?.toLowerCase() === "income" ? "income" : "expense",
+      notes: tx.metadata?.notes ?? ""
+    }));
+
+  console.log("Sorted from three days ago up to now ", simplifiedList);
+    return simplifiedList;
+
+};
+
+const convertToInitialTransactions = (receipts = []) => {
+  return receipts.map((tx) => {
+    const subtotal =
+      tx.subtotal ??
+      (tx.items ?? []).reduce(
+        (sum, item) => sum + (item.price ?? 0) * (item.quantity ?? 1),
+        0
+      );
+
+    const taxRate = tx.tax_rate ?? 0;
+    const taxAmount = tx.tax_amount ?? subtotal * taxRate;
+    const total = tx.total ?? subtotal + taxAmount;
+
+    return {
+      id: tx._id,
+      store: tx.store ?? "Unknown Store",
+      slogan: tx.slogan ?? null,
+      contact: tx.contact ?? null,
+      manager: tx.manager ?? null,
+
+      address: {
+        street: tx.address?.street ?? null,
+        city: tx.address?.city ?? null,
+        state: tx.address?.state ?? null,
+        zip: tx.address?.zip ?? null,
+      },
+
+      transaction: {
+        store_number: tx.transaction?.store_number ?? null,
+        operator_number: tx.transaction?.operator_number ?? null,
+        terminal_number: tx.transaction?.terminal_number ?? null,
+        transaction_number: tx.transaction?.transaction_number ?? null,
+      },
+
+      items: (tx.items ?? []).map(item => ({
+        description: item.description ?? null,
+        upc: item.upc ?? null,
+        type: item.type ?? null,
+        price: item.price ?? 0,
+        quantity: item.quantity ?? 1,
+      })),
+
+      subtotal: parseFloat(subtotal),
+      tax_rate: taxRate,
+      tax_amount: parseFloat(taxAmount),
+      total: parseFloat(total),
+
+      payment_method: tx.payment_method ?? null,
+      amount_paid: tx.amount_paid ?? total,
+
+      type: total >= 0 ? "expense" : "income",
+
+      metadata: {
+        currency: tx.metadata?.currency ?? "PHP",
+        datetime: tx.metadata?.datetime ?? null,
+        notes: tx.metadata?.notes ?? "",
+        source_type: tx.metadata?.source_type ?? null,
+      },
+    };
+  });
+};
+
+
+
+
+
 export const AuthProvider = ({ children }) => {
   // user authentication
   const [user, setUser] = useState(null);
@@ -155,6 +250,8 @@ export const AuthProvider = ({ children }) => {
   const [savings, setSavings] = useState(null);
   const [previousIncome, setPreviousIncome] = useState(null);
   const [previousExpense, setPreviousExpense] = useState(null);
+  const [recentTransaction, setRecentTransaction] = useState(null);
+  const [transactionFlow, setTransactionFlow] = useState(null);
 
   // fetching user receipt list
 
@@ -275,6 +372,7 @@ export const AuthProvider = ({ children }) => {
         setTotalSpent(getTotalExpenses(sanitizedReceipts));
         setMonthlyExpenses(getMonthlyExpenses(sanitizedReceipts));
         setMonthlyIncome(getMonthlyIncome(sanitizedReceipts));
+        setRecentTransaction(getRecentTransaction(sanitizedReceipts));
         try {
           setPreviousExpense(
             getPreviousMonthlyExpensesOrIncome(sanitizedReceipts, "Expense")
@@ -282,6 +380,8 @@ export const AuthProvider = ({ children }) => {
           setPreviousIncome(
             getPreviousMonthlyExpensesOrIncome(sanitizedReceipts, "Income")
           );
+        setTransactionFlow(convertToInitialTransactions(sanitizedReceipts));
+
         } catch (err) {
           console.error("Unable to set previous", err);
         }
@@ -346,8 +446,10 @@ export const AuthProvider = ({ children }) => {
       refreshPage,
       userReceipts,
       totalBudget,
+      transactionFlow,
       previousIncome,
       previousExpense,
+      recentTransaction,
       totalSpent,
       savings,
       monthlyExpenses,
@@ -379,7 +481,9 @@ export const AuthProvider = ({ children }) => {
       isReceiptsLoading,
       refreshPage,
       monthlyExpenses,
+      transactionFlow,
       previousIncome,
+      recentTransaction,
       previousExpense,
       savings,
       monthlyIncome,

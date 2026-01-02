@@ -122,26 +122,31 @@ export function Home() {
 
 
 
-  const [transactions, setTransactions] = useState([
-    { id: 1, name: "Grocery Store", amount: 125.5, category: "Food", date: "2024-12-01", type: "expense", notes: "Weekly groceries" },
-    { id: 2, name: "Salary Deposit", amount: 4200, category: "Income", date: "2024-12-01", type: "income", notes: "Monthly salary" },
-    { id: 3, name: "Netflix", amount: 15.99, category: "Entertainment", date: "2024-11-30", type: "expense", notes: "Subscription" },
-    { id: 4, name: "Electric Bill", amount: 89.0, category: "Utilities", date: "2024-11-29", type: "expense", notes: "November bill" },
-    { id: 5, name: "Freelance Project", amount: 850.0, category: "Income", date: "2024-11-28", type: "income", notes: "Web design" },
-  ]);
+  const [transactions, setTransactions] = useState(null);
 
   // totalBudget,
       // totalSpent,
       // totalBalance,
   const { user,  setRefreshPage, userReceipts, isReceiptsLoading, monthlyExpenses,
       monthlyIncome, setIsAddDialogOpen, totalBalance, savings, previousIncome,
-      previousExpense, }  = useAuth();
+      previousExpense, recentTransaction }  = useAuth();
 
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
   // useEffect(() => {
   //   console.log("Expenses ::", previousIncome);
   // }, [previousIncome, previousExpense])
+
+  useEffect(() => {
+    setTransactions(recentTransaction)
+  }, [recentTransaction])
+
+  useEffect(() => {
+    if(transactions) {
+      console.log("SImplified ::", transactions)
+    } }, [transactions])
+
+
 
   
       const stats = [
@@ -181,7 +186,6 @@ export function Home() {
           
     const handleDeleteReceipts = async (id, type) => {
       console.log('Id --> ', id);
-      console.log('TYpe --> ', type);
 
       try {
         await fetch(`http://localhost:3000/receipt/delete?id=${id}`,{
@@ -433,7 +437,7 @@ export function Home() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {transactions.slice(0, 5).map((transaction) => (
+                    {transactions?.slice(0, 5).map((transaction) => (
                       <div
                         key={transaction.id}
                         className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/50 dark:hover:bg-stone-800/50 transition-colors"
@@ -469,7 +473,7 @@ export function Home() {
                                 : "text-stone-800 dark:text-stone-100"
                             }`}
                           >
-                            ${transaction.amount.toFixed(2)}
+                            ${transaction.amount}
                           </p>
                           <p className="text-xs text-stone-400 dark:text-stone-500 font-bold uppercase tracking-wider">
                             {transaction.date}
