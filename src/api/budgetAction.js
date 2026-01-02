@@ -60,7 +60,7 @@ budgetList: [
 }
 
 
-const getTotalBalance = (budgetList) => {
+export const getTotalBalanceBudget = (budgetList) => {
     return budgetList.reduce((total, value) => {
         return total + value.budgetAmount
     }, 0)
@@ -150,4 +150,4 @@ const expenseChange = percentageChange(expenseCurrent, expenseLast);
 
 
 
-console.log(getTotalBalance(obj.budgetList));
+// console.log(getTotalBalance(obj.budgetList));

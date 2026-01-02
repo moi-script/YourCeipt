@@ -135,7 +135,7 @@ export function AdvanceForm({
   const handleItemChange = (index, field, value) => {
     const newItems = [...formData.items];
     newItems[index] = { ...newItems[index], [field]: value };
-    
+    setColor("bg-orange-500"); 
     const newSubtotal = newItems.reduce((acc, item) => acc + (parseFloat(item.price || 0) * parseFloat(item.quantity || 1)), 0);
     
     setFormData(prev => ({
@@ -172,7 +172,8 @@ export function AdvanceForm({
           ...formData, 
         }),
       });
-      setFormData(INITIAL_COMPLEX_STATE)
+      setFormData(INITIAL_COMPLEX_STATE);
+
     } catch (err) {
       console.error(err);
     }

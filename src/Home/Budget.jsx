@@ -192,14 +192,14 @@ const BudgetPage = () => {
     color: '#10b981' 
   });
   
-  const { user, budgetList } = useAuth();
+  const { user, budgetList, totalSpent, totalBudget } = useAuth();
 
   useEffect(() => {
     setBudgets(budgetList);
   }, [budgetList]);
 
-  const totalBudget = budgets?.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
-  const totalSpent = budgets?.reduce((sum, b) => sum + Number(b.spent), 0);
+  // const totalBudget = budgets?.reduce((sum, b) => sum + Number(b.budgetAmount), 0);
+  // const totalSpent = budgets?.reduce((sum, b) => sum + Number(b.spent), 0);
   const totalRemaining = totalBudget - totalSpent;
   const spentPercentage = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
 

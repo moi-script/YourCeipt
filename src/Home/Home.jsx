@@ -37,49 +37,14 @@ import utilities from '../assets/utilities.png';
 import shop from '../assets/shopping.png';
 import  health from '../assets/healthcare.png';
 import  income from '../assets/income.jpg';
-
+import general from '../assets/other.png'
 
 
 
 // statistics -> total balnce monlty income monthly expenses , savings goal
 
-const stats = [
-  {
-    title: "Total Balance",
-    value: "$24,580.00",
-    change: "+12.5%",
-    isPositive: true,
-    icon: Wallet,
-    color: "emerald",
-  },
-  {
-    title: "Monthly Income",
-    value: "$8,420.00",
-    change: "+8.2%",
-    isPositive: true,
-    icon: TrendingUp,
-    color: "emerald",
-  },
-  {
-    title: "Monthly Expenses",
-    value: "$5,230.00",
-    change: "-3.1%",
-    isPositive: true,
-    icon: TrendingDown,
-    color: "orange",
-  },
-  {
-    title: "Savings Goal",
-    value: "68%",
-    change: "Target: $10k",
-    isPositive: true,
-    icon: PieChart,
-    color: "blue",
-  },
-];
-
 const getImageCategory = (category) => {
-  console.log('Category ::', category);
+  // console.log('Category ::', category);
   switch(category?.toLowerCase()) {
     case "food" :
       return food;
@@ -94,23 +59,24 @@ const getImageCategory = (category) => {
     case "income" :
       return income;
       default :
-      return null
+      return general;
   }
 }
 
 const getCategory = (transaction) => {
-  // console.log('Transction ::', transaction);
-  if(!transaction?.length) return null;
-
-  const category = transaction?.items[0]?.category || null;
+  // console.log('Transction ::', transaction.items[0].category);
+  // if(!transaction?.length) return null;
+  // const category = transaction.items[0]?.category || null;
   //  console.log('Category ::', category);
    try {
-    return getImageCategory(category);
+    return getImageCategory(transaction.items[0].category);
 
    } catch(err) {
     console.error("Unable to get the image category");
    }
 }
+
+
 
 
 // in budget overview
@@ -153,6 +119,9 @@ const PebbleCard = ({ children, className = "" }) => (
 
 export function Home() {
 
+
+
+
   const [transactions, setTransactions] = useState([
     { id: 1, name: "Grocery Store", amount: 125.5, category: "Food", date: "2024-12-01", type: "expense", notes: "Weekly groceries" },
     { id: 2, name: "Salary Deposit", amount: 4200, category: "Income", date: "2024-12-01", type: "income", notes: "Monthly salary" },
@@ -161,67 +130,55 @@ export function Home() {
     { id: 5, name: "Freelance Project", amount: 850.0, category: "Income", date: "2024-11-28", type: "income", notes: "Web design" },
   ]);
 
-  // const [userReceipts, setUserReceipts] = useState(null);
-  // const [isReceiptsLoading, setIsReceiptsLoading] = useState(false);
-  const { user,  setRefreshPage, userReceipts, isReceiptsLoading,  setIsAddDialogOpen }  = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  // const [receiptModal, setReceiptModal] = useState(false);
+  // totalBudget,
+      // totalSpent,
+      // totalBalance,
+  const { user,  setRefreshPage, userReceipts, isReceiptsLoading, monthlyExpenses,
+      monthlyIncome, setIsAddDialogOpen, totalBalance, savings, previousIncome,
+      previousExpense, }  = useAuth();
+
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
-  // ... (Your existing getReceiptType and useEffect logic remains unchanged) ...
-  // For brevity, assuming helper functions exist here as in your snippet
-  // const getReceiptType = (data) => {
-  //     try {
-  //       const manualList = [];
-  //       const smartList = data.contents.map((res, index) => {
-  //           if (!Array.isArray(res)) {
-  //             return res;
-  //           }
-  //           manualList.push(res);
-  //           return null;
-  //         }).filter((remain) => remain !== null);
+  // useEffect(() => {
+  //   console.log("Expenses ::", previousIncome);
+  // }, [previousIncome, previousExpense])
+
   
-  //       return {
-  //         manualList: manualList.flat(),
-  //         smartList,
-  //       };
-  //     } catch (err) {
-  //       console.log("Unable to process the type of receipt" + err);
-  //       return {manualList : [], smartList : []}
-  //     }
-  //   };
-
-    // useEffect(() => {
-
-      
-    //   const sanitizeReceiptsFetchHelper = (transactions) => {
-    //     return transactions.filter(receipt =>  !(Array.isArray(receipt) && receipt.length === 0 ))
-    //       }
-
-
-    //   const getUserReceipts = async () => {
-    //     try {
-    //       setIsReceiptsLoading(true);
-    //       const receipts = await fetch("http://localhost:3000/user/receipts", {
-    //         method: "POST",
-    //         headers: { "Content-type": "application/json" },
-    //         body: JSON.stringify({ userId: user?._id }),
-    //       });
-    //       const data = await receipts.json();
-    //       // console.log("Undo the get receipt type ::", data);
-    //       console.log('All existed receipts ::', data.contents);
-    //       // const receiptTypeInteg = getReceiptType(data); // data.contents
-    //       setUserReceipts(sanitizeReceiptsFetchHelper(data.contents));
-
-    //       setIsReceiptsLoading(false);
-    //     } catch (err) {
-    //       console.error("Unable to get receipts");
-    //     }
-    //   };
-    //   if(user?._id) getUserReceipts();
-    //   setRefreshPage(false);
-    // }, [user?._id, refreshPage]);
-
+      const stats = [
+        {
+          title: "Total Balance",
+          value: "$" + parseFloat(totalBalance?.toFixed(2)),
+          change: "+12.5%",
+          isPositive: true,
+          icon: Wallet,
+          color: "emerald",
+        },
+        {
+          title: "Monthly Income",
+          value: "$" + parseFloat(monthlyIncome?.toFixed(2)),
+          change: (previousIncome > 0)? (((parseFloat(monthlyIncome?.toFixed(2)) - previousIncome.toFixed(2) ) / previousIncome.toFixed(2)) * 100) + "%" : "+100%",
+          isPositive: true,
+          icon: TrendingUp,
+          color: "emerald",
+        },
+        {
+          title: "Monthly Expenses",
+          value: "$" + parseFloat(monthlyExpenses?.toFixed(2)),
+          change: (previousExpense > 0)? (((parseFloat(monthlyIncome?.toFixed(2)) - previousExpense.toFixed(2) ) / previousExpense.toFixed(2)) * 100).toFixed(2) + "%" : "+100%",
+          isPositive: true,
+          icon: TrendingDown,
+          color: "orange",
+        },
+        {
+          title: "Savings Goal",
+          value: parseInt(((savings / monthlyIncome) * 100)) + "%",
+          change: "Target: $10k",
+          isPositive: true,
+          icon: PieChart,
+          color: "blue",
+        },
+            ];
+          
     const handleDeleteReceipts = async (id, type) => {
       console.log('Id --> ', id);
       console.log('TYpe --> ', type);
@@ -362,8 +319,9 @@ export function Home() {
                {/* SMART LIST (SCANNED) */}
                {userReceipts?.length > 0 &&
                  userReceipts?.map((transaction) => {
-      const meta = transaction.metadata || {}; // create url handler
-      const displayImage = meta.image || getCategory(transaction || []);
+          const meta = transaction.metadata || {}; // create url handler
+          // console.log("Transaction category :: ", getCategory(transaction || []));
+          const displayImage = meta.image_source || getCategory(transaction || []);
       
       return (
         <div
@@ -405,7 +363,7 @@ export function Home() {
               {/* TAGS */}
               <div className="mt-3 flex flex-wrap gap-1">
                 <Badge variant="secondary" className="text-[10px] px-2 py-0.5 h-auto bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 rounded-md">
-                  {meta.category || "General"}
+                  {transaction?.items[0].category || "General"}
                 </Badge>
 
                 <Badge
