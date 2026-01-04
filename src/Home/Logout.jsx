@@ -56,7 +56,7 @@ export default function UserMenu({setHomeDefault}) {
       setIsLoggingOut(false);
       console.log("User logged out");
       setRefreshPage(true);
-      navigate("/", { replace: true });
+      navigate("/main", { replace: true });
     }
   };
 

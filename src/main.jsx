@@ -24,6 +24,7 @@ import ReceiptDetailModal from "./components/ReceiptModal";
 import { ManualEntryForm } from "./Input/ManualForm";
 import { DialogForm } from "./Input/DialogForm";
 import { AdvanceForm } from "./Input/AdvanceForm";
+import LandingPage from "./Home/LandingPage";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />

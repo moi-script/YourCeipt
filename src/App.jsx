@@ -16,6 +16,7 @@ import { AuthProvider } from "./context/authContext";
 import AIModelDashboard from "./Home/MyModels";
 import ProfilePage from "./Home/Profile";
 import OrganicPrivacyPage from "./Home/PrivacySecurity";
+import LandingPage from "./Home/LandingPage";
 function App() {
   return (
     <>
@@ -24,7 +25,10 @@ function App() {
      <BrowserRouter>
     
       <Routes>
+
         <Route path="/" element={<Login/>}/>
+        <Route path="/main" element={<LandingPage/>}/>
+        
         <Route path="/register" element={<BudgetSignup/>}/>
         <Route path="/forgot" element={<ForgotPassword/>}/>
         <Route path="/onboard" element={<Onboarding/>}/>

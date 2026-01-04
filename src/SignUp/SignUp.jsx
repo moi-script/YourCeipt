@@ -13,30 +13,6 @@ import {
   Leaf
 } from "lucide-react";
 import { RegisterForm } from "./Register.jsx";
-import receptaLogo from "../assets/receptaLogo.png";
-
-
-//  image_profile : {
-//     type : String,
-//     required : true
-//   },
-//   currency : {
-//     type : String,
-//     required : true
-//   },
-//   theme : {
-//     type : String,
-//     required : true
-//   },
-//   overspending : {
-//     type : Boolean,
-//     required : true
-//   },
-//   nearLimit : {
-//     type : Boolean,
-//     required : true
-//   },
-  
 
 
 const BudgetSignup = () => {
