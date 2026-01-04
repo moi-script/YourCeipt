@@ -24,7 +24,7 @@ import {
 
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { calculateKeyInsights, getMerchantPatterns, processBudgetInsights,
+import { calculateKeyInsights, getCategorySummaries, getMerchantPatterns, processBudgetInsights,
    transformBudgetsToInsights,
     transformToDailyHeatmap,
     transformToMerchantInsights
@@ -310,6 +310,7 @@ export default function Analytics({
   const [merchantPattern, setMerchantPattern] = useState(null);
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
+  const [categorySummaries, setCagorySummaries] = useState(null);
   useEffect(() => {
     if(metricsAnalytic.info){
     setMetricValue(getMetrics(metricsAnalytic.info, selectedPeriod));
@@ -323,6 +324,7 @@ export default function Analytics({
     if(categorySpent) {
       setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
       setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
+      setCagorySummaries(getCategorySummaries(categorySpent));
     }
 
   }, [categorySpent])
@@ -349,6 +351,8 @@ export default function Analytics({
   useEffect(() => {
     console.log('Metric value :: ', metricValue);
   }, [metricValue])
+
+
 
   return (
     // 1. BACKGROUND: 
@@ -663,137 +667,76 @@ export default function Analytics({
           </TabsContent>
 
           {/* 2. Category Insights */}
-          <TabsContent value="categories" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Top Category (Emerald) */}
-              <Card className="border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-900/10">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl">
-                      <Coffee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">Top Category</p>
-                      <h4 className="font-serif text-lg text-emerald-900 dark:text-emerald-100">
-                        Food & Dining
-                      </h4>
-                    </div>
-                  </div>
-                  <p className="text-3xl font-serif text-emerald-700 dark:text-emerald-300">₱8,420</p>
-                </CardContent>
-              </Card>
-
-              {/* Least Spending (Blue) */}
-              <Card className="border-sky-100 dark:border-sky-900/30 bg-sky-50/50 dark:bg-sky-900/10">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-sky-100 dark:bg-sky-900/30 p-2.5 rounded-xl">
-                      <Home className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600/70 dark:text-sky-400/70">Least Spending</p>
-                      <h4 className="font-serif text-lg text-sky-900 dark:text-sky-100">
-                        Entertainment
-                      </h4>
-                    </div>
-                  </div>
-                  <p className="text-3xl font-serif text-sky-700 dark:text-sky-300">₱1,850</p>
-                </CardContent>
-              </Card>
-
-              {/* Overspending (Orange) */}
-              <Card className="border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-xl">
-                      <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70">Overspending</p>
-                      <h4 className="font-serif text-lg text-orange-900 dark:text-orange-100">Shopping</h4>
-                    </div>
-                  </div>
-                  <p className="text-3xl font-serif text-orange-700 dark:text-orange-300">+36%</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {categoryInsights?.insights?.map((category, idx) => {
-                const colors = getColorClass(category.color);
-                const budgetUsage = (category.spent / category.budget) * 100;
-                const changeAbs = Math.abs(category.change);
-
-                return (
-                  <Card
-                    key={idx}
-                    className={`border border-white/60 dark:border-white/5 bg-white/40 dark:bg-stone-900/40 hover:bg-white/80 dark:hover:bg-stone-900/60 hover:shadow-lg transition-all duration-300 cursor-pointer`}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className={`p-3 rounded-2xl shadow-sm bg-white dark:bg-stone-800`}>
-                            {console.log('Icon per item ;:', category.icon)}
-                            <category.icon
-                              className={`w-6 h-6 ${colors.text}`}
-                            />
-                          </div>
-                          <div>
-                            <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">
-                              {category.name}
-                            </h3>
-                            <p className="text-xs font-medium text-stone-400 dark:text-stone-500">
-                              ₱{category.spent.toLocaleString()} / ₱
-                              {category.budget.toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge
-                          className={
-                            category.status === "alert"
-                              ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300"
-                              : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"
-                          }
-                        >
-                          {category.status}
-                        </Badge>
-                      </div>
-
-                      <Progress value={budgetUsage} className="h-2 mb-4" />
-
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2 bg-white/50 dark:bg-stone-800/50 px-3 py-1 rounded-full">
-                          {category.trend === "up" && (
-                            <ArrowUpRight className="w-4 h-4 text-orange-500 dark:text-orange-400" />
-                          )}
-                          {category.trend === "down" && (
-                            <ArrowDownRight className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
-                          )}
-                          <span
-                            className={`font-bold ${
-                              category.trend === "up"
-                                ? "text-orange-600 dark:text-orange-400"
-                                : category.trend === "down"
-                                ? "text-emerald-600 dark:text-emerald-400"
-                                : "text-stone-600 dark:text-stone-400"
-                            }`}
-                          >
-                            {category.trend === "stable"
-                              ? "Stable"
-                              : `${changeAbs.toFixed(1)}% vs last month`}
-                          </span>
-                        </div>
-                        <span className="text-stone-400 dark:text-stone-500 text-xs">
-                          Last: ₱{category.lastMonth.toLocaleString()}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
+        <TabsContent value="categories" className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      {/* Top Category (Emerald) */}
+      <Card className="border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-900/10">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl">
+              {/* Dynamic Icon based on Category */}
+              {categorySummaries?.top && React.createElement(CATEGORY_CONFIG[categorySummaries?.top.category]?.icon || Coffee, {
+                className: "w-5 h-5 text-emerald-600 dark:text-emerald-400"
               })}
             </div>
-          </TabsContent>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">Top Category</p>
+              <h4 className="font-serif text-lg text-emerald-900 dark:text-emerald-100">
+                {categorySummaries?.top?.budgetName || "No Data"}
+              </h4>
+            </div>
+          </div>
+          <p className="text-2xl md:text-3xl font-serif text-emerald-700 dark:text-emerald-300">
+            ₱{(categorySummaries?.top?.spent || 0).toLocaleString()}
+          </p>
+        </CardContent>
+      </Card>
 
+      {/* Least Spending (Blue/Sky) */}
+      <Card className="border-sky-100 dark:border-sky-900/30 bg-sky-50/50 dark:bg-sky-900/10">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-sky-100 dark:bg-sky-900/30 p-2.5 rounded-xl">
+              {categorySummaries?.least && React.createElement(CATEGORY_CONFIG[categorySummaries?.least.category]?.icon || Home, {
+                className: "w-5 h-5 text-sky-600 dark:text-sky-400"
+              })}
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600/70 dark:text-sky-400/70">Least Spending</p>
+              <h4 className="font-serif text-lg text-sky-900 dark:text-sky-100">
+                {categorySummaries?.least?.budgetName || "No Data"}
+              </h4>
+            </div>
+          </div>
+          <p className="text-2xl md:text-3xl font-serif text-sky-700 dark:text-sky-300">
+            ₱{(categorySummaries?.least?.spent || 0).toLocaleString()}
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Overspending (Orange) */}
+      <Card className="border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-xl">
+              <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70">Highest Usage</p>
+              <h4 className="font-serif text-lg text-orange-900 dark:text-orange-100">
+                {categorySummaries?.over?.budgetName || "No Data"}
+              </h4>
+            </div>
+          </div>
+          <p className="text-2xl md:text-3xl font-serif text-orange-700 dark:text-orange-300">
+            {categorySummaries?.over ? Math.round((over.spent / over.budgetAmount) * 100) : 0}%
+          </p>
+        </CardContent>
+      </Card>
+
+    </div>
+  </TabsContent>
           {/* 3. Merchant Insights */}
           <TabsContent value="merchants" className="space-y-6">
             <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">

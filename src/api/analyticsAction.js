@@ -69,19 +69,27 @@ export const transformBudgetsToInsights = (budgets, CATEGORY_MAP) => {
 };
 
 export const processBudgetInsights = (budgets, CATEGORY_CONFIG) => {
-  if (!budgets || budgets.length === 0) return null;
+
+  if (!budgets || budgets.length === 0) {
+    return { 
+        insights: [], 
+        topCategory: null, 
+        leastSpending: null, 
+        overspending: null 
+    };
+  }
 
   // 1. Map Mongoose data to your UI format
   const insights = budgets.map(b => {
-    const config = CATEGORY_CONFIG[b.category] || CATEGORY_CONFIG["Other"];
+    const config = CATEGORY_CONFIG[b.category] || CATEGORY_CONFIG["other"];
     const usage = (b.spent / b.budgetAmount) * 100;
 
     return {
       name: b.budgetName,
       spent: b.spent || 0,
       budget: b.budgetAmount,
-      color: config.color,
-      icon: config.icon,
+      color: config?.color,
+      icon: config?.icon,
       status: usage >= 90 ? "alert" : "healthy",
       // These would ideally come from a historical comparison
       trend: usage > 80 ? "up" : "down", 
@@ -108,6 +116,8 @@ export const processBudgetInsights = (budgets, CATEGORY_CONFIG) => {
 
 export const transformToMerchantInsights = (receipts) => {
   if (!receipts || receipts.length === 0) return [];
+
+
 
   const merchantMap = receipts.reduce((acc, receipt) => {
     const merchantName = receipt.store || "Unknown Merchant";
@@ -149,6 +159,8 @@ export const getMerchantPatterns = (merchantInsights) => {
   if (!merchantInsights || merchantInsights.length === 0) {
     return { mostFrequent: null, biggestSpender: null };
   }
+
+  
 
   // 1. Find Most Frequent (Highest visits)
   const mostFrequent = [...merchantInsights].sort((a, b) => b.visits - a.visits)[0];
@@ -230,4 +242,27 @@ export const calculateKeyInsights = (receipts) => {
   const doingWell = insights.sort((a, b) => a.change - b.change)[0];
 
   return { spike, doingWell };
+};
+
+
+
+
+
+export const getCategorySummaries = (budgets) => {
+  if (!budgets || budgets.length === 0) return { top: null, least: null, over: null };
+
+  // 1. Top Category (Highest absolute 'spent' value)
+  const top = [...budgets].sort((a, b) => (b.spent || 0) - (a.spent || 0))[0];
+
+  // 2. Least Spending (Lowest absolute 'spent' value)
+  const least = [...budgets].sort((a, b) => (a.spent || 0) - (b.spent || 0))[0];
+
+  // 3. Overspending (Highest % usage: spent / budgetAmount)
+  const over = [...budgets].sort((a, b) => {
+    const usageA = (a.spent || 0) / a.budgetAmount;
+    const usageB = (b.spent || 0) / b.budgetAmount;
+    return usageB - usageA;
+  })[0];
+
+  return { top, least, over };
 };

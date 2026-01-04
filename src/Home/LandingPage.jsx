@@ -15,6 +15,7 @@ import { AuthModal } from "./AuthModal";
 import dashboardPreview from "../assets/dashboard.png";
 import { DemoModal } from "@/components/DemoModal";
 import { Link } from "react-router-dom";
+import { Check, X, Zap, HelpCircle } from "lucide-react";
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -37,6 +38,7 @@ export default function LandingPage() {
   // ==================================================================
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState("login");
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const openAuth = (tab) => {
     setAuthTab(tab);
@@ -292,6 +294,154 @@ export default function LandingPage() {
         </div>
       </section>
 
+
+
+      {/* ==================================================================
+          PRICING SECTION
+          ================================================================== */}
+      <section id="pricing" className="py-24 relative z-10 transition-colors">
+        <div className="max-w-7xl mx-auto px-6">
+          
+          {/* Header */}
+          <div className="text-center mb-16">
+            <h2 className="font-serif text-3xl md:text-4xl mb-4 text-stone-900 dark:text-white">
+              Transparent pricing for your growth.
+            </h2>
+            <p className="text-stone-600 dark:text-stone-400 mb-8">
+              Start for free, upgrade for power. No hidden fees.
+            </p>
+
+            {/* Toggle Switch (Monthly / Yearly) */}
+            <div className="flex items-center justify-center gap-4">
+              <span className={`text-sm font-bold ${!isAnnual ? 'text-stone-900 dark:text-white' : 'text-stone-500'}`}>Monthly</span>
+              <button 
+                onClick={() => setIsAnnual(!isAnnual)}
+                className="relative w-14 h-8 rounded-full bg-stone-200 dark:bg-stone-800 transition-colors p-1"
+              >
+                <div className={`w-6 h-6 rounded-full bg-emerald-600 shadow-sm transition-transform duration-300 ${isAnnual ? 'translate-x-6' : 'translate-x-0'}`} />
+              </button>
+              <span className={`text-sm font-bold ${isAnnual ? 'text-stone-900 dark:text-white' : 'text-stone-500'}`}>
+                Yearly <span className="text-emerald-600 text-xs ml-1 font-normal">(Save 20%)</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Pricing Cards Grid */}
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+            {/* PLAN 1: SPROUT (FREE) */}
+            <div className="bg-white/40 dark:bg-stone-900/40 backdrop-blur-md border border-stone-200 dark:border-stone-800 rounded-2xl p-8 flex flex-col hover:border-stone-300 dark:hover:border-stone-700 transition-all">
+               <div className="mb-4">
+                 <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100">Sprout</h3>
+                 <p className="text-xs text-stone-500 uppercase tracking-wider font-bold mt-1">Free Forever</p>
+               </div>
+               <div className="mb-6">
+                 <span className="text-4xl font-serif text-stone-900 dark:text-white">₱0</span>
+                 <span className="text-stone-500">/mo</span>
+               </div>
+               <Button onClick={() => openAuth('register')} variant="outline" className="w-full mb-8 rounded-full border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">
+                 Start Free
+               </Button>
+               <ul className="space-y-4 flex-1">
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <span>Manual Transaction Entry</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <span>5 AI Receipt Scans / mo</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                    <span>Basic Spending Analytics</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-400 dark:text-stone-600">
+                    <X className="w-5 h-5 flex-shrink-0" />
+                    <span>Custom AI Models</span>
+                 </li>
+               </ul>
+            </div>
+
+            {/* PLAN 2: BLOOM (PRO) - HIGHLIGHTED */}
+            <div className="relative bg-white dark:bg-stone-900 backdrop-blur-md border border-emerald-500/30 dark:border-emerald-500/50 rounded-2xl p-8 flex flex-col shadow-2xl shadow-emerald-900/10 transform md:-translate-y-4">
+               {/* Badge */}
+               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                 Most Popular
+               </div>
+               
+               <div className="mb-4">
+                 <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                    Bloom <Sparkles className="w-4 h-4 text-emerald-500" />
+                 </h3>
+                 <p className="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-bold mt-1">For Power Users</p>
+               </div>
+               <div className="mb-6">
+                 <span className="text-4xl font-serif text-stone-900 dark:text-white">
+                    {isAnnual ? '₱159' : '₱199'}
+                 </span>
+                 <span className="text-stone-500">/mo</span>
+                 {isAnnual && <p className="text-xs text-emerald-600 mt-1">Billed ₱1,908 yearly</p>}
+               </div>
+               <Button onClick={() => openAuth('register')} className="w-full mb-8 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white">
+                 Get Bloom
+               </Button>
+               <ul className="space-y-4 flex-1">
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    <span><strong>Unlimited</strong> AI Receipt Scans</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    <span>Advanced Models (Nemotron-3)</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    <span>Export to CSV/Excel</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                    <span>Priority Support</span>
+                 </li>
+               </ul>
+            </div>
+
+            {/* PLAN 3: LOCAL (DEV) */}
+            <div className="bg-white/40 dark:bg-stone-900/40 backdrop-blur-md border border-stone-200 dark:border-stone-800 rounded-2xl p-8 flex flex-col hover:border-stone-300 dark:hover:border-stone-700 transition-all">
+               <div className="mb-4">
+                 <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100">Local</h3>
+                 <p className="text-xs text-stone-500 uppercase tracking-wider font-bold mt-1">Self-Hosted / Dev</p>
+               </div>
+               <div className="mb-6">
+                 <span className="text-4xl font-serif text-stone-900 dark:text-white">Free</span>
+                 <p className="text-xs text-stone-500 mt-1">Requires your own API Keys</p>
+               </div>
+               <Button variant="outline" className="w-full mb-8 rounded-full border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">
+                 View GitHub
+               </Button>
+               <ul className="space-y-4 flex-1">
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-stone-400 flex-shrink-0" />
+                    <span>Self-hosted Docker Container</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-stone-400 flex-shrink-0" />
+                    <span>Bring Your Own LLM Key</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Check className="w-5 h-5 text-stone-400 flex-shrink-0" />
+                    <span>Full Data Sovereignty</span>
+                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
+                    <Zap className="w-5 h-5 text-stone-400 flex-shrink-0" />
+                    <span>Community Support</span>
+                 </li>
+               </ul>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
       {/* ==================================================================
           CTA / FOOTER
           ================================================================== */}
@@ -310,7 +460,7 @@ export default function LandingPage() {
           </div>
           
           <div className="mt-20 text-stone-500 dark:text-stone-600 text-sm flex flex-col md:flex-row gap-6 justify-between items-center border-t border-stone-300 dark:border-stone-900/50 pt-8 transition-colors">
-             <p>&copy; 2026 Recepta. Built by Moi.</p>
+             <p>&copy; 2026 Recepta. Built by Moises Nugal.</p>
              <div className="flex gap-6">
                 <Link to="/legal" className="hover:text-stone-400">Privacy</Link>
                 <Link to="/legal" className="hover:text-stone-400">Terms</Link>
