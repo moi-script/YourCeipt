@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { AuthModal } from "./AuthModal"; 
 import dashboardPreview from "../assets/dashboard.png";
 import { DemoModal } from "@/components/DemoModal";
+import { Link } from "react-router-dom";
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -311,8 +312,8 @@ export default function LandingPage() {
           <div className="mt-20 text-stone-500 dark:text-stone-600 text-sm flex flex-col md:flex-row gap-6 justify-between items-center border-t border-stone-300 dark:border-stone-900/50 pt-8 transition-colors">
              <p>&copy; 2026 Recepta. Built by Moi.</p>
              <div className="flex gap-6">
-                <a href="#" className="hover:text-stone-800 dark:hover:text-stone-400">Privacy</a>
-                <a href="#" className="hover:text-stone-800 dark:hover:text-stone-400">Terms</a>
+                <Link to="/legal" className="hover:text-stone-400">Privacy</Link>
+                <Link to="/legal" className="hover:text-stone-400">Terms</Link>
                 <a href="#" className="hover:text-stone-800 dark:hover:text-stone-400">Github</a>
              </div>
           </div>

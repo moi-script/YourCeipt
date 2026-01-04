@@ -55,8 +55,9 @@ export default function UserMenu({setHomeDefault}) {
       setShowLogoutDialog(false);
       setIsLoggingOut(false);
       console.log("User logged out");
-      setRefreshPage(true);
       navigate("/main", { replace: true });
+      // setRefreshPage(true);
+
     }
   };
 

@@ -17,6 +17,7 @@ import AIModelDashboard from "./Home/MyModels";
 import ProfilePage from "./Home/Profile";
 import OrganicPrivacyPage from "./Home/PrivacySecurity";
 import LandingPage from "./Home/LandingPage";
+import LegalPage from "./components/LegalPage";
 function App() {
   return (
     <>
@@ -28,7 +29,7 @@ function App() {
 
         <Route path="/" element={<Login/>}/>
         <Route path="/main" element={<LandingPage/>}/>
-        
+        <Route path="/legal" element={<LegalPage />} />
         <Route path="/register" element={<BudgetSignup/>}/>
         <Route path="/forgot" element={<ForgotPassword/>}/>
         <Route path="/onboard" element={<Onboarding/>}/>
@@ -40,7 +41,7 @@ function App() {
            <Route path="/user/models" element={<AIModelDashboard/>}/>
            <Route path="/user/transactions" element={<TransactionsPage/>}></Route>
            <Route path="/user/analytics" element={<AnalyticsDashBoards/>}></Route>
-           <Route path="/user/settings" element={<SettingsDashboard/>}></Route>
+           {/* <Route path="/user/settings" element={<SettingsDashboard/>}></Route> */}
            <Route path="/user/profile" element={<ProfilePage/>}></Route>
            <Route path="/user/privacy" element={<OrganicPrivacyPage/>}></Route>
 

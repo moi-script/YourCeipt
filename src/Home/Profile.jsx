@@ -180,9 +180,10 @@ export default function ProfilePage() {
     } finally {
       setShowLogoutDialog(false);
       setIsLoggingOut(false);
-      setRefreshPage(true);
       console.log("User logged out");
-      navigate("/", { replace: true });
+      navigate("/main", { replace: true });
+      // setRefreshPage(true);
+
     }
   };
 
