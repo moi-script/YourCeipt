@@ -192,7 +192,7 @@ const BudgetPage = () => {
     color: '#10b981' 
   });
   
-  const { user, budgetList,  categorySpent,totalSpent, totalBudget } = useAuth();
+  const { user, budgetList,  categorySpent, totalSpent, totalBudget } = useAuth();
 
   useEffect(() => {
     console.log('Budget list :: ', budgetList);

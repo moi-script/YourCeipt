@@ -9,6 +9,7 @@ import {
 } from "react";
 // import { useNavigate } from "react-router-dom";
 import { apiFetch, loginFetch } from "@/api/client";
+import { calculateMonthlyTrendClientSide, transformBudgetsToInsights } from "@/api/analyticsAction";
 const AuthContext = createContext(null);
 
 const getTotalBalanceBudget = (budgetList) => {
@@ -122,10 +123,6 @@ const getSavings = (monthlyIncome, monthlyExpenses) => {
   return monthlyIncome - monthlyExpenses;
 };
 
-
-
-
-
 const getRecentTransaction = (transactions) => {
   const now = new Date();
   const threeDays = 1 * 24 * 60 * 60 * 1000;
@@ -153,7 +150,6 @@ const getRecentTransaction = (transactions) => {
   console.log("Sorted from three days ago up to now ", simplifiedList);
   return simplifiedList;
 };
-
 
 const convertToInitialTransactions = (receipts = []) => {
   return receipts.map((tx) => {
@@ -351,12 +347,13 @@ export const AuthProvider = ({ children }) => {
   const [metricsAnalytic, setMetricsAnalytic] = useState({
     info : null,
   });
+  const [spendingTrend, setSpendingTrend] = useState(null);
 
   // fetching user receipt list
 
   const [models, setModels] = useState(null);
 
-  // ... (Your existing useEffects remain the same) ...
+// ... (Your existing useEffects remain the same) ...
   useEffect(() => {
     // console.log('Fetching ai models ');
     const fetchAi = async () => {
@@ -373,6 +370,15 @@ export const AuthProvider = ({ children }) => {
     };
     fetchAi();
   }, []);
+
+  useEffect(() => {
+    if(userReceipts){
+
+      setSpendingTrend(calculateMonthlyTrendClientSide(userReceipts, new Date().getFullYear()))
+    }
+  }, [userReceipts])
+
+
 
   useEffect(() => {
     if (monthlyIncome) {
@@ -550,6 +556,7 @@ export const AuthProvider = ({ children }) => {
       userReceipts,
       metricsAnalytic,
       getMetrics,
+      spendingTrend,
       totalBudget,
       categorySpent,
       transactionFlow,
@@ -587,6 +594,7 @@ export const AuthProvider = ({ children }) => {
       userReceipts,
       isReceiptsLoading,
       metricsAnalytic,
+      spendingTrend,
       refreshPage,
       monthlyExpenses,
       getMetrics,
