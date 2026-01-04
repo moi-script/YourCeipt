@@ -344,6 +344,7 @@ export const AuthProvider = ({ children }) => {
   const [recentTransaction, setRecentTransaction] = useState(null);
   const [transactionFlow, setTransactionFlow] = useState(null);
   const [categorySpent, setCategorySpent] = useState(null);
+  const [activeModelName, setActiveModelName] = useState("");
   const [metricsAnalytic, setMetricsAnalytic] = useState({
     info : null,
   });
@@ -379,6 +380,23 @@ export const AuthProvider = ({ children }) => {
   }, [userReceipts])
 
 
+  useEffect(() => {
+  const fetchActiveModel = async () => {
+    if (!user?._id) return;
+    
+    try {
+      const res = await fetch(`http://localhost:3000/extract/getUserModel?userId=${user._id}`);
+      const data = await res.json();
+      if (data.success) {
+        setActiveModelName(data.model_name);
+      }
+    } catch (err) {
+      console.error("Error fetching active model status");
+    }
+  };
+
+  fetchActiveModel();
+}, [user]);
 
   useEffect(() => {
     if (monthlyIncome) {
@@ -556,6 +574,7 @@ export const AuthProvider = ({ children }) => {
       userReceipts,
       metricsAnalytic,
       getMetrics,
+      activeModelName,
       spendingTrend,
       totalBudget,
       categorySpent,
@@ -595,6 +614,7 @@ export const AuthProvider = ({ children }) => {
       isReceiptsLoading,
       metricsAnalytic,
       spendingTrend,
+      activeModelName,
       refreshPage,
       monthlyExpenses,
       getMetrics,

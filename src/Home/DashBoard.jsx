@@ -79,7 +79,7 @@ export function BudgetDashboard() {
     { title: "Budgets", icon: PieChart, href: "/user/budgets" },
     { title: 'AI Models', icon : Brain, href : '/user/models'},
     { title: "Analytics", icon: TrendingUp, href: "/user/analytics" },
-    { title: "Settings", icon: Settings, href: "/user/settings" },
+    // { title: "Settings", icon: Settings, href: "/user/settings" },
   ];
 
   // ============================================================================
