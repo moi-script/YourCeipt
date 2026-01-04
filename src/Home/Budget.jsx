@@ -192,9 +192,10 @@ const BudgetPage = () => {
     color: '#10b981' 
   });
   
-  const { user, budgetList, totalSpent, totalBudget } = useAuth();
+  const { user, budgetList,  categorySpent,totalSpent, totalBudget } = useAuth();
 
   useEffect(() => {
+    console.log('Budget list :: ', budgetList);
     setBudgets(budgetList);
   }, [budgetList]);
 
@@ -484,7 +485,7 @@ const handleGetBudgetItemList = async () => {
 
         {/* Budget Categories Grid - UPDATED with correct keys */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {budgets?.map((budget) => {
+          {categorySpent?.map((budget) => {
             const percentage = (budget.spent / budget.budgetAmount) * 100;
             const isOverBudget = budget.spent > budget.budgetAmount;
             const Icon = categoryIcons[budget.category] || DollarSign;

@@ -17,17 +17,6 @@ const getTotalBalanceBudget = (budgetList) => {
   }, 0);
 };
 
-const getTotalSpent = (transactions) => {
-  let totalSpent = 0;
-
-  transactions.forEach((item) => {
-    totalSpent += parseFloat(item.total);
-  });
-
-  console.log("TOtal spent result ::", totalSpent);
-  return totalSpent;
-};
-
 const getMonthlyIncome = (transaction) => {
   return transaction
     .filter((transact) => {
@@ -133,6 +122,10 @@ const getSavings = (monthlyIncome, monthlyExpenses) => {
   return monthlyIncome - monthlyExpenses;
 };
 
+
+
+
+
 const getRecentTransaction = (transactions) => {
   const now = new Date();
   const threeDays = 1 * 24 * 60 * 60 * 1000;
@@ -148,19 +141,19 @@ const getRecentTransaction = (transactions) => {
   );
 
   const simplifiedList = sortedTransactions?.map((tx, index) => ({
-      id: index + 1,
-      name: tx.store ?? tx.transaction.store_number ?? "Unknown",
-      amount: tx.total ?? 0,
-      category: tx.items?.[0]?.category ?? "Other",
-      date: tx.metadata?.datetime.split('T')[0] ?? null,
-      type: tx.metadata?.type?.toLowerCase() === "income" ? "income" : "expense",
-      notes: tx.metadata?.notes ?? ""
-    }));
+    id: index + 1,
+    name: tx.store ?? tx.transaction.store_number ?? "Unknown",
+    amount: tx.total ?? 0,
+    category: tx.items?.[0]?.category ?? "Other",
+    date: tx.metadata?.datetime.split("T")[0] ?? null,
+    type: tx.metadata?.type?.toLowerCase() === "income" ? "income" : "expense",
+    notes: tx.metadata?.notes ?? "",
+  }));
 
   console.log("Sorted from three days ago up to now ", simplifiedList);
-    return simplifiedList;
-
+  return simplifiedList;
 };
+
 
 const convertToInitialTransactions = (receipts = []) => {
   return receipts.map((tx) => {
@@ -196,7 +189,7 @@ const convertToInitialTransactions = (receipts = []) => {
         transaction_number: tx.transaction?.transaction_number ?? null,
       },
 
-      items: (tx.items ?? []).map(item => ({
+      items: (tx.items ?? []).map((item) => ({
         description: item.description ?? null,
         upc: item.upc ?? null,
         type: item.type ?? null,
@@ -224,9 +217,110 @@ const convertToInitialTransactions = (receipts = []) => {
   });
 };
 
+const calculateBudgetSpending = (budgetList, transactions) => {
+  if (!budgetList || !transactions) return [];
 
+  // Step 1: Create a map to store total spending per category
+  // Example: { "groceries": 150.00, "utilities": 40.50 }
+  const spendingMap = {};
 
+  transactions.forEach((receipt) => {
+    // skip invalid receipts
+    if (!receipt.items) return; 
 
+    receipt.items.forEach((item) => {
+      // Normalize category to lowercase to ensure matches (e.g., "Food" == "food")
+      const category = item.category?.toLowerCase().trim() ?? "other";
+      const price = parseFloat(item.price) || 0;
+      const quantity = parseFloat(item.quantity) || 1;
+      const totalItemCost = price * quantity;
+
+      if (spendingMap[category]) {
+        spendingMap[category] += totalItemCost;
+      } else {
+        spendingMap[category] = totalItemCost;
+      }
+    });
+  });
+
+  console.log('Spending map -> ', spendingMap);
+
+  return budgetList.map((budget) => {
+    const budgetCategory = budget.category.toLowerCase().trim();
+    const totalSpent = spendingMap[budgetCategory] || 0; 
+    
+    return {
+      ...budget, // Keep existing budget properties (color, name, etc.)
+      spent: totalSpent, // Update the spent amount
+      remaining: budget.budgetAmount - totalSpent 
+    };
+  });
+};
+
+const getTotals = (transactions, type, period, offset = 0) => {
+  return transactions
+    .filter(t => t.metadata.type === type && isInTimeframe(t.metadata.datetime, period, offset))
+    .reduce((sum, t) => sum + parseFloat(t.total || 0), 0);
+};
+
+const getMetrics = (transactions, period = 'month') => {
+  const income = getTotals(transactions, 'Income', period);
+  const expenses = getTotals(transactions, 'Expense', period);
+  
+  // 1. Net Savings
+  const netSavings = income - expenses;
+  
+  // 2. Savings Rate (Percentage of income saved)
+  const savingsRate = income > 0 ? (netSavings / income) * 100 : 0;
+
+  // 3. Income Stability (Coefficient of Variation)
+  // We look at the last 4 periods to see how much income fluctuates
+  const history = [0, -1, -2, -3].map(offset => getTotals(transactions, 'Income', period, offset));
+  const avgIncome = history.reduce((a, b) => a + b, 0) / history.length;
+  const variance = history.reduce((a, b) => a + Math.pow(b - avgIncome, 2), 0) / history.length;
+  const stabilityScore = avgIncome > 0 ? (1 - (Math.sqrt(variance) / avgIncome)) * 100 : 0;
+
+  return {
+    period,
+    income,
+    expenses,
+    netSavings: netSavings.toFixed(2),
+    savingsRate: savingsRate.toFixed(2) + '%',
+    stabilityScore: Math.max(0, stabilityScore).toFixed(2) + '%' // 100% is perfectly stable
+  };
+};
+
+const isInTimeframe = (dateString, period = 'month', offset = 0) => {
+  const transDate = new Date(dateString);
+  const now = new Date();
+  
+  // Adjust "now" based on the offset (e.g., offset -1 for "previous" period)
+  if (period === 'week') now.setDate(now.getDate() + (offset * 7));
+  if (period === 'month') now.setMonth(now.getMonth() + offset);
+  if (period === 'quarter') now.setMonth(now.getMonth() + (offset * 3));
+  if (period === 'year') now.setFullYear(now.getFullYear() + offset);
+
+  const isSameYear = transDate.getFullYear() === now.getFullYear();
+
+  switch (period) {
+    case 'week':
+      // Basic week-of-year check
+      const getWeek = (d) => {
+        const start = new Date(d.getFullYear(), 0, 1);
+        return Math.ceil((((d - start) / 86400000) + start.getDay() + 1) / 7);
+      };
+      return isSameYear && getWeek(transDate) === getWeek(now);
+    case 'month':
+      return isSameYear && transDate.getMonth() === now.getMonth();
+    case 'quarter':
+      const getQuarter = (d) => Math.floor(d.getMonth() / 3);
+      return isSameYear && getQuarter(transDate) === getQuarter(now);
+    case 'year':
+      return isSameYear;
+    default:
+      return false;
+  }
+};
 
 export const AuthProvider = ({ children }) => {
   // user authentication
@@ -244,6 +338,7 @@ export const AuthProvider = ({ children }) => {
 
   const [totalBudget, setTotalBudget] = useState(null);
   const [totalSpent, setTotalSpent] = useState(null);
+  const [totalIncome, setTotalIncome] = useState(null);
   const [totalBalance, setTotalBalance] = useState(null);
   const [monthlyIncome, setMonthlyIncome] = useState(null);
   const [monthlyExpenses, setMonthlyExpenses] = useState(null);
@@ -252,6 +347,10 @@ export const AuthProvider = ({ children }) => {
   const [previousExpense, setPreviousExpense] = useState(null);
   const [recentTransaction, setRecentTransaction] = useState(null);
   const [transactionFlow, setTransactionFlow] = useState(null);
+  const [categorySpent, setCategorySpent] = useState(null);
+  const [metricsAnalytic, setMetricsAnalytic] = useState({
+    info : null,
+  });
 
   // fetching user receipt list
 
@@ -286,10 +385,10 @@ export const AuthProvider = ({ children }) => {
   }, [monthlyIncome, monthlyExpenses]);
 
   useEffect(() => {
-    if (savings) {
-      console.log("Savings ::", savings);
+    if (categorySpent) {
+      console.log("categorySpent ::", categorySpent);
     }
-  }, [savings]);
+  }, [categorySpent]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -370,6 +469,8 @@ export const AuthProvider = ({ children }) => {
         // set state after fetching receipts list
         setUserReceipts(sanitizedReceipts);
         setTotalSpent(getTotalExpenses(sanitizedReceipts));
+        setTotalIncome(getTotalIncome(sanitizedReceipts));
+
         setMonthlyExpenses(getMonthlyExpenses(sanitizedReceipts));
         setMonthlyIncome(getMonthlyIncome(sanitizedReceipts));
         setRecentTransaction(getRecentTransaction(sanitizedReceipts));
@@ -380,8 +481,10 @@ export const AuthProvider = ({ children }) => {
           setPreviousIncome(
             getPreviousMonthlyExpensesOrIncome(sanitizedReceipts, "Income")
           );
-        setTransactionFlow(convertToInitialTransactions(sanitizedReceipts));
-
+          setTransactionFlow(convertToInitialTransactions(sanitizedReceipts));
+          setCategorySpent(calculateBudgetSpending(budgetList, sanitizedReceipts)); // integrate the calculateBudgetSpending
+          console.log("Metrics this week :: ", getMetrics(sanitizedReceipts, 'quarter'));
+          setMetricsAnalytic({info : sanitizedReceipts});
         } catch (err) {
           console.error("Unable to set previous", err);
         }
@@ -445,12 +548,16 @@ export const AuthProvider = ({ children }) => {
       user,
       refreshPage,
       userReceipts,
+      metricsAnalytic,
+      getMetrics,
       totalBudget,
+      categorySpent,
       transactionFlow,
       previousIncome,
       previousExpense,
       recentTransaction,
       totalSpent,
+      totalIncome,
       savings,
       monthlyExpenses,
       monthlyIncome,
@@ -479,8 +586,12 @@ export const AuthProvider = ({ children }) => {
       user,
       userReceipts,
       isReceiptsLoading,
+      metricsAnalytic,
       refreshPage,
       monthlyExpenses,
+      getMetrics,
+      totalIncome,
+      categorySpent,
       transactionFlow,
       previousIncome,
       recentTransaction,

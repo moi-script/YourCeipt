@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -15,6 +15,7 @@ import {
   CheckCircle,
   Leaf
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 // --- REUSABLE ORGANIC COMPONENTS (Dark Mode Adapted) ---
 
@@ -265,6 +266,22 @@ export default function Analytics({
   getColorClass,
 }) {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
+  const [metricValue, setMetricValue] = useState(null);  
+  const { metricsAnalytic, getMetrics, totalIncome, totalSpent } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
+
+  useEffect(() => {
+    if(metricsAnalytic.info){
+    setMetricValue(getMetrics(metricsAnalytic.info, selectedPeriod));
+
+    }
+    // console.log("Info ->", metricsAnalytic.info)
+
+  }, [metricsAnalytic, selectedPeriod]);
+
+
+  useEffect(() => {
+    console.log('Metric value :: ', metricValue);
+  }, [metricValue])
 
   return (
     // 1. BACKGROUND: 
@@ -327,7 +344,7 @@ export default function Analytics({
                 Total Income
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{monthlyData.totalIncome.toLocaleString()}
+                ₱{totalIncome}
               </h3>
             </CardContent>
           </Card>
@@ -347,7 +364,7 @@ export default function Analytics({
                 Total Expenses
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{monthlyData.totalExpenses.toLocaleString()}
+                ₱{totalSpent?.toFixed(2) || 0}
               </h3>
             </CardContent>
           </Card>
@@ -367,7 +384,7 @@ export default function Analytics({
                 Net Savings
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{monthlyData.netSavings.toLocaleString()}
+                ₱{metricValue?.netSavings.toLocaleString()}
               </h3>
             </CardContent>
           </Card>
@@ -387,7 +404,7 @@ export default function Analytics({
                 Savings Rate
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {monthlyData.savingsRate}%
+                {metricValue.savingsRate}%
               </h3>
             </CardContent>
           </Card>
@@ -407,7 +424,7 @@ export default function Analytics({
                 Income Stability
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {monthlyData.incomeStability}%
+                {metricValue.stabilityScore}%
               </h3>
             </CardContent>
           </Card>
