@@ -181,6 +181,7 @@ export default function ProfilePage() {
       setShowLogoutDialog(false);
       setIsLoggingOut(false);
       console.log("User logged out");
+      localStorage.setItem('user', false);
       navigate("/main", { replace: true });
       // setRefreshPage(true);
 

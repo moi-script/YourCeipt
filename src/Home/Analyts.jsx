@@ -310,7 +310,7 @@ export default function Analytics({
   const [merchantPattern, setMerchantPattern] = useState(null);
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
-  const [categorySummaries, setCagorySummaries] = useState(null);
+  const [categorySummaries, setCagorySummaries] = useState({});
   useEffect(() => {
     if(metricsAnalytic.info){
     setMetricValue(getMetrics(metricsAnalytic.info, selectedPeriod));
@@ -666,77 +666,194 @@ export default function Analytics({
 
           </TabsContent>
 
-          {/* 2. Category Insights */}
-        <TabsContent value="categories" className="space-y-6">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      
-      {/* Top Category (Emerald) */}
-      <Card className="border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-900/10">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl">
-              {/* Dynamic Icon based on Category */}
-              {categorySummaries?.top && React.createElement(CATEGORY_CONFIG[categorySummaries?.top.category]?.icon || Coffee, {
-                className: "w-5 h-5 text-emerald-600 dark:text-emerald-400"
-              })}
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">Top Category</p>
-              <h4 className="font-serif text-lg text-emerald-900 dark:text-emerald-100">
-                {categorySummaries?.top?.budgetName || "No Data"}
-              </h4>
-            </div>
-          </div>
-          <p className="text-2xl md:text-3xl font-serif text-emerald-700 dark:text-emerald-300">
-            ₱{(categorySummaries?.top?.spent || 0).toLocaleString()}
-          </p>
-        </CardContent>
-      </Card>
+         {/* 2. Category Insights */}
+          <TabsContent value="categories" className="space-y-6">
+            
+            {/* --- TOP SUMMARY CARDS (The code you provided, refined) --- */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Top Category (Emerald) */}
+              <Card className="border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/50 dark:bg-emerald-900/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2.5 rounded-xl">
+                      <Coffee className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">Top Category</p>
+                      <h4 className="font-serif text-lg text-emerald-900 dark:text-emerald-100">
+                        {categoryInsights?.topCategory?.name || "N/A"}
+                      </h4>
+                    </div>
+                  </div>
+                  <p className="text-3xl font-serif text-emerald-700 dark:text-emerald-300">
+                    ₱{(categoryInsights?.topCategory?.spent || 0).toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
 
-      {/* Least Spending (Blue/Sky) */}
-      <Card className="border-sky-100 dark:border-sky-900/30 bg-sky-50/50 dark:bg-sky-900/10">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-sky-100 dark:bg-sky-900/30 p-2.5 rounded-xl">
-              {categorySummaries?.least && React.createElement(CATEGORY_CONFIG[categorySummaries?.least.category]?.icon || Home, {
-                className: "w-5 h-5 text-sky-600 dark:text-sky-400"
-              })}
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600/70 dark:text-sky-400/70">Least Spending</p>
-              <h4 className="font-serif text-lg text-sky-900 dark:text-sky-100">
-                {categorySummaries?.least?.budgetName || "No Data"}
-              </h4>
-            </div>
-          </div>
-          <p className="text-2xl md:text-3xl font-serif text-sky-700 dark:text-sky-300">
-            ₱{(categorySummaries?.least?.spent || 0).toLocaleString()}
-          </p>
-        </CardContent>
-      </Card>
+              {/* Least Spending (Blue) */}
+              <Card className="border-sky-100 dark:border-sky-900/30 bg-sky-50/50 dark:bg-sky-900/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-sky-100 dark:bg-sky-900/30 p-2.5 rounded-xl">
+                      <Home className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-600/70 dark:text-sky-400/70">Least Spending</p>
+                      <h4 className="font-serif text-lg text-sky-900 dark:text-sky-100">
+                        {categoryInsights?.leastSpending?.name || "N/A"}
+                      </h4>
+                    </div>
+                  </div>
+                  <p className="text-3xl font-serif text-sky-700 dark:text-sky-300">
+                     ₱{(categoryInsights?.leastSpending?.spent || 0).toLocaleString()}
+                  </p>
+                </CardContent>
+              </Card>
 
-      {/* Overspending (Orange) */}
-      <Card className="border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-xl">
-              <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+              {/* Overspending (Orange) */}
+              <Card className="border-orange-100 dark:border-orange-900/30 bg-orange-50/50 dark:bg-orange-900/10">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-xl">
+                      <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70">Highest Usage</p>
+                      <h4 className="font-serif text-lg text-orange-900 dark:text-orange-100">
+                        {categoryInsights?.overspending?.name || "None"}
+                      </h4>
+                    </div>
+                  </div>
+                  <p className="text-3xl font-serif text-orange-700 dark:text-orange-300">
+                     {(categoryInsights?.overspending?.status === 'alert') ? 'High Alert' : 'Normal'}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600/70 dark:text-orange-400/70">Highest Usage</p>
-              <h4 className="font-serif text-lg text-orange-900 dark:text-orange-100">
-                {categorySummaries?.over?.budgetName || "No Data"}
-              </h4>
-            </div>
-          </div>
-          <p className="text-2xl md:text-3xl font-serif text-orange-700 dark:text-orange-300">
-            {categorySummaries?.over ? Math.round((over.spent / over.budgetAmount) * 100) : 0}%
-          </p>
-        </CardContent>
-      </Card>
 
-    </div>
-  </TabsContent>
+            {/* --- NEW SECTION: DETAILED BREAKDOWN --- */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-2">
+                 <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100">Detailed Breakdown</h3>
+                 <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">
+                   {categoryInsights?.insights?.length || 0} Categories
+                 </span>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {(categoryInsights?.insights || []).map((category, idx) => {
+                  // Helper variables for clean JSX
+                  const colors = getColorClass(category.color);
+                  const budgetAmount = category.budget || 1; // Prevent div by zero
+                  const budgetUsage = (category.spent / budgetAmount) * 100;
+                  const changeAbs = Math.abs(category.change || 0);
+                  const isOverBudget = budgetUsage > 100;
+
+                  return (
+                    <Card
+                      key={idx}
+                      className={`
+                        border border-white/60 dark:border-white/5 
+                        bg-white/40 dark:bg-stone-900/40 
+                        hover:bg-white/80 dark:hover:bg-stone-900/60 
+                        hover:shadow-lg transition-all duration-300 cursor-pointer group
+                      `}
+                    >
+                      <CardContent className="p-5">
+                        {/* Header: Icon, Name, Money, Badge */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-4">
+                            {/* Icon Box */}
+                            <div className={`
+                              p-3 rounded-2xl shadow-sm transition-colors duration-300
+                              ${colors.bg} group-hover:bg-white dark:group-hover:bg-stone-800
+                            `}>
+                              {category.icon && <category.icon className={`w-6 h-6 ${colors.text}`} />}
+                            </div>
+                            
+                            {/* Text Info */}
+                            <div>
+                              <h3 className="font-serif text-lg font-medium text-stone-800 dark:text-stone-100 leading-tight">
+                                {category.name}
+                              </h3>
+                              <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-0.5">
+                                <span className="text-stone-900 dark:text-stone-200 font-bold">₱{(category.spent || 0).toLocaleString()}</span> 
+                                <span className="opacity-60"> / ₱{(category.budget || 0).toLocaleString()}</span>
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          <Badge
+                            className={
+                              category.status === "alert"
+                                ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-800/30"
+                                : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/30"
+                            }
+                          >
+                            {category.status}
+                          </Badge>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="mb-4">
+                          <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-1.5">
+                            <span>Usage</span>
+                            <span className={isOverBudget ? "text-red-500" : "text-stone-500"}>
+                              {budgetUsage.toFixed(0)}%
+                            </span>
+                          </div>
+                          <Progress 
+                            value={budgetUsage} 
+                            className={`h-2.5 ${isOverBudget ? "[&>div]:bg-red-500" : ""}`} 
+                          />
+                        </div>
+
+                        {/* Footer: Trends */}
+                        <div className="flex items-center justify-between pt-2 border-t border-stone-100 dark:border-stone-800/50">
+                          <div className="flex items-center gap-2">
+                            {category.trend === "up" && (
+                              <div className="bg-orange-50 dark:bg-orange-900/20 p-1 rounded-full">
+                                <ArrowUpRight className="w-3 h-3 text-orange-500 dark:text-orange-400" />
+                              </div>
+                            )}
+                            {category.trend === "down" && (
+                              <div className="bg-emerald-50 dark:bg-emerald-900/20 p-1 rounded-full">
+                                <ArrowDownRight className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                              </div>
+                            )}
+                            <span
+                              className={`text-xs font-bold ${
+                                category.trend === "up"
+                                  ? "text-orange-600 dark:text-orange-400"
+                                  : category.trend === "down"
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-stone-500"
+                              }`}
+                            >
+                              {category.trend === "stable"
+                                ? "Stable"
+                                : `${changeAbs.toFixed(1)}% vs last month`}
+                            </span>
+                          </div>
+                          
+                          <span className="text-[10px] text-stone-400 dark:text-stone-600 font-medium">
+                            Prev: ₱{(category.lastMonth || 0).toLocaleString()}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          </TabsContent>
+
+
+
+
           {/* 3. Merchant Insights */}
           <TabsContent value="merchants" className="space-y-6">
             <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">

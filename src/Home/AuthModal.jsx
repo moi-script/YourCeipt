@@ -10,22 +10,18 @@ import {
   TrendingUp,
   Eye,
   EyeOff,
-  ChevronLeft,
-  ChevronRight,
   Leaf,
   X,
   Mail,
   ArrowLeft,
-  Loader2 // Using Lucide loader for the spinner
+  Loader2 
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
-  // Modes: 'login' | 'register' | 'forgot'
   const [mode, setMode] = useState(defaultTab); 
   const [currentStep, setCurrentStep] = useState(0);
   
-  // Sync mode with props when opening
   useEffect(() => {
     if (isOpen) {
       setMode(defaultTab);
@@ -63,19 +59,15 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
   // =========================================================
   // AUTH STATE & LOGIC
   // =========================================================
-  const { login, register, setUser } = useAuth(); // Assuming registerLoading is handled locally or via context
+  const { login, register, setUser } = useAuth(); 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/user";
 
-  // Loading States
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Login State
   const [loginData, setLoginData] = useState({ email: "", password: "" });
-  
-  // Register State (From your snippet)
   const [registerData, setRegisterData] = useState({
     nickname: "",
     fullname: "",
@@ -85,7 +77,6 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  // Handlers
   const handleLoginChange = (e) => {
       setLoginData({ ...loginData, [e.target.name]: e.target.value });
   };
@@ -109,6 +100,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
       if (res.status === 200) {
         setUser(res);
         onClose(false); 
+        localStorage.setItem('user', true);
         navigate("/user"); 
       }
     } catch (err) {
@@ -119,7 +111,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     }
   };
 
-  // --- REGISTER SUBMIT (Your Logic Integrated) ---
+  // --- REGISTER SUBMIT ---
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -128,19 +120,17 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     console.log("Uploading user data", registerData);
 
     try {
-      // Using the exact URL logic you provided
       const response = await register("http://localhost:3000/user/register", {
         credentials: "include",
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(registerData),
       });
 
       if (response.status === 200) {
         setUser(registerData);
         onClose(false);
+        localStorage.setItem('user', true);
         navigate(from, { replace: true });
       } else {  
         console.error("Server Error");
@@ -156,13 +146,44 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden bg-transparent border-none shadow-2xl focus:outline-none">
+      {/* 1. Removed the default 'X' button by using [&>button]:hidden 
+          2. Added custom styling to hide browser password eye and customize scrollbar 
+      */}
+      <DialogContent className="max-w-5xl p-0 overflow-hidden bg-transparent border-none shadow-2xl focus:outline-none [&>button]:hidden">
+        
+        <style>{`
+          /* Hide Browser Password Eye */
+          input[type="password"]::-ms-reveal,
+          input[type="password"]::-ms-clear {
+            display: none;
+          }
+          
+          /* Custom Scrollbar for the Right Panel */
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+          }
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #d6d3d1; /* stone-300 */
+            border-radius: 20px;
+          }
+          /* Dark Mode Scrollbar */
+          .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #44403c; /* stone-700 */
+          }
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #10b981; /* emerald-500 */
+          }
+        `}</style>
+
         <div className="flex w-full h-[700px] bg-[#fcfcfc] dark:bg-stone-900 rounded-3xl overflow-hidden relative transition-colors duration-300">
             
-            {/* Close Button */}
+            {/* Custom Close Button (The only one visible now) */}
             <button 
                 onClick={() => onClose(false)}
-                className="absolute top-4 right-4 z-50 p-2 bg-stone-100 dark:bg-stone-800 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+                className="absolute top-4 right-4 z-50 p-2 bg-stone-100 dark:bg-stone-800 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm"
             >
                 <X className="w-4 h-4 text-stone-500 dark:text-stone-400" />
             </button>
@@ -205,9 +226,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
             </div>
 
             {/* ====================================================
-                RIGHT COLUMN: FORMS
+                RIGHT COLUMN: FORMS (Added 'custom-scrollbar' class)
                ==================================================== */}
-            <div className="w-full lg:w-7/12 p-8 sm:p-12 relative flex flex-col justify-center overflow-y-auto">
+            <div className="w-full lg:w-7/12 p-8 sm:p-12 relative flex flex-col justify-center overflow-y-auto custom-scrollbar">
                 
                 {/* Logo */}
                 <div className="flex items-center gap-2 mb-6">
@@ -277,7 +298,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
                     )}
 
                     {/* ==========================
-                        VIEW: REGISTER (Your Logic Integrated)
+                        VIEW: REGISTER
                         ========================== */}
                     {mode === 'register' && (
                          <div className="animate-in fade-in slide-in-from-right-4 duration-300">

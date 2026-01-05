@@ -11,5 +11,21 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+    // Immediately checks local storage and applies the class before React loads
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // If saved is 'dark', OR if no save exists but system is dark
+        if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+          console.log("Will try to index ", savedTheme);
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+
+  </script>
   </body>
 </html>

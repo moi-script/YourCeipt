@@ -1,41 +1,50 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useLayoutEffect, useEffect } from "react";
 import { 
-  Leaf, 
-  ArrowRight, 
-  ScanLine, 
-  PieChart, 
-  Brain, 
-  CheckCircle2, 
-  Sparkles,
-  Sun,
-  Moon
+  Leaf, ArrowRight, ScanLine, PieChart, Brain, CheckCircle2, Sparkles, Sun, Moon, Check, X, Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button"; 
 import { AuthModal } from "./AuthModal"; 
-import dashboardPreview from "../assets/dashboard.png";
+import dashboardPreview from "../assets/dashboard.png"; 
 import { DemoModal } from "@/components/DemoModal";
 import { Link } from "react-router-dom";
-import { Check, X, Zap, HelpCircle } from "lucide-react";
+
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
 
-  const [isDark, setIsDark] = useState(true);
-  const [isDemoOpen, setIsDemoOpen] = useState(false);
+  // ==================================================================
+  // THEME STATE (FIXED)
+  // ==================================================================
+  // 1. Initialize state by checking the ACTUAL class on the HTML tag.
+  //    (This ensures we match exactly what your index.html script did)
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof document !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false; // Default fallback
+  });
 
-  useEffect(() => {
+  // 2. Use 'useLayoutEffect' to prevent the "White Flash"
+  //    This runs synchronously immediately after React renders, but BEFORE the browser paints.
+  useLayoutEffect(() => {
     const root = window.document.documentElement;
+    
     if (isDark) {
       root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
     } else {
       root.classList.remove("dark");
+      localStorage.setItem("theme", "light");
     }
   }, [isDark]);
 
-  const toggleTheme = () => setIsDark(!isDark);
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
 
   // ==================================================================
-  // AUTH MODAL STATE
+  // AUTH & OTHER STATE
   // ==================================================================
+  const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState("login");
   const [isAnnual, setIsAnnual] = useState(false);
@@ -45,18 +54,15 @@ export default function LandingPage() {
     setIsAuthOpen(true);
   };
 
-
-  // Handle navbar background on scroll
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    // MAIN CONTAINER: Handles the base background color switch
+    // MAIN CONTAINER
+    // I added 'duration-500' back, but if you still see flashes, remove 'transition-colors'
     <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans selection:bg-emerald-500/30 transition-colors duration-500">
       
       <AuthModal 
@@ -65,15 +71,13 @@ export default function LandingPage() {
         defaultTab={authTab} 
       />
 
-      {/* ==================================================================
-          BACKGROUND EFFECTS (Adaptive opacity for Light/Dark)
-          ================================================================== */}
+      <DemoModal isOpen={isDemoOpen} onClose={setIsDemoOpen} />
+
+      {/* BACKGROUND EFFECTS */}
       <div className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-400/30 dark:bg-emerald-900/20 rounded-full filter blur-[120px] opacity-60 dark:opacity-40 pointer-events-none z-0 mix-blend-multiply dark:mix-blend-normal transition-all duration-500"></div>
       <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-300/30 dark:bg-orange-900/20 rounded-full filter blur-[120px] opacity-50 dark:opacity-30 pointer-events-none z-0 mix-blend-multiply dark:mix-blend-normal transition-all duration-500"></div>
 
-      {/* ==================================================================
-          NAVBAR
-          ================================================================== */}
+      {/* NAVBAR */}
       <nav 
         className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
           scrolled 
@@ -101,7 +105,7 @@ export default function LandingPage() {
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="rounded-full text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50"
+              className="rounded-full text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-all"
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </Button>
@@ -122,9 +126,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ==================================================================
-          HERO SECTION
-          ================================================================== */}
+      {/* HERO SECTION */}
       <header className="relative z-10 pt-48 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-medium mb-6 animate-fade-in transition-colors">
@@ -157,8 +159,6 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <DemoModal isOpen={isDemoOpen} onClose={setIsDemoOpen} />
-
         {/* Dashboard Preview Mockup */}
         <div className="mt-20 relative max-w-6xl mx-auto">
           <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/20 to-orange-500/20 rounded-xl blur-lg opacity-50"></div>
@@ -172,7 +172,7 @@ export default function LandingPage() {
               </div>
             </div>
             
-            {/* Placeholder / Image Area */}
+            {/* Image */}
             <div className="aspect-[16/9] bg-stone-100 dark:bg-stone-950 flex items-center justify-center text-stone-400 dark:text-stone-600 group cursor-pointer relative transition-colors">
                <img 
                  src={dashboardPreview} 
@@ -191,18 +191,15 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ==================================================================
-          FEATURES GRID
-          ================================================================== */}
+      {/* REST OF YOUR SECTIONS */}
+      {/* (Keep Features, Pricing, and Footer sections exactly as they were in your code) */}
       <section id="features" className="py-24 relative z-10">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-4xl mb-4 text-stone-900 dark:text-white">Everything you need to grow.</h2>
             <p className="text-stone-600 dark:text-stone-400">Advanced tools simplified for your personal economy.</p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Feature 1 */}
             <div className="p-8 rounded-2xl bg-white/40 dark:bg-stone-900/40 border border-stone-200 dark:border-stone-800 backdrop-blur-sm hover:bg-white/60 dark:hover:bg-stone-900/60 transition-colors group">
               <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <ScanLine className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
@@ -212,8 +209,6 @@ export default function LandingPage() {
                 Upload a photo and let our AI extract merchants, dates, and line items instantly. No more manual data entry.
               </p>
             </div>
-
-            {/* Feature 2 */}
             <div className="p-8 rounded-2xl bg-white/40 dark:bg-stone-900/40 border border-stone-200 dark:border-stone-800 backdrop-blur-sm hover:bg-white/60 dark:hover:bg-stone-900/60 transition-colors group">
               <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <PieChart className="w-6 h-6 text-orange-600 dark:text-orange-400" />
@@ -223,8 +218,6 @@ export default function LandingPage() {
                 Visualise your spending flow. Track categories, monthly trends, and get alerts when you're nearing your budget limits.
               </p>
             </div>
-
-            {/* Feature 3 */}
             <div className="p-8 rounded-2xl bg-white/40 dark:bg-stone-900/40 border border-stone-200 dark:border-stone-800 backdrop-blur-sm hover:bg-white/60 dark:hover:bg-stone-900/60 transition-colors group">
               <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <Brain className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -238,71 +231,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ==================================================================
-          HOW IT WORKS
-          ================================================================== */}
-      <section className="py-24 border-t border-stone-200 dark:border-stone-900 relative z-10 bg-white/30 dark:bg-stone-950/50 backdrop-blur-sm transition-colors">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-          
-          {/* Left Content */}
-          <div>
-            <h2 className="font-serif text-3xl md:text-4xl mb-6 text-stone-900 dark:text-stone-100">
-              From pocket to dashboard <br />
-              <span className="italic text-stone-500">in seconds.</span>
-            </h2>
-            <div className="space-y-8">
-              {[
-                { title: "Snap or Upload", desc: "Take a picture of your receipt or upload a file directly." },
-                { title: "AI Processing", desc: "Our neural nodes extract the total, date, and merchant details." },
-                { title: "Review & Save", desc: "Verify the data and add it to your monthly ledger." }
-              ].map((step, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center text-stone-600 dark:text-stone-400 font-bold text-sm border border-stone-300 dark:border-stone-700 transition-colors">
-                    {i + 1}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-lg text-stone-800 dark:text-stone-200">{step.title}</h4>
-                    <p className="text-stone-500 text-sm mt-1">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Right Visual - Abstract Representation */}
-          <div className="relative h-[400px] bg-stone-100 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-8 flex flex-col justify-center items-center transition-colors">
-             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 dark:opacity-20"></div>
-             {/* Abstract UI Element */}
-             <div className="w-64 bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-lg p-4 shadow-2xl relative z-10 transform -rotate-3 transition-transform hover:rotate-0 duration-500">
-                <div className="h-2 w-20 bg-stone-200 dark:bg-stone-800 rounded mb-4"></div>
-                <div className="space-y-2">
-                   <div className="h-8 bg-stone-50 dark:bg-stone-900 rounded border border-stone-200 dark:border-stone-800 flex items-center px-3">
-                      <span className="text-xs text-stone-400 dark:text-stone-500">Grocery Store...</span>
-                   </div>
-                   <div className="h-8 bg-emerald-100/50 dark:bg-emerald-900/20 rounded border border-emerald-200 dark:border-emerald-900/50 flex items-center px-3 justify-between">
-                      <span className="text-xs text-emerald-600 dark:text-emerald-400">Total</span>
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">₱456.96</span>
-                   </div>
-                </div>
-                {/* Floating Badge */}
-                <div className="absolute -right-4 -top-4 bg-emerald-600 text-white text-[10px] px-2 py-1 rounded-full shadow-lg flex items-center gap-1">
-                   <CheckCircle2 className="w-3 h-3" /> Auto-Detected
-                </div>
-             </div>
-          </div>
-
-        </div>
-      </section>
-
-
-
-      {/* ==================================================================
-          PRICING SECTION
-          ================================================================== */}
       <section id="pricing" className="py-24 relative z-10 transition-colors">
         <div className="max-w-7xl mx-auto px-6">
-          
-          {/* Header */}
           <div className="text-center mb-16">
             <h2 className="font-serif text-3xl md:text-4xl mb-4 text-stone-900 dark:text-white">
               Transparent pricing for your growth.
@@ -310,8 +240,6 @@ export default function LandingPage() {
             <p className="text-stone-600 dark:text-stone-400 mb-8">
               Start for free, upgrade for power. No hidden fees.
             </p>
-
-            {/* Toggle Switch (Monthly / Yearly) */}
             <div className="flex items-center justify-center gap-4">
               <span className={`text-sm font-bold ${!isAnnual ? 'text-stone-900 dark:text-white' : 'text-stone-500'}`}>Monthly</span>
               <button 
@@ -325,11 +253,7 @@ export default function LandingPage() {
               </span>
             </div>
           </div>
-
-          {/* Pricing Cards Grid */}
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-
-            {/* PLAN 1: SPROUT (FREE) */}
             <div className="bg-white/40 dark:bg-stone-900/40 backdrop-blur-md border border-stone-200 dark:border-stone-800 rounded-2xl p-8 flex flex-col hover:border-stone-300 dark:hover:border-stone-700 transition-all">
                <div className="mb-4">
                  <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100">Sprout</h3>
@@ -343,69 +267,31 @@ export default function LandingPage() {
                  Start Free
                </Button>
                <ul className="space-y-4 flex-1">
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                    <span>Manual Transaction Entry</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                    <span>5 AI Receipt Scans / mo</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                    <span>Basic Spending Analytics</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-400 dark:text-stone-600">
-                    <X className="w-5 h-5 flex-shrink-0" />
-                    <span>Custom AI Models</span>
-                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-600 flex-shrink-0" /><span>Manual Transaction Entry</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-600 flex-shrink-0" /><span>5 AI Receipt Scans / mo</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-600 flex-shrink-0" /><span>Basic Spending Analytics</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-400 dark:text-stone-600"><X className="w-5 h-5 flex-shrink-0" /><span>Custom AI Models</span></li>
                </ul>
             </div>
-
-            {/* PLAN 2: BLOOM (PRO) - HIGHLIGHTED */}
             <div className="relative bg-white dark:bg-stone-900 backdrop-blur-md border border-emerald-500/30 dark:border-emerald-500/50 rounded-2xl p-8 flex flex-col shadow-2xl shadow-emerald-900/10 transform md:-translate-y-4">
-               {/* Badge */}
-               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">
-                 Most Popular
-               </div>
-               
+               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wide">Most Popular</div>
                <div className="mb-4">
-                 <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                    Bloom <Sparkles className="w-4 h-4 text-emerald-500" />
-                 </h3>
+                 <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100 flex items-center gap-2">Bloom <Sparkles className="w-4 h-4 text-emerald-500" /></h3>
                  <p className="text-xs text-emerald-600 dark:text-emerald-400 uppercase tracking-wider font-bold mt-1">For Power Users</p>
                </div>
                <div className="mb-6">
-                 <span className="text-4xl font-serif text-stone-900 dark:text-white">
-                    {isAnnual ? '₱159' : '₱199'}
-                 </span>
+                 <span className="text-4xl font-serif text-stone-900 dark:text-white">{isAnnual ? '₱159' : '₱199'}</span>
                  <span className="text-stone-500">/mo</span>
                  {isAnnual && <p className="text-xs text-emerald-600 mt-1">Billed ₱1,908 yearly</p>}
                </div>
-               <Button onClick={() => openAuth('register')} className="w-full mb-8 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white">
-                 Get Bloom
-               </Button>
+               <Button onClick={() => openAuth('register')} className="w-full mb-8 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white">Get Bloom</Button>
                <ul className="space-y-4 flex-1">
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                    <span><strong>Unlimited</strong> AI Receipt Scans</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                    <span>Advanced Models (Nemotron-3)</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                    <span>Export to CSV/Excel</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-                    <span>Priority Support</span>
-                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-500 flex-shrink-0" /><span><strong>Unlimited</strong> AI Receipt Scans</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-500 flex-shrink-0" /><span>Advanced Models (Nemotron-3)</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-500 flex-shrink-0" /><span>Export to CSV/Excel</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-emerald-500 flex-shrink-0" /><span>Priority Support</span></li>
                </ul>
             </div>
-
-            {/* PLAN 3: LOCAL (DEV) */}
             <div className="bg-white/40 dark:bg-stone-900/40 backdrop-blur-md border border-stone-200 dark:border-stone-800 rounded-2xl p-8 flex flex-col hover:border-stone-300 dark:hover:border-stone-700 transition-all">
                <div className="mb-4">
                  <h3 className="font-serif text-xl text-stone-900 dark:text-stone-100">Local</h3>
@@ -415,50 +301,28 @@ export default function LandingPage() {
                  <span className="text-4xl font-serif text-stone-900 dark:text-white">Free</span>
                  <p className="text-xs text-stone-500 mt-1">Requires your own API Keys</p>
                </div>
-               <Button variant="outline" className="w-full mb-8 rounded-full border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">
-                 View GitHub
-               </Button>
+               <Button variant="outline" className="w-full mb-8 rounded-full border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800">View GitHub</Button>
                <ul className="space-y-4 flex-1">
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-stone-400 flex-shrink-0" />
-                    <span>Self-hosted Docker Container</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-stone-400 flex-shrink-0" />
-                    <span>Bring Your Own LLM Key</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Check className="w-5 h-5 text-stone-400 flex-shrink-0" />
-                    <span>Full Data Sovereignty</span>
-                 </li>
-                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300">
-                    <Zap className="w-5 h-5 text-stone-400 flex-shrink-0" />
-                    <span>Community Support</span>
-                 </li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-stone-400 flex-shrink-0" /><span>Self-hosted Docker Container</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-stone-400 flex-shrink-0" /><span>Bring Your Own LLM Key</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Check className="w-5 h-5 text-stone-400 flex-shrink-0" /><span>Full Data Sovereignty</span></li>
+                 <li className="flex items-start gap-3 text-sm text-stone-600 dark:text-stone-300"><Zap className="w-5 h-5 text-stone-400 flex-shrink-0" /><span>Community Support</span></li>
                </ul>
             </div>
-
           </div>
         </div>
       </section>
 
-      {/* ==================================================================
-          CTA / FOOTER
-          ================================================================== */}
       <footer className="py-20 border-t border-stone-200 dark:border-stone-900 relative z-10 text-center bg-[#f2f0e9] dark:bg-stone-950 transition-colors">
         <div className="max-w-3xl mx-auto px-6">
           <Leaf className="w-8 h-8 text-emerald-600 dark:text-emerald-500 mx-auto mb-6" />
           <h2 className="font-serif text-4xl mb-6 text-stone-900 dark:text-white">Ready to clarify your finances?</h2>
           <p className="text-stone-600 dark:text-stone-400 mb-8">Join the waitlist or start your local instance today.</p>
           <div className="flex justify-center gap-4">
-             <Button 
-                onClick={() => openAuth('register')}
-                className="bg-stone-900 dark:bg-white text-white dark:text-stone-950 hover:bg-stone-800 dark:hover:bg-stone-200 rounded-full h-12 px-8 transition-colors"
-             >
+             <Button onClick={() => openAuth('register')} className="bg-stone-900 dark:bg-white text-white dark:text-stone-950 hover:bg-stone-800 dark:hover:bg-stone-200 rounded-full h-12 px-8 transition-colors">
                 Create Account
              </Button>
           </div>
-          
           <div className="mt-20 text-stone-500 dark:text-stone-600 text-sm flex flex-col md:flex-row gap-6 justify-between items-center border-t border-stone-300 dark:border-stone-900/50 pt-8 transition-colors">
              <p>&copy; 2026 Recepta. Built by Moises Nugal.</p>
              <div className="flex gap-6">

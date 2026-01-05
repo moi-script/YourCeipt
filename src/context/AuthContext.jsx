@@ -350,6 +350,19 @@ export const AuthProvider = ({ children }) => {
   });
   const [spendingTrend, setSpendingTrend] = useState(null);
 
+
+  const [isUserLogin, setIsUserLogin] = useState(() => {
+    const item = localStorage.getItem('user');
+    if(item) {
+      return true;
+    } 
+    return null;
+  })
+
+
+
+
+
   // fetching user receipt list
 
   const [models, setModels] = useState(null);
@@ -357,6 +370,7 @@ export const AuthProvider = ({ children }) => {
 // ... (Your existing useEffects remain the same) ...
   useEffect(() => {
     // console.log('Fetching ai models ');
+    // if(!user?._id) return;
     const fetchAi = async () => {
       // console.log('Fetching ai --> ');
       try {
@@ -370,19 +384,22 @@ export const AuthProvider = ({ children }) => {
       }
     };
     fetchAi();
-  }, []);
+  }, [isUserLogin]);
+
+
+
 
   useEffect(() => {
     if(userReceipts){
-
       setSpendingTrend(calculateMonthlyTrendClientSide(userReceipts, new Date().getFullYear()))
     }
   }, [userReceipts])
 
 
   useEffect(() => {
-  const fetchActiveModel = async () => {
     if (!user?._id) return;
+
+  const fetchActiveModel = async () => {
     
     try {
       const res = await fetch(`http://localhost:3000/extract/getUserModel?userId=${user._id}`);
@@ -415,6 +432,7 @@ export const AuthProvider = ({ children }) => {
   }, [categorySpent]);
 
   useEffect(() => {
+    if (!user) return;
     const root = window.document.documentElement;
     // Check the boolean state 'isDarkMode', not the string "dark"
     if (user?.theme === "dark") {
@@ -449,6 +467,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    if(!user?._id) return;
     const handleGetBudgetItem = async () => {
       try {
         const res = await fetch("http://localhost:3000/get/budget", {
@@ -472,6 +491,8 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   useEffect(() => {
+    if(!user?._id) return;
+
     const sanitizeReceiptsFetchHelper = (transactions) => {
       return transactions.filter(
         (receipt) => !(Array.isArray(receipt) && receipt.length === 0)
@@ -545,7 +566,16 @@ export const AuthProvider = ({ children }) => {
 
   // }, []);
 
+
+
+
+
+  // Session Verification
+
+
   useEffect(() => {
+    console.log("Activiated the verify session ");
+    if(!isUserLogin) return;
     console.log("Running the check sessions");
     const checkSession = async () => {
       try {
@@ -565,7 +595,13 @@ export const AuthProvider = ({ children }) => {
       }
     };
     checkSession();
-  }, [refreshPage]);
+  }, [isUserLogin, refreshPage]);
+
+
+
+
+
+
 
   const value = useMemo(
     () => ({

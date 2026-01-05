@@ -25,8 +25,15 @@ import { ManualEntryForm } from "./Input/ManualForm";
 import { DialogForm } from "./Input/DialogForm";
 import { AdvanceForm } from "./Input/AdvanceForm";
 import LandingPage from "./Home/LandingPage";
+import { BrowserRouter } from "react-router-dom";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    {/* <BrowserRouter>
+    <LandingPage />
+
+    </BrowserRouter> */}
+
+      <App />
+
   </StrictMode>
 );

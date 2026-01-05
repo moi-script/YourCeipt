@@ -264,5 +264,6 @@ export const getCategorySummaries = (budgets) => {
     return usageB - usageA;
   })[0];
 
+  console.log('Result for getting the category summaries :: ', {top, least, over});
   return { top, least, over };
 };
