@@ -67,7 +67,7 @@ export function AdvanceForm({
   isAddDialogOpen,
   setIsAddDialogOpen,
 }) {
-  const { user, uploadReceipts, setReceipts, setRefreshPage } = useAuth();
+  const { user, uploadReceipts, setReceipts, setRefreshPage, activeModelName } = useAuth();
 
   const [inputMode, setInputMode] = useState("manual");
   const [isAdvanced, setIsAdvanced] = useState(false);
@@ -208,7 +208,16 @@ export function AdvanceForm({
         await axios.post("http://localhost:3000/upload", formDataUpload, {
           headers: { "Content-Type": "multipart/form-data" },
         });
-        const extractText = await axios.get("http://localhost:3000/extract/azure");
+        console.log
+        const extractText = await axios.post("http://localhost:3000/extract/azure", 
+          {
+          activeModelName : activeModelName
+          }, {
+          headers : {
+            'Content-type' : 'application/json'
+          }
+        }
+      );
 
         if(extractText.status !== 200){
            setIsLoader(false);
@@ -218,6 +227,7 @@ export function AdvanceForm({
         setReceipts(extractText.data.contents);
         setReceiptContent(extractText.data.contents);
       } catch (err) {
+        alert('Unable to parse image ::', err);
         console.error(err);
         setIsLoader(false);
       }
@@ -471,7 +481,7 @@ export function AdvanceForm({
               <div className="bg-orange-50 dark:bg-orange-900/20 p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border border-orange-100 dark:border-orange-800/30 flex gap-3 items-start">
               <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 dark:text-orange-400 mt-0.5" />
               <p className="text-xs sm:text-sm text-orange-800/80 dark:text-orange-200/80">
-                <span className="font-bold">Tip:</span> Ensure the receipt is well-lit.
+                <span className="font-bold">Tip:</span> Ensure the receipt is well-lit. Parsing speed depends on your Ai model {activeModelName}
               </p>
             </div>
 

@@ -39,7 +39,7 @@ const OrganicCardContent = ({ children, className = "" }) => (
 
 export default function AIModelDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { setIsModelLoading, isModelLoading, models, setModels, user } = useAuth();
+  const { setIsModelLoading, isModelLoading, models, setModels, user, setRefreshPage } = useAuth();
 
   useEffect(() => {
     console.log("Model list :: ", models);
@@ -53,6 +53,7 @@ export default function AIModelDashboard() {
       const res = await fetch("http://localhost:3000/extract/getModels");
       const data = await res.json();
       setModels(data.models);
+      setRefreshPage(true);
     } catch (err) {
       console.error("Unable to fetch ai models");
     } finally {

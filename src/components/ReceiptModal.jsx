@@ -18,80 +18,14 @@ import {
   CreditCard, 
   Clock,
   User,
-  Phone
+  Phone,
+  Tag // Added Tag icon
 } from "lucide-react";
 
-
-
-
-const dummyReceiptData = {
-  "store": "Whole Foods Market",
-  "slogan": "Whatever Makes You Whole",
-  "contact": "(555) 012-3456",
-  "manager": "Sarah Jenkins",
-  "address": {
-    "street": "1250 East 2nd Street",
-    "city": "Austin",
-    "state": "TX",
-    "zip": "78702"
-  },
-  "transaction": {
-    "store_number": "10542",
-    "operator_number": "24",
-    "terminal_number": "03",
-    "transaction_number": "8821-4492"
-  },
-  "items": [
-    {
-      "description": "Organic Large Hass Avocado",
-      "upc": "99482100",
-      "type": "Produce",
-      "price": 2.50,
-      "quantity": 2
-    },
-    {
-      "description": "Califia Farms Almond Milk",
-      "upc": "81203001",
-      "type": "Dairy",
-      "price": 5.49,
-      "quantity": 1
-    },
-    {
-      "description": "Rustic Sourdough Loaf",
-      "upc": "77210022",
-      "type": "Bakery",
-      "price": 4.99,
-      "quantity": 1
-    },
-    {
-      "description": "Dark Chocolate 70%",
-      "upc": "66210033",
-      "type": "Snacks",
-      "price": 3.99,
-      "quantity": 1
-    }
-  ],
-  "subtotal": 19.47,
-  "tax_rate": 8.25,
-  "tax_amount": 1.61,
-  "total": 21.08,
-  "payment_method": "VISA **** 4242",
-  "amount_paid": 21.08,
-
-  "metadata": {
-    "currency": "USD",
-    "datetime": "2025-12-30T14:45:00.000Z",
-    "notes": "Weekly grocery run",
-    "source_type": "Smart Scan"
-  }
-};
-
-
+// ... (Keep your dummyReceiptData exactly as it was) ...
 
 const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
   if (!data) return null;
-
-// for test
 
   // Helper for safe currency display
   const currencySymbol = data.metadata?.currency === "PHP" ? "₱" : "$";
@@ -121,11 +55,6 @@ const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      {/* ORGANIC STYLING NOTES:
-        - rounded-[2.5rem]: Matches the 'PebbleCard' look.
-        - bg-[#f2f0e9]: Warm bone background.
-        - font-serif: For headings to match the editorial style.
-      */}
       <DialogContent className="[&>button]:z-50 max-w-md w-[95%] rounded-[2.5rem] bg-[#f2f0e9] dark:bg-stone-950 border-white/50 dark:border-stone-800 shadow-2xl p-0 overflow-hidden gap-0">
         
         {/* Decorative Header Blob (Subtle) */}
@@ -170,15 +99,15 @@ const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
                 <div className="flex gap-4">
                   {data.manager && (
                     <div className="flex items-center gap-1.5">
-                       <User className="w-3 h-3" />
-                       <span>Mgr: {data.manager}</span>
+                        <User className="w-3 h-3" />
+                        <span>Mgr: {data.manager}</span>
                     </div>
                   )}
                   {data.contact && (
-                     <div className="flex items-center gap-1.5">
-                       <Phone className="w-3 h-3" />
-                       <span>{data.contact}</span>
-                     </div>
+                      <div className="flex items-center gap-1.5">
+                        <Phone className="w-3 h-3" />
+                        <span>{data.contact}</span>
+                      </div>
                   )}
                 </div>
               )}
@@ -209,13 +138,13 @@ const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
                 </div>
               </div>
               {data.transaction?.transaction_number && (
-                 <div className="col-span-2 flex items-center gap-2 pt-1 border-t border-dashed border-stone-200 dark:border-stone-700 mt-1">
-                    <Hash className="w-3 h-3 text-stone-400" />
-                    <span className="text-[10px] text-stone-400 font-mono">
-                      Ref: #{data.transaction.transaction_number} 
-                      {data.transaction.terminal_number ? ` / Term: ${data.transaction.terminal_number}` : ''}
-                    </span>
-                 </div>
+                  <div className="col-span-2 flex items-center gap-2 pt-1 border-t border-dashed border-stone-200 dark:border-stone-700 mt-1">
+                     <Hash className="w-3 h-3 text-stone-400" />
+                     <span className="text-[10px] text-stone-400 font-mono">
+                       Ref: #{data.transaction.transaction_number} 
+                       {data.transaction.terminal_number ? ` / Term: ${data.transaction.terminal_number}` : ''}
+                     </span>
+                  </div>
               )}
             </div>
 
@@ -232,17 +161,33 @@ const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
                 {data.items && data.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-start text-sm group">
                     <div className="flex gap-3">
-                      <div className="w-5 h-5 flex items-center justify-center bg-stone-100 dark:bg-stone-800 rounded-md text-[10px] font-bold text-stone-500">
+                      {/* Quantity Box */}
+                      <div className="w-5 h-5 flex items-center justify-center bg-stone-100 dark:bg-stone-800 rounded-md text-[10px] font-bold text-stone-500 shrink-0 mt-0.5">
                         {item.quantity || 1}
                       </div>
-                      <div>
+                      
+                      <div className="flex flex-col">
                         <p className="text-stone-700 dark:text-stone-300 font-medium leading-snug">
                           {item.description || "Unknown Item"}
                         </p>
-                        {item.upc && <p className="text-[10px] text-stone-400 font-mono">{item.upc}</p>}
+                        
+                        {/* --- NEW: CATEGORY & UPC ROW --- */}
+                        <div className="flex items-center gap-2 mt-1">
+                            {(item.category || item.type) && (
+                                <span className="inline-flex items-center text-[9px] uppercase tracking-wider font-bold text-stone-500 bg-stone-100 dark:bg-stone-800/80 px-1.5 py-0.5 rounded">
+                                    {item.category || item.type}
+                                </span>
+                            )}
+                            {item.upc && (
+                                <span className="text-[9px] text-stone-400 font-mono">
+                                    #{item.upc}
+                                </span>
+                            )}
+                        </div>
                       </div>
                     </div>
-                    <div className="font-semibold text-stone-800 dark:text-stone-200">
+                    
+                    <div className="font-semibold text-stone-800 dark:text-stone-200 whitespace-nowrap pl-2">
                       {currencySymbol}{formatMoney(item.price)}
                     </div>
                   </div>
@@ -270,7 +215,7 @@ const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
               <div className="flex justify-between items-center pt-3 mt-2">
                 <span className="font-serif text-lg text-stone-800 dark:text-stone-100 italic">Total</span>
                 <span className="font-serif text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                   {currencySymbol}{formatMoney(data.total)}
+                    {currencySymbol}{formatMoney(data.total)}
                 </span>
               </div>
             </div>

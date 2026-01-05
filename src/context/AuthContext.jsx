@@ -119,7 +119,8 @@ const getTotalIncome = (transaction) => {
     }, 0);
 };
 
-const getSavings = (monthlyIncome, monthlyExpenses) => {
+const getSavings = (monthlyIncome = 0, monthlyExpenses = 0) => {
+  
   return monthlyIncome - monthlyExpenses;
 };
 
@@ -262,7 +263,10 @@ const getTotals = (transactions, type, period, offset = 0) => {
 const getMetrics = (transactions, period = 'month') => {
   const income = getTotals(transactions, 'Income', period);
   const expenses = getTotals(transactions, 'Expense', period);
-  
+
+  console.log('Income metrics ::', income, 'type ::', typeof income);
+  console.log('Expense metrics ::', expenses, 'type ::', typeof expenses);
+
   // 1. Net Savings
   const netSavings = income - expenses;
   
@@ -335,10 +339,10 @@ export const AuthProvider = ({ children }) => {
   const [totalBudget, setTotalBudget] = useState(null);
   const [totalSpent, setTotalSpent] = useState(null);
   const [totalIncome, setTotalIncome] = useState(null);
-  const [totalBalance, setTotalBalance] = useState(null);
-  const [monthlyIncome, setMonthlyIncome] = useState(null);
-  const [monthlyExpenses, setMonthlyExpenses] = useState(null);
-  const [savings, setSavings] = useState(null);
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [monthlyIncome, setMonthlyIncome] = useState(0);
+  const [monthlyExpenses, setMonthlyExpenses] = useState(0);
+  const [savings, setSavings] = useState(0);
   const [previousIncome, setPreviousIncome] = useState(null);
   const [previousExpense, setPreviousExpense] = useState(null);
   const [recentTransaction, setRecentTransaction] = useState(null);
@@ -407,8 +411,12 @@ export const AuthProvider = ({ children }) => {
       if (data.success) {
         setActiveModelName(data.model_name);
       }
+
+      if(!res.ok) {
+        setActiveModelName("kwaipilot/kat-coder-pro:free");
+      }
     } catch (err) {
-      console.error("Error fetching active model status");
+      console.error("Error No active model status");
     }
   };
 
@@ -446,6 +454,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (totalBudget && totalSpent) {
+      // console.log('total budget ::', totalBudget, ' type --> ', typeof totalBudget);
+      // console.log('total spent ::', totalSpent, ' type --> ', typeof totalSpent);
+
       setTotalBalance(totalBudget - totalSpent);
     }
   }, [totalSpent]);
