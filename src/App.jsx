@@ -18,6 +18,7 @@ import ProfilePage from "./Home/Profile";
 import OrganicPrivacyPage from "./Home/PrivacySecurity";
 import LandingPage from "./Home/LandingPage";
 import LegalPage from "./components/LegalPage";
+import AiEnginePage from "./components/AiEngine";
 function App() {
   return (
     <>
@@ -33,7 +34,7 @@ function App() {
         <Route path="/register" element={<BudgetSignup/>}/>
         <Route path="/forgot" element={<ForgotPassword/>}/>
         <Route path="/onboard" element={<Onboarding/>}/>
-        
+        <Route path="/aiEngine" element={<AiEnginePage/>}/>
         <Route element={<ProtectedRoute/>}>
          <Route path="/user" element={<BudgetDashboard/>}>
            <Route path="/user/" element={<Home/>}></Route>
