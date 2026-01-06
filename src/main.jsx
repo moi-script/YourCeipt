@@ -5,7 +5,7 @@ import App from "./App";
 import { Home } from "./Home/Home";
 import Signup from "./SignUp/SignUp";
 import Login from "./Login/Login";
-import ForgotPassword from "./Login/Forgot";
+// import ForgotPassword from "./Login/Forgot";
 import Onboarding from "./Onboard/Onboard";
 // import HomeLayout from './Home/DashBoard'
 import { BudgetDashboard } from "./Home/DashBoard.jsx";
@@ -26,15 +26,11 @@ import { DialogForm } from "./Input/DialogForm";
 import { AdvanceForm } from "./Input/AdvanceForm";
 import LandingPage from "./Home/LandingPage";
 import { BrowserRouter } from "react-router-dom";
+import ForgotPassword from "./components/ForgotPassword";
 // import AiEnginePage from "./components/AiEngine";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    {/* <BrowserRouter>
-    <LandingPage />
-
-    </BrowserRouter> */}
-
       <App />
-
+      {/* <ForgotPassword /> */}
   </StrictMode>
 );

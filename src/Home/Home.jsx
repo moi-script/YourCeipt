@@ -381,7 +381,7 @@ export function Home() {
                       key={transaction._id || transaction.transaction?.transaction_number}
                       className="group relative bg-white/70 dark:bg-stone-800/40 backdrop-blur-sm border border-white dark:border-stone-700 rounded-[2rem] overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
                     >
-                      <div className="p-2 pb-0" onClick={() => setSelectedReceipt(transaction)}>
+                      <div className="p-5 pb-0" onClick={() => setSelectedReceipt(transaction)}>
                         {/* IMAGE SECTION */}
                         <div className="h-32 w-full overflow-hidden relative shrink-0 rounded-[1.5rem]">
                             <img

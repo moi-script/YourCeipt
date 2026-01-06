@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,10 @@ import {
   X,
   Mail,
   ArrowLeft,
-  Loader2 
+  KeyRound,
+  Lock,
+  Loader2,
+  CheckCircle2
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -66,7 +70,9 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
+  // --- LOGIN & REGISTER STATE ---
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [registerData, setRegisterData] = useState({
     nickname: "",
@@ -75,7 +81,21 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     password: ""
   });
 
-  const [showPassword, setShowPassword] = useState(false);
+  // --- FORGOT PASSWORD STATE (Integrated) ---
+  const [fpStep, setFpStep] = useState(1); // 1: Email, 2: OTP, 3: New Pass
+  const [fpEmail, setFpEmail] = useState("");
+  const [fpOtp, setFpOtp] = useState("");
+  const [fpNewPassword, setFpNewPassword] = useState("");
+
+  // Helper to clear FP state when switching back to login
+  const resetFPState = () => {
+    setFpStep(1);
+    setFpEmail("");
+    setFpOtp("");
+    setFpNewPassword("");
+    setError(null);
+    setMode('login');
+  };
 
   const handleLoginChange = (e) => {
       setLoginData({ ...loginData, [e.target.name]: e.target.value });
@@ -85,7 +105,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
       setRegisterData({ ...registerData, [e.target.name]: e.target.value });
   };
 
-  // --- LOGIN SUBMIT ---
+  // --- HANDLERS: LOGIN ---
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -111,13 +131,11 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     }
   };
 
-  // --- REGISTER SUBMIT ---
+  // --- HANDLERS: REGISTER ---
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-
-    console.log("Uploading user data", registerData);
 
     try {
       const response = await register("http://localhost:3000/user/register", {
@@ -133,22 +151,75 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
         localStorage.setItem('user', true);
         navigate(from, { replace: true });
       } else {  
-        console.error("Server Error");
         setError("Registration failed. Please try again.");
       }
     } catch (err) {
-      console.error("Network Error:", err);
       setError("Network error. Please check your connection.");
     } finally {
         setIsLoading(false);
     }
   };
 
+  // --- HANDLERS: FORGOT PASSWORD (Integrated Logic) ---
+  
+  // Step 1: Send OTP
+  const handleSendOTP = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await axios.post("http://localhost:3000/user/send-otp", { email: fpEmail });
+      setFpStep(2); // Move to next step
+    } catch (err) {
+      setError("User not found or error sending email.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await axios.post("http://localhost:3000/user/verify-otp", { email: fpEmail, otp: fpOtp });
+      setFpStep(3); // Move to next step
+    } catch (err) {
+      console.error("OTP Error", err);
+      setError("Invalid or expired OTP.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 3: Reset Password
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    try {
+      await axios.post("http://localhost:3000/user/reset-password", { 
+        email: fpEmail, 
+        otp: fpOtp, 
+        newPassword: fpNewPassword 
+      });
+      // Success! Move back to login
+      resetFPState(); 
+      // Optional: Show a success message here or via toast
+      alert("Password reset successfully! Please login.");
+    } catch (err) {
+      setError("Failed to update password.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // =========================================================
+  // RENDER
+  // =========================================================
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      {/* 1. Removed the default 'X' button by using [&>button]:hidden 
-          2. Added custom styling to hide browser password eye and customize scrollbar 
-      */}
       <DialogContent className="max-w-5xl p-0 overflow-hidden bg-transparent border-none shadow-2xl focus:outline-none [&>button]:hidden">
         
         <style>{`
@@ -157,30 +228,16 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
           input[type="password"]::-ms-clear {
             display: none;
           }
-          
-          /* Custom Scrollbar for the Right Panel */
-          .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-          }
-          .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #d6d3d1; /* stone-300 */
-            border-radius: 20px;
-          }
-          /* Dark Mode Scrollbar */
-          .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #44403c; /* stone-700 */
-          }
-          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: #10b981; /* emerald-500 */
-          }
+          /* Custom Scrollbar */
+          .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #d6d3d1; border-radius: 20px; }
+          .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #44403c; }
         `}</style>
 
         <div className="flex w-full h-[700px] bg-[#fcfcfc] dark:bg-stone-900 rounded-3xl overflow-hidden relative transition-colors duration-300">
             
-            {/* Custom Close Button (The only one visible now) */}
+            {/* Close Button */}
             <button 
                 onClick={() => onClose(false)}
                 className="absolute top-4 right-4 z-50 p-2 bg-stone-100 dark:bg-stone-800 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm"
@@ -226,7 +283,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
             </div>
 
             {/* ====================================================
-                RIGHT COLUMN: FORMS (Added 'custom-scrollbar' class)
+                RIGHT COLUMN: FORMS
                ==================================================== */}
             <div className="w-full lg:w-7/12 p-8 sm:p-12 relative flex flex-col justify-center overflow-y-auto custom-scrollbar">
                 
@@ -282,7 +339,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
                                 {error && <p className="text-red-500 text-xs ml-3 font-medium">{error}</p>}
 
                                 <div className="flex justify-end">
-                                    <button type="button" onClick={() => setMode('forgot')} className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline">
+                                    <button type="button" onClick={() => { setError(null); setMode('forgot'); }} className="text-xs font-medium text-emerald-600 dark:text-emerald-400 hover:underline">
                                         Forgot Password?
                                     </button>
                                 </div>
@@ -292,7 +349,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
                                 </button>
                             </form>
                             <div className="mt-6 text-center text-sm text-stone-500">
-                                Don't have an account? <button onClick={() => setMode('register')} className="ml-2 font-bold text-emerald-700 hover:underline">Sign Up</button>
+                                Don't have an account? <button onClick={() => { setError(null); setMode('register'); }} className="ml-2 font-bold text-emerald-700 hover:underline">Sign Up</button>
                             </div>
                         </div>
                     )}
@@ -371,43 +428,132 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
                             <div className="mt-6 text-center text-sm text-stone-500">
                                 Already have an account? 
                                 <button 
-                                    onClick={() => setMode('login')}
+                                    onClick={() => { setError(null); setMode('login'); }}
                                     className="ml-2 font-bold text-emerald-700 hover:underline"
                                 >
                                     Sign In
                                 </button>
                             </div>
-                            <p className="text-[10px] text-stone-400 text-center mt-4">
-                                By signing up, you agree to our Terms of Service.
-                            </p>
                         </div>
                     )}
 
                     {/* ==========================
-                        VIEW: FORGOT PASSWORD
+                        VIEW: FORGOT PASSWORD (INTEGRATED)
                         ========================== */}
                     {mode === 'forgot' && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                             <div className="flex justify-center mb-6">
-                                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-full shadow-inner">
-                                    <Mail className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
-                                </div>
-                            </div>
-                            <div className="text-center mb-8">
-                                <h2 className="text-3xl font-serif font-bold text-stone-800 dark:text-stone-100 mb-2">Forgot Password</h2>
-                                <p className="text-stone-500 dark:text-stone-400 text-sm">Enter your email to reset your password.</p>
-                            </div>
-                            <form className="space-y-6">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2 ml-4">Email Address</label>
-                                    <input type="email" placeholder="your.email@example.com" className="w-full px-6 py-3 bg-stone-50 dark:bg-stone-800 border border-transparent rounded-xl text-stone-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all" />
-                                </div>
-                                <button type="button" className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95">
-                                    Reset Password
-                                </button>
-                            </form>
+                             
+                             {/* STEP 1: EMAIL */}
+                             {fpStep === 1 && (
+                                <>
+                                    <div className="flex justify-center mb-6">
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-full shadow-inner">
+                                            <Mail className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                                        </div>
+                                    </div>
+                                    <div className="text-center mb-6">
+                                        <h2 className="text-3xl font-serif font-bold text-stone-800 dark:text-stone-100 mb-2">Forgot Password</h2>
+                                        <p className="text-stone-500 dark:text-stone-400 text-sm">Enter your email to receive a One-Time Password.</p>
+                                    </div>
+                                    <form onSubmit={handleSendOTP} className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2 ml-4">Email Address</label>
+                                            <input 
+                                                key="fp-email"
+                                                type="email" 
+                                                name="email"
+                                                value={fpEmail}
+                                                onChange={(e) => setFpEmail(e.target.value)}
+                                                placeholder="your.email@example.com" 
+                                                className="w-full px-6 py-3 bg-stone-50 dark:bg-stone-800 border border-transparent rounded-xl text-stone-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all" 
+                                                required
+                                            />
+                                        </div>
+                                        {error && <p className="text-red-500 text-xs ml-3 font-medium">{error}</p>}
+                                        <button type="submit" className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center">
+                                             {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Send OTP"}
+                                        </button>
+                                    </form>
+                                </>
+                             )}
+
+                             {/* STEP 2: OTP */}
+                             {fpStep === 2 && (
+                                <>
+                                    <div className="flex justify-center mb-6">
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-full shadow-inner">
+                                            <KeyRound className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                                        </div>
+                                    </div>
+                                    <div className="text-center mb-6">
+                                        <h2 className="text-3xl font-serif font-bold text-stone-800 dark:text-stone-100 mb-2">Enter OTP</h2>
+                                        <p className="text-stone-500 dark:text-stone-400 text-sm">We sent a 6-digit code to <br/><span className="font-bold text-stone-700 dark:text-stone-300">{fpEmail}</span></p>
+                                    </div>
+                                    <form onSubmit={handleVerifyOTP} className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2 ml-4">One-Time Password</label>
+                                            <input 
+                                                key="fp-otp"
+                                                type="text" 
+                                                name="otp"
+                                                value={fpOtp}
+                                                autoComplete="off"
+                                                onChange={(e) => setFpOtp(e.target.value)}
+                                                placeholder="123456" 
+                                                className="w-full px-6 py-3 bg-stone-50 dark:bg-stone-800 border border-transparent rounded-xl text-stone-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all text-center tracking-widest text-lg" 
+                                                required
+                                            />
+                                        </div>
+                                        {error && <p className="text-red-500 text-xs ml-3 font-medium">{error}</p>}
+                                        <button type="submit" className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center">
+                                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Verify Code"}
+                                        </button>
+                                    </form>
+                                </>
+                             )}
+
+                             {/* STEP 3: NEW PASSWORD */}
+                             {fpStep === 3 && (
+                                <>
+                                    <div className="flex justify-center mb-6">
+                                        <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-full shadow-inner">
+                                            <Lock className="w-10 h-10 text-emerald-600 dark:text-emerald-400" />
+                                        </div>
+                                    </div>
+                                    <div className="text-center mb-6">
+                                        <h2 className="text-3xl font-serif font-bold text-stone-800 dark:text-stone-100 mb-2">Reset Password</h2>
+                                        <p className="text-stone-500 dark:text-stone-400 text-sm">Create a new strong password.</p>
+                                    </div>
+                                    <form onSubmit={handleResetPassword} className="space-y-6">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2 ml-4">New Password</label>
+                                            <div className="relative">
+                                                <input 
+                                                    key="fp-pass"
+                                                    type={showPassword ? "text" : "password"}
+                                                    name="newPassword"
+                                                    value={fpNewPassword}
+                                                    onChange={(e) => setFpNewPassword(e.target.value)}
+                                                    placeholder="New secure password" 
+                                                    className="w-full px-6 py-3 bg-stone-50 dark:bg-stone-800 border border-transparent rounded-xl text-stone-800 dark:text-stone-200 outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 transition-all" 
+                                                    required
+                                                />
+                                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-emerald-600">
+                                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        {error && <p className="text-red-500 text-xs ml-3 font-medium">{error}</p>}
+                                        <button type="submit" className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center">
+                                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Update Password"}
+                                        </button>
+                                    </form>
+                                </>
+                             )}
+
+                            {/* Back to Login Button (Always Visible in Forgot Mode) */}
                             <div className="text-center pt-8">
-                                <button onClick={() => setMode('login')} className="inline-flex items-center gap-2 text-stone-500 font-bold hover:text-emerald-700 text-sm group">
+                                <button onClick={resetFPState} className="inline-flex items-center gap-2 text-stone-500 font-bold hover:text-emerald-700 text-sm group">
                                     <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
                                     Back to Login
                                 </button>

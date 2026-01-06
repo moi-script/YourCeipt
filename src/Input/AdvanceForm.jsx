@@ -240,7 +240,7 @@ export function AdvanceForm({
       const res = await fetch("http://localhost:3000/extract/quickText", {
         method: "POST",
         headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ userId: user._id, quickText: quickText }),
+        body: JSON.stringify({ userId: user._id, quickText: quickText, activeModelName : activeModelName }),
       });
       const data = await res.json();
       setColor("bg-orange-500"); 
