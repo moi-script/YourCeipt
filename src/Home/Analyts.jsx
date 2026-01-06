@@ -30,6 +30,51 @@ import { calculateKeyInsights, getCategorySummaries, getMerchantPatterns, proces
     transformToMerchantInsights
    } from "@/api/analyticsAction";
 
+   import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, 
+  PieChart, Pie, Cell, AreaChart, Area 
+} from 'recharts';
+
+
+// Map your string colors to Hex codes for Recharts
+const CHART_COLORS = {
+  emerald: "#10b981", // emerald-500
+  blue: "#3b82f6",    // blue-500
+  purple: "#8b5cf6",  // violet-500
+  orange: "#f97316",  // orange-500
+  yellow: "#eab308",  // yellow-500
+  red: "#ef4444",     // red-500
+  stone: "#78716c",   // stone-500
+  sky: "#0ea5e9",     // sky-500
+};
+
+// A custom Tooltip that matches your Card component style
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="backdrop-blur-md bg-white/80 dark:bg-stone-900/80 border border-white/50 dark:border-white/10 p-4 rounded-xl shadow-xl">
+        <p className="font-serif text-stone-800 dark:text-stone-100 mb-2">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+            <div 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-stone-500 dark:text-stone-400">
+              {entry.name}:
+            </span>
+            <span className="text-stone-800 dark:text-stone-200">
+              ₱{Number(entry.value).toLocaleString()}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+
 
 const CATEGORY_MAP = {
   Food: { icon: Utensils, color: "emerald", iconColor: "text-emerald-600" },
@@ -510,9 +555,8 @@ export default function Analytics({
           </TabsList>
 
           {/* 1. Spending Overview */}
-          <TabsContent value="overview" className="space-y-6">
+          {/* <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Monthly Spending Trend */}
               <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
                 <CardHeader>
                   <CardTitle>Monthly Trend</CardTitle>
@@ -538,12 +582,10 @@ export default function Analytics({
                           </div>
                         </div>
                         <div className="relative h-6 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
-                          {/* Income Bar (Background, lighter) */}
                           <div
                             className="absolute left-0 top-0 h-full bg-emerald-200 dark:bg-emerald-800/50"
                             style={{ width: `${(data.income / 55000) * 100}%` }}
                           />
-                          {/* Expense Bar (Foreground, stronger) */}
                           <div
                             className="absolute left-0 top-0 h-full bg-orange-400/80 dark:bg-orange-600/80 rounded-r-full"
                             style={{
@@ -557,7 +599,6 @@ export default function Analytics({
                 </CardContent>
               </Card>
 
-              {/* Category Breakdown */}
               <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
                 <CardHeader>
                   <CardTitle>Category Breakdown</CardTitle>
@@ -603,7 +644,6 @@ export default function Analytics({
               </Card>
             </div>
 
-            {/* Spending Insights */}
           <Card className="border-orange-200/50 dark:border-orange-900/20 bg-orange-50/30 dark:bg-orange-900/10">
     <CardHeader>
       <CardTitle className="flex items-center gap-2 text-orange-900 dark:text-orange-200">
@@ -616,7 +656,6 @@ export default function Analytics({
     <CardContent>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        {/* Spending Spike Insight */}
         <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -631,7 +670,6 @@ export default function Analytics({
           </p>
         </div>
 
-        {/* Doing Well Insight */}
         <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
@@ -645,7 +683,6 @@ export default function Analytics({
           </p>
         </div>
 
-        {/* Income Insight (Placeholder logic) */}
         <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <Activity className="w-5 h-5 text-sky-600 dark:text-sky-400" />
@@ -664,7 +701,168 @@ export default function Analytics({
   </Card>
 
 
-          </TabsContent>
+          </TabsContent> */}
+
+
+            {/* 1. Spending Overview */}
+<TabsContent value="overview" className="space-y-6">
+  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    {/* CHART: Monthly Trend */}
+    <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
+      <CardHeader>
+        <CardTitle>Monthly Trend</CardTitle>
+        <CardDescription>Income vs Expenses over time</CardDescription>
+      </CardHeader>
+      <CardContent className="h-[300px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={spendingTrend || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#a8a29e" opacity={0.2} />
+            <XAxis 
+              dataKey="month" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#78716c', fontSize: 12 }} 
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#78716c', fontSize: 12 }} 
+            />
+            <RechartsTooltip content={<CustomChartTooltip />} cursor={{ fill: '#f5f5f4', opacity: 0.4 }} />
+            <Bar 
+              dataKey="income" 
+              name="Income" 
+              fill={CHART_COLORS.emerald} 
+              radius={[4, 4, 0, 0]} 
+              barSize={20}
+            />
+            <Bar 
+              dataKey="expense" 
+              name="Expenses" 
+              fill={CHART_COLORS.orange} 
+              radius={[4, 4, 0, 0]} 
+              barSize={20}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+
+    {/* CHART: Category Breakdown (Donut) */}
+    <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
+      <CardHeader>
+        <CardTitle>Category Breakdown</CardTitle>
+        <CardDescription>Where your money goes</CardDescription>
+      </CardHeader>
+      <CardContent className="h-[300px] relative">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={transformInsights || []}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={80}
+              paddingAngle={5}
+              dataKey="spent"
+              nameKey="name"
+            >
+              {(transformInsights || []).map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={CHART_COLORS[entry.color] || CHART_COLORS.stone} 
+                  strokeWidth={0}
+                />
+              ))}
+            </Pie>
+            <RechartsTooltip content={<CustomChartTooltip />} />
+          </PieChart>
+        </ResponsiveContainer>
+        {/* Center Text overlay for Donut */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
+          <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Total</span>
+          <span className="text-xl font-serif text-stone-800 dark:text-stone-100">
+            ₱{monthlyData.totalExpenses.toLocaleString()}
+          </span>
+        </div>
+      </CardContent>
+      {/* Mini Legend below chart */}
+      <div className="px-6 pb-6 flex flex-wrap gap-2 justify-center">
+        {transformInsights?.slice(0, 5).map((cat, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-stone-500">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CHART_COLORS[cat.color] }}></div>
+            {cat.name}
+          </div>
+        ))}
+      </div>
+    </Card>
+  </div>
+
+  {/* Existing Key Insights Card remains here... */}
+  <Card className="border-orange-200/50 dark:border-orange-900/20 bg-orange-50/30 dark:bg-orange-900/10">
+      {/* ... keep existing inner content ... */}
+      <CardHeader>
+       <CardTitle className="flex items-center gap-2 text-orange-900 dark:text-orange-200">
+        <div className="bg-orange-100 dark:bg-orange-900/40 p-1.5 rounded-full">
+          <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+        </div>
+        Key Insights
+       </CardTitle>
+     </CardHeader>
+     <CardContent>
+        {/* ... existing insights code ... */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             {/* ... your existing insight blocks ... */}
+             <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                    <h4 className="font-bold text-stone-800 dark:text-stone-100">Spending Spike</h4>
+                </div>
+                <p className="text-sm text-stone-600 dark:text-stone-400">
+                    {keyInsights?.spike?.name || "N/A"} increased by{" "}
+                    <span className="font-bold text-orange-600">
+                    {Math.abs(Math.round(keyInsights?.spike?.change || 0))}%
+                    </span>{" "}
+                    this month
+                </p>
+            </div>
+             {/* ... rest of insights ... */}
+             <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
+                 <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    <h4 className="font-bold text-stone-800 dark:text-stone-100">Doing Well</h4>
+                 </div>
+                 <p className="text-sm text-stone-600 dark:text-stone-400">
+                    {keyInsights?.doingWell?.name || "N/A"} spending down by{" "}
+                    <span className="font-bold text-emerald-600">
+                    {Math.abs(Math.round(keyInsights?.doingWell?.change || 0))}%
+                    </span>
+                 </p>
+            </div>
+             <div className="bg-white/80 dark:bg-stone-900/80 rounded-[1.5rem] p-5 border border-white dark:border-white/5 shadow-sm">
+                 <div className="flex items-center gap-2 mb-2">
+                    <Activity className="w-5 h-5 text-sky-600 dark:text-sky-400" />
+                    <h4 className="font-bold text-stone-800 dark:text-stone-100">Status</h4>
+                 </div>
+                 <p className="text-sm text-stone-600 dark:text-stone-400">
+                    Monthly average:{" "}
+                    <span className="font-bold text-sky-600">
+                    ₱{(userReceipts?.reduce((acc, r) => acc + parseFloat(r.total), 0) / 2).toLocaleString()}
+                    </span>
+                 </p>
+            </div>
+        </div>
+     </CardContent>
+  </Card>
+</TabsContent>
+
+
+
+
+
+          
 
          {/* 2. Category Insights */}
           <TabsContent value="categories" className="space-y-6">
@@ -850,9 +1048,7 @@ export default function Analytics({
               </div>
             </div>
           </TabsContent>
-
-
-
+        
 
           {/* 3. Merchant Insights */}
           <TabsContent value="merchants" className="space-y-6">
@@ -943,7 +1139,7 @@ export default function Analytics({
           </TabsContent>
 
           {/* 4. Cash Flow Timeline */}
-        <TabsContent value="cashflow" className="space-y-6">
+        {/* <TabsContent value="cashflow" className="space-y-6">
         <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
       <CardHeader>
         <CardTitle>Daily Heatmap</CardTitle>
@@ -978,7 +1174,6 @@ export default function Analytics({
                   {day.day}
                 </span>
                 
-                {/* Tooltip with Real Data */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-stone-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
                   Day {day.day}: ₱{day.amount.toLocaleString()}
                   {day.amount > 10000 && " 💰"}
@@ -988,10 +1183,109 @@ export default function Analytics({
           })}
         </div>
         
-        {/* Legend remains the same */}
       </CardContent>
     </Card>
-  </TabsContent>
+  </TabsContent> */}
+
+  <TabsContent value="cashflow" className="space-y-6">
+  
+  {/* NEW: Daily Spending Area Chart */}
+  <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
+    <CardHeader>
+      <CardTitle>Spending Flow</CardTitle>
+      <CardDescription>Daily spending curve</CardDescription>
+    </CardHeader>
+    <CardContent className="h-[250px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={dailySpending || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={CHART_COLORS.emerald} stopOpacity={0.3}/>
+              <stop offset="95%" stopColor={CHART_COLORS.emerald} stopOpacity={0}/>
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#a8a29e" opacity={0.2} />
+          <XAxis 
+            dataKey="day" 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#78716c', fontSize: 10 }}
+            interval={2} // Show every 3rd day to avoid crowding
+          />
+          <YAxis 
+            axisLine={false} 
+            tickLine={false} 
+            tick={{ fill: '#78716c', fontSize: 10 }} 
+          />
+          <RechartsTooltip content={<CustomChartTooltip />} />
+          <Area 
+            type="monotone" 
+            dataKey="amount" 
+            stroke={CHART_COLORS.emerald} 
+            strokeWidth={3}
+            fillOpacity={1} 
+            fill="url(#colorAmount)" 
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+    </CardContent>
+  </Card>
+
+  {/* Existing Heatmap Card */}
+  <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
+     {/* ... keep your existing heatmap code here ... */}
+      <CardHeader>
+        <CardTitle>Daily Heatmap</CardTitle>
+        <CardDescription>
+          Spending intensity for {new Date().toLocaleString('default', { month: 'long' })}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-7 sm:grid-cols-10 gap-2">
+            {dailySpending?.map((day) => {
+            // Your existing intensity logic
+            const intensity =
+                day.amount > 10000 ? "special" :
+                day.amount > 2000 ? "high" :
+                day.amount > 1000 ? "medium" :
+                day.amount > 500 ? "low" : "minimal";
+
+            // Your existing color class logic
+            const colorClass = 
+                day.amount > 10000 ? "bg-emerald-600 dark:bg-emerald-500 shadow-lg shadow-emerald-200" :
+                intensity === "high" ? "bg-orange-500 dark:bg-orange-600" :
+                intensity === "medium" ? "bg-orange-300 dark:bg-orange-800/70" :
+                intensity === "low" ? "bg-emerald-200 dark:bg-emerald-900/50" :
+                "bg-stone-200 dark:bg-stone-800";
+
+            return (
+                <div
+                key={day.day}
+                className={`aspect-square rounded-xl ${colorClass} flex items-center justify-center cursor-pointer hover:scale-110 transition-all duration-300 relative group`}
+                >
+                <span className={`text-[10px] font-bold ${day.amount > 10000 ? "text-white" : "text-stone-600/50 dark:text-stone-400/50"}`}>
+                    {day.day}
+                </span>
+                
+                {/* Tooltip with Real Data */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-stone-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
+                    Day {day.day}: ₱{day.amount.toLocaleString()}
+                    {day.amount > 10000 && " 💰"}
+                </div>
+                </div>
+            );
+            })}
+        </div>
+      </CardContent>
+  </Card>
+</TabsContent>
+
+
+
+
+
+
+
         </Tabs>
       </div>
     </div>

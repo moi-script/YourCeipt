@@ -26,6 +26,17 @@ import {
   Leaf
 } from "lucide-react";
 
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer, 
+  Cell,
+  CartesianGrid
+} from "recharts";
+
 import { useAuth } from "@/context/AuthContext";
 import TransactionDashboardSkeleton from "@/components/loaders/HomeSkeletonLoader";
 import { DeleteAlert } from "@/components/DeleteAlert";
@@ -41,6 +52,47 @@ import income from '../assets/income.jpg';
 import general from '../assets/other.png';
 
 // --- ROBUST HELPERS ---
+
+const CHART_COLORS = {
+  emerald: "#10b981", // success
+  orange: "#f97316",  // warning
+  red: "#ef4444",     // danger
+  stone: "#e7e5e4",   // background budget
+  stoneDark: "#44403c" // background budget dark
+};
+
+const CustomBudgetTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-md border border-stone-200 dark:border-stone-700 p-4 rounded-xl shadow-xl">
+        <p className="font-serif text-stone-800 dark:text-stone-100 font-bold mb-2">{label}</p>
+        
+        {/* Spent */}
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mb-1">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: payload[0].color }} />
+          <span className="text-stone-500 dark:text-stone-400">Spent:</span>
+          <span className="text-stone-800 dark:text-stone-200">₱{data.spent.toLocaleString()}</span>
+        </div>
+
+        {/* Budget */}
+        <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+          <div className="w-2 h-2 rounded-full bg-stone-300 dark:bg-stone-600" />
+          <span className="text-stone-500 dark:text-stone-400">Budget:</span>
+          <span className="text-stone-800 dark:text-stone-200">₱{data.budget.toLocaleString()}</span>
+        </div>
+        
+        {/* Utilization */}
+        <div className="mt-2 pt-2 border-t border-stone-200 dark:border-stone-700">
+           <span className={`${data.usagePercent > 100 ? "text-red-500" : "text-emerald-500"} font-bold text-xs`}>
+             {Math.round(data.usagePercent)}% Utilized
+           </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 // 1. Safe Category Extractor (Checks Root -> Item Category -> Item Type)
 const getTxnCategory = (t) => {
@@ -542,55 +594,124 @@ export function Home() {
           </TabsContent>
 
           {/* 3. BUDGETS TAB - UPDATED WITH JSON ALIGNMENT */}
-          <TabsContent value="budgets">
-            <PebbleCard className="bg-white/80 dark:bg-stone-900/80">
-              <CardHeader>
-                <CardTitle className="font-serif text-stone-800 dark:text-stone-100">Budget Management</CardTitle>
-                <CardDescription className="text-stone-500 dark:text-stone-400">
-                  Set and track your spending limits
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {processedBudgets.length > 0 ? (
-                    processedBudgets.map((category, idx) => (
-                  <div key={idx} className="p-5 bg-white/50 dark:bg-stone-800/40 rounded-[1.5rem] border border-stone-100 dark:border-stone-700">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <h4 className="font-bold text-stone-800 dark:text-stone-100 text-lg">
-                          {category.name}
-                        </h4>
-                        <p className="text-sm text-stone-500 dark:text-stone-400">
-                          ${category.spent.toLocaleString()} spent of ${category.budget.toLocaleString()} budget
-                        </p>
-                      </div>
-                      <Badge
-                        className={`rounded-full px-3 py-1 ${
-                          category.usagePercent > 90
-                            ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
-                            : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
-                        }`}
-                      >
-                        {Math.round(category.usagePercent)}%
-                      </Badge>
-                    </div>
-                    <div className="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-3 overflow-hidden">
-                        <div 
-                            className={`h-full rounded-full transition-all duration-500 ${category.color}`} 
-                            style={{width: `${Math.min(category.usagePercent, 100)}%`}}
-                        />
-                    </div>
-                  </div>
-                ))) : (
-                     <div className="text-center py-10">
-                        <p className="text-stone-500">No budgets active. Add a category to start tracking.</p>
-                     </div>
-                )}
-              </CardContent>
-            </PebbleCard>
-          </TabsContent>
+        {/* 3. BUDGETS TAB - UPDATED WITH CHART */}
+<TabsContent value="budgets" className="space-y-6">
+  
+  {/* NEW: Budget Analytics Chart */}
+  <PebbleCard className="bg-white/80 dark:bg-stone-900/80">
+    <CardHeader>
+      <CardTitle className="font-serif text-stone-800 dark:text-stone-100">Budget Analytics</CardTitle>
+      <CardDescription className="text-stone-500 dark:text-stone-400">
+        Visual comparison of limits vs. actuals
+      </CardDescription>
+    </CardHeader>
+    <CardContent className="h-[300px] w-full pt-2">
+      {processedBudgets.length > 0 ? (
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={processedBudgets}
+            margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+            barSize={30}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#a8a29e" opacity={0.2} />
+            <XAxis 
+              dataKey="name" 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#78716c', fontSize: 11, fontWeight: 600 }}
+              dy={10}
+            />
+            <YAxis 
+              axisLine={false} 
+              tickLine={false} 
+              tick={{ fill: '#78716c', fontSize: 11 }}
+              tickFormatter={(value) => `₱${value/1000}k`} 
+            />
+            <RechartsTooltip content={<CustomBudgetTooltip />} cursor={{fill: 'transparent'}} />
+            
+            {/* Bar 1: The Budget Limit (Background Bar) */}
+            {/* We stack them on top of each other using the same xAxisId/yAxisId if we want them behind, 
+                but for side-by-side comparison, we remove stackId. 
+                Here, I'll put the Budget as a ghost bar behind the Spent bar for a "Fill" effect.
+            */}
+            
+            <Bar dataKey="budget" fill={CHART_COLORS.stone} radius={[8, 8, 8, 8]} xAxisId="0" />
+            
+            {/* Bar 2: The Actual Spend (Foreground Bar) */}
+            <Bar dataKey="spent" radius={[8, 8, 8, 8]} xAxisId="0">
+              {processedBudgets.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={
+                    entry.usagePercent > 100 ? CHART_COLORS.red : 
+                    entry.usagePercent > 80 ? CHART_COLORS.orange : 
+                    CHART_COLORS.emerald
+                  } 
+                  fillOpacity={0.9}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+         <div className="h-full flex items-center justify-center text-stone-400 text-sm">
+           No data to visualize
+         </div>
+      )}
+    </CardContent>
+  </PebbleCard>
+
+  {/* Existing Budget List */}
+  <PebbleCard className="bg-white/80 dark:bg-stone-900/80">
+    <CardHeader>
+      <CardTitle className="font-serif text-stone-800 dark:text-stone-100">Budget Details</CardTitle>
+      <CardDescription className="text-stone-500 dark:text-stone-400">
+        Line item breakdown
+      </CardDescription>
+    </CardHeader>
+    <CardContent className="space-y-6">
+      {processedBudgets.length > 0 ? (
+          processedBudgets.map((category, idx) => (
+        <div key={idx} className="p-5 bg-white/50 dark:bg-stone-800/40 rounded-[1.5rem] border border-stone-100 dark:border-stone-700 transition-all hover:bg-white dark:hover:bg-stone-800/60">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h4 className="font-bold text-stone-800 dark:text-stone-100 text-lg">
+                {category.name}
+              </h4>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                ${category.spent.toLocaleString()} spent of ${category.budget.toLocaleString()} budget
+              </p>
+            </div>
+            <Badge
+              className={`rounded-full px-3 py-1 ${
+                category.usagePercent > 90
+                  ? "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
+                  : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400"
+              }`}
+            >
+              {Math.round(category.usagePercent)}%
+            </Badge>
+          </div>
+          <div className="w-full bg-stone-200 dark:bg-stone-700 rounded-full h-3 overflow-hidden">
+              <div 
+                  className={`h-full rounded-full transition-all duration-500 ${category.color}`} 
+                  style={{width: `${Math.min(category.usagePercent, 100)}%`}}
+              />
+          </div>
+        </div>
+      ))) : (
+            <div className="text-center py-10">
+              <p className="text-stone-500">No budgets active. Add a category to start tracking.</p>
+            </div>
+      )}
+    </CardContent>
+  </PebbleCard>
+</TabsContent>
 
         </Tabs>
        </div>
+
+    
   
       <ReceiptDetailModal 
           isOpen={!!selectedReceipt}
