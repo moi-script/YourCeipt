@@ -9,7 +9,8 @@ import {
 } from "react";
 // import { useNavigate } from "react-router-dom";
 import { apiFetch, loginFetch } from "@/api/client";
-import { calculateMonthlyTrendClientSide, transformBudgetsToInsights } from "@/api/analyticsAction";
+import { calculateMonthlyTrendClientSide, getCategorySummaries, processBudgetInsights, transformBudgetsToInsights } from "@/api/analyticsAction";
+import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/Home/Analyts";
 const AuthContext = createContext(null);
 
 const getTotalBalanceBudget = (budgetList) => {
@@ -355,6 +356,28 @@ export const AuthProvider = ({ children }) => {
   const [spendingTrend, setSpendingTrend] = useState(null);
 
 
+   const [transformInsights, setTransformInsights] = useState(null);
+    const [categoryInsights, setCategoryInsights] = useState(null);
+    // const [merchantInsights, setMerchantInsights] = useState(null);
+      const [categorySummaries, setCagorySummaries] = useState({});
+    
+  
+
+     useEffect(() => {
+        if(categorySpent) {
+          console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
+          setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
+          setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
+          setCagorySummaries(getCategorySummaries(categorySpent));
+        }
+    
+      }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
+    
+
+
+
+
+
   const [isUserLogin, setIsUserLogin] = useState(() => {
     const item = localStorage.getItem('user');
     if(item) {
@@ -621,6 +644,11 @@ export const AuthProvider = ({ children }) => {
       userReceipts,
       metricsAnalytic,
       getMetrics,
+
+      transformInsights,
+      categoryInsights,
+      categorySummaries,
+
       activeModelName,
       spendingTrend,
       totalBudget,
@@ -661,6 +689,12 @@ export const AuthProvider = ({ children }) => {
       isReceiptsLoading,
       metricsAnalytic,
       spendingTrend,
+      
+      transformInsights,
+      categoryInsights,
+      categorySummaries,
+
+      
       activeModelName,
       refreshPage,
       monthlyExpenses,

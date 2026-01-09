@@ -76,7 +76,7 @@ const CustomChartTooltip = ({ active, payload, label }) => {
 
 
 
-const CATEGORY_MAP = {
+export const CATEGORY_MAP = {
   Food: { icon: Utensils, color: "emerald", iconColor: "text-emerald-600" },
   Transportation: { icon: Car, color: "blue", iconColor: "text-blue-600" },
   Entertainment: { icon: Ticket, color: "purple", iconColor: "text-purple-600" },
@@ -87,7 +87,7 @@ const CATEGORY_MAP = {
   Other: { icon: CircleEllipsis, color: "stone", iconColor: "text-stone-600" },
 };
 
-const CATEGORY_CONFIG = {
+export const CATEGORY_CONFIG = {
   "dining": { icon: Coffee, color: "emerald" },
   "transportation": { icon: Car, color: "blue" },
   "entertainment": { icon: Ticket, color: "sky" },
@@ -348,13 +348,21 @@ export default function Analytics({
 }) {
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [metricValue, setMetricValue] = useState(null);  
-  const { metricsAnalytic, getMetrics, totalIncome, totalSpent, spendingTrend, categorySpent, userReceipts } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
-  const [transformInsights, setTransformInsights] = useState(null);
-  const [categoryInsights, setCategoryInsights] = useState(null);
+  const { metricsAnalytic, getMetrics, totalIncome, totalSpent, spendingTrend,
+    transformInsights, categoryInsights, categorySpent, userReceipts } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
+ 
   const [merchantInsights, setMerchantInsights] = useState(null);
+
+
   const [merchantPattern, setMerchantPattern] = useState(null);
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
+
+
+
+  
+  // const [transformInsights, setTransformInsights] = useState(null);
+  // const [categoryInsights, setCategoryInsights] = useState(null);
   const [categorySummaries, setCagorySummaries] = useState({});
 
   
@@ -367,15 +375,15 @@ export default function Analytics({
 
   }, [metricsAnalytic, selectedPeriod]);
 
-  useEffect(() => {
-    if(categorySpent) {
-      console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
-      setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
-      setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
-      setCagorySummaries(getCategorySummaries(categorySpent));
-    }
+  // useEffect(() => {
+  //   if(categorySpent) {
+  //     console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
+  //     setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
+  //     setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
+  //     setCagorySummaries(getCategorySummaries(categorySpent));
+  //   }
 
-  }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
+  // }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
 
 
   useEffect(() => {
