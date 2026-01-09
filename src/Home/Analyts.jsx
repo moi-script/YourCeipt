@@ -356,6 +356,8 @@ export default function Analytics({
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
   const [categorySummaries, setCagorySummaries] = useState({});
+
+  
   useEffect(() => {
     if(metricsAnalytic.info){
     setMetricValue(getMetrics(metricsAnalytic.info, selectedPeriod));
@@ -367,12 +369,21 @@ export default function Analytics({
 
   useEffect(() => {
     if(categorySpent) {
+      console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
       setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
       setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
       setCagorySummaries(getCategorySummaries(categorySpent));
     }
 
-  }, [categorySpent])
+  }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
+
+
+  useEffect(() => {
+    if(categoryInsights) {
+      console.log('Category insights :: ', categoryInsights);
+    }
+  }, [categoryInsights])
+
 
   useEffect(() => {
     
@@ -391,7 +402,7 @@ export default function Analytics({
   }, [merchantInsights])
   
 // const spendingTrend = calculateMonthlyTrendClientSide(receipts, 2024);
-
+  
 
   useEffect(() => {
     console.log('Metric value :: ', metricValue);

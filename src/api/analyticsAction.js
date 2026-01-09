@@ -45,7 +45,7 @@ export const calculateMonthlyTrendClientSide = (receipts, year = new Date().getF
 
 
 export const transformBudgetsToInsights = (budgets, CATEGORY_MAP) => {
-
+  console.log('Budget for transform ::', budgets);
     return budgets.map((b) => {
         const config = CATEGORY_MAP[b.category] || CATEGORY_MAP.Other;
 
@@ -69,15 +69,15 @@ export const transformBudgetsToInsights = (budgets, CATEGORY_MAP) => {
 };
 
 export const processBudgetInsights = (budgets, CATEGORY_CONFIG) => {
-
-  if (!budgets || budgets.length === 0) {
-    return { 
-        insights: [], 
-        topCategory: null, 
-        leastSpending: null, 
-        overspending: null 
-    };
-  }
+  console.log('Budgets for procssing :: ', budgets);
+  // if (!budgets || budgets.length === 0) {
+  //   return { 
+  //       insights: [], 
+  //       topCategory: null, 
+  //       leastSpending: null, 
+  //       overspending: null 
+  //   };
+  // }
 
   // 1. Map Mongoose data to your UI format
   const insights = budgets.map(b => {
