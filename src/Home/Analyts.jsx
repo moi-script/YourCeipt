@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   TrendingDown,
   Store,
@@ -349,14 +349,29 @@ export default function Analytics({
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [metricValue, setMetricValue] = useState(null);  
   const { metricsAnalytic, getMetrics, totalIncome, totalSpent, spendingTrend,
-    transformInsights, categoryInsights, categorySpent, userReceipts } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
+ categorySpent, userReceipts } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
  
-  const [merchantInsights, setMerchantInsights] = useState(null);
+  // const [merchantInsights, setMerchantInsights] = useState(null);
 
 
   const [merchantPattern, setMerchantPattern] = useState(null);
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
+
+  const transformInsights = useMemo(() => {
+    if (!categorySpent) return [];
+    return transformBudgetsToInsights(categorySpent, CATEGORY_MAP);
+  }, [categorySpent]);
+
+  const categoryInsights = useMemo(() => {
+    if (!categorySpent) return null;
+    return processBudgetInsights(categorySpent, CATEGORY_CONFIG);
+  }, [categorySpent]);
+
+  const merchantInsights = useMemo(() => {
+    if (!userReceipts) return [];
+    return transformToMerchantInsights(userReceipts);
+  }, [userReceipts]);
 
 
 
@@ -396,7 +411,7 @@ export default function Analytics({
   useEffect(() => {
     
     if(userReceipts) {
-      setMerchantInsights(transformToMerchantInsights(userReceipts));
+      // setMerchantInsights(transformToMerchantInsights(userReceipts));
       setDailySpending(transformToDailyHeatmap(userReceipts));
       setKeyInsights(calculateKeyInsights(userReceipts));
 
@@ -1298,11 +1313,6 @@ export default function Analytics({
       </CardContent>
   </Card>
 </TabsContent>
-
-
-
-
-
 
 
         </Tabs>

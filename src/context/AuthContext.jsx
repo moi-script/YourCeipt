@@ -357,9 +357,9 @@ export const AuthProvider = ({ children }) => {
 
 
    const [transformInsights, setTransformInsights] = useState(null);
-    const [categoryInsights, setCategoryInsights] = useState(null);
+   const [categoryInsights, setCategoryInsights] = useState(null);
     // const [merchantInsights, setMerchantInsights] = useState(null);
-      const [categorySummaries, setCagorySummaries] = useState({});
+   const [categorySummaries, setCagorySummaries] = useState({});
     
   
 
