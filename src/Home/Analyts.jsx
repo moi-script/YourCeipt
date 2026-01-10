@@ -349,36 +349,60 @@ export default function Analytics({
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [metricValue, setMetricValue] = useState(null);  
   const { metricsAnalytic, getMetrics, totalIncome, totalSpent, spendingTrend,
- categorySpent, userReceipts } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
+ categorySpent, userReceipts, transformInsights, categoryInsights, categorySummaries } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
  
-  // const [merchantInsights, setMerchantInsights] = useState(null);
+  const [merchantInsights, setMerchantInsights] = useState(null);
+
+  
+      // transformInsights,
+      // categoryInsights,
+      // categorySummaries,
+
+
+  const [insights, setInsights] = useState(null);
+  const [categories, setCategories] = useState(null);
+  const [summaries, setSummaries] = useState(null);
+
+
+  useEffect(() => {
+    if(transformInsights){
+      setInsights(transformInsights);
+    }
+    if(categoryInsights) {
+      setCategories(categoryInsights);
+
+    }
+    if(categorySummaries){
+      setSummaries(categorySummaries);
+
+    }
+  }, [transformInsights])
 
 
   const [merchantPattern, setMerchantPattern] = useState(null);
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
 
-  const transformInsights = useMemo(() => {
-    if (!categorySpent) return [];
-    return transformBudgetsToInsights(categorySpent, CATEGORY_MAP);
-  }, [categorySpent]);
+  // const transformInsights = useMemo(() => {
+  //   if (!categorySpent) return [];
+  //   return transformBudgetsToInsights(categorySpent, CATEGORY_MAP);
+  // }, [categorySpent]);
 
-  const categoryInsights = useMemo(() => {
-    if (!categorySpent) return null;
-    return processBudgetInsights(categorySpent, CATEGORY_CONFIG);
-  }, [categorySpent]);
+  // const categoryInsights = useMemo(() => {
+  //   if (!categorySpent) return null;
+  //   return processBudgetInsights(categorySpent, CATEGORY_CONFIG);
+  // }, [categorySpent]);
 
-  const merchantInsights = useMemo(() => {
-    if (!userReceipts) return [];
-    return transformToMerchantInsights(userReceipts);
-  }, [userReceipts]);
+  // const merchantInsights = useMemo(() => {
+  //   if (!userReceipts) return [];
+  //   return transformToMerchantInsights(userReceipts);
+  // }, [userReceipts]);
 
 
 
   
   // const [transformInsights, setTransformInsights] = useState(null);
   // const [categoryInsights, setCategoryInsights] = useState(null);
-  const [categorySummaries, setCagorySummaries] = useState({});
 
   
   useEffect(() => {
@@ -390,20 +414,9 @@ export default function Analytics({
 
   }, [metricsAnalytic, selectedPeriod]);
 
-  // useEffect(() => {
-  //   if(categorySpent) {
-  //     console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
-  //     setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
-  //     setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
-  //     setCagorySummaries(getCategorySummaries(categorySpent));
-  //   }
-
-  // }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
-
-
   useEffect(() => {
     if(categoryInsights) {
-      console.log('Category insights :: ', categoryInsights);
+      console.log('Category insights in analyst :: ', categoryInsights);
     }
   }, [categoryInsights])
 
@@ -411,7 +424,7 @@ export default function Analytics({
   useEffect(() => {
     
     if(userReceipts) {
-      // setMerchantInsights(transformToMerchantInsights(userReceipts));
+      setMerchantInsights(transformToMerchantInsights(userReceipts));
       setDailySpending(transformToDailyHeatmap(userReceipts));
       setKeyInsights(calculateKeyInsights(userReceipts));
 
@@ -426,10 +439,6 @@ export default function Analytics({
   
 // const spendingTrend = calculateMonthlyTrendClientSide(receipts, 2024);
   
-
-  useEffect(() => {
-    console.log('Metric value :: ', metricValue);
-  }, [metricValue])
 
 
 
@@ -914,7 +923,7 @@ export default function Analytics({
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-600/70 dark:text-emerald-400/70">Top Category</p>
                       <h4 className="font-serif text-lg text-emerald-900 dark:text-emerald-100">
-                        {categoryInsights?.topCategory?.name || "N/A"}
+                        {categoryInsights?.topCategory?.name || "N/A"} 
                       </h4>
                     </div>
                   </div>

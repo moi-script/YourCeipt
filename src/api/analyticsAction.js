@@ -45,7 +45,7 @@ export const calculateMonthlyTrendClientSide = (receipts, year = new Date().getF
 
 
 export const transformBudgetsToInsights = (budgets, CATEGORY_MAP) => {
-  console.log('Budget for transform ::', budgets);
+  // console.log('Budget for transform ::', budgets);
     return budgets.map((b) => {
         const config = CATEGORY_MAP[b.category] || CATEGORY_MAP.Other;
 
@@ -69,7 +69,7 @@ export const transformBudgetsToInsights = (budgets, CATEGORY_MAP) => {
 };
 
 export const processBudgetInsights = (budgets, CATEGORY_CONFIG) => {
-  console.log('Budgets for procssing :: ', budgets);
+  // console.log('Budgets for procssing :: ', budgets);
   // if (!budgets || budgets.length === 0) {
   //   return { 
   //       insights: [], 
@@ -264,6 +264,6 @@ export const getCategorySummaries = (budgets) => {
     return usageB - usageA;
   })[0];
 
-  console.log('Result for getting the category summaries :: ', {top, least, over});
+  // console.log('Result for getting the category summaries :: ', {top, least, over});
   return { top, least, over };
 };

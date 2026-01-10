@@ -149,7 +149,7 @@ const getRecentTransaction = (transactions) => {
     notes: tx.metadata?.notes ?? "",
   }));
 
-  console.log("Sorted from three days ago up to now ", simplifiedList);
+  // console.log("Sorted from three days ago up to now ", simplifiedList);
   return simplifiedList;
 };
 
@@ -241,7 +241,7 @@ const calculateBudgetSpending = (budgetList, transactions) => {
     });
   });
 
-  console.log('Spending map -> ', spendingMap);
+  // console.log('Spending map -> ', spendingMap);
 
   return budgetList.map((budget) => {
     const budgetCategory = budget.category.toLowerCase().trim();
@@ -265,8 +265,8 @@ const getMetrics = (transactions, period = 'month') => {
   const income = getTotals(transactions, 'Income', period);
   const expenses = getTotals(transactions, 'Expense', period);
 
-  console.log('Income metrics ::', income, 'type ::', typeof income);
-  console.log('Expense metrics ::', expenses, 'type ::', typeof expenses);
+  // console.log('Income metrics ::', income, 'type ::', typeof income);
+  // console.log('Expense metrics ::', expenses, 'type ::', typeof expenses);
 
   // 1. Net Savings
   const netSavings = income - expenses;
@@ -360,18 +360,25 @@ export const AuthProvider = ({ children }) => {
    const [categoryInsights, setCategoryInsights] = useState(null);
     // const [merchantInsights, setMerchantInsights] = useState(null);
    const [categorySummaries, setCagorySummaries] = useState({});
+
+
+   useEffect(() => {
+    if(transformInsights) {
+      console.log('Transform insights from auth context :: ', transformInsights);
+    }
+   }, [transformInsights])
     
   
 
-     useEffect(() => {
-        if(categorySpent) {
-          console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
-          setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
-          setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
-          setCagorySummaries(getCategorySummaries(categorySpent));
-        }
+    //  useEffect(() => {
+    //     if(categorySpent) {
+    //       console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
+    //       setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
+    //       setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
+    //       setCagorySummaries(getCategorySummaries(categorySpent));
+    //     }
     
-      }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
+    //   }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
     
 
 
@@ -447,20 +454,17 @@ export const AuthProvider = ({ children }) => {
 }, [user]);
 
   useEffect(() => {
-    if (monthlyIncome) {
-      console.log("Month expense ::", monthlyExpenses);
-    }
-    if (monthlyIncome) {
-      console.log("Month income ::", monthlyIncome);
-    }
+    if(monthlyExpenses && monthlyIncome){
     setSavings(getSavings(monthlyIncome, monthlyExpenses));
+
+    }
   }, [monthlyIncome, monthlyExpenses]);
 
-  useEffect(() => {
-    if (categorySpent) {
-      console.log("categorySpent ::", categorySpent);
-    }
-  }, [categorySpent]);
+  // useEffect(() => {
+  //   if (categorySpent) {
+  //     console.log("categorySpent ::", categorySpent);
+  //   }
+  // }, [categorySpent]);
 
   useEffect(() => {
     if (!user) return;
@@ -513,7 +517,7 @@ export const AuthProvider = ({ children }) => {
         });
 
         const data = await res.json();
-        console.log("Budget list after fetch ::", data);
+        // console.log("Budget list after fetch ::", data);
         setBudgetList(data.budgetList);
         setTotalBudget(getTotalBalanceBudget(data.budgetList));
       } catch (err) {
@@ -561,8 +565,10 @@ export const AuthProvider = ({ children }) => {
             getPreviousMonthlyExpensesOrIncome(sanitizedReceipts, "Income")
           );
           setTransactionFlow(convertToInitialTransactions(sanitizedReceipts));
-          setCategorySpent(calculateBudgetSpending(budgetList, sanitizedReceipts)); // integrate the calculateBudgetSpending
-          console.log("Metrics this week :: ", getMetrics(sanitizedReceipts, 'quarter'));
+
+         
+
+          // console.log("Metrics this week :: ", getMetrics(sanitizedReceipts, 'quarter'));
           setMetricsAnalytic({info : sanitizedReceipts});
         } catch (err) {
           console.error("Unable to set previous", err);
@@ -576,6 +582,23 @@ export const AuthProvider = ({ children }) => {
     if (user?._id) getUserReceipts();
     setRefreshPage(false);
   }, [user, refreshPage]);
+
+
+  useEffect(() => {
+    if(setUserReceipts && budgetList){
+          console.log("Budget list for first render ::", budgetList)
+          const budgetSpendedResult = calculateBudgetSpending(budgetList, userReceipts); 
+
+          console.log('The budget spended result :: ', budgetSpendedResult);
+          setCategorySpent(budgetSpendedResult); // integrate the calculateBudgetSpending
+          // setTransformInsights(budgetSpendedResult);
+
+          console.log("Initializing ::", transformBudgetsToInsights(budgetSpendedResult, CATEGORY_MAP))
+          setTransformInsights(transformBudgetsToInsights(budgetSpendedResult, CATEGORY_MAP));
+          setCategoryInsights(processBudgetInsights(budgetSpendedResult, CATEGORY_CONFIG));
+          setCagorySummaries(getCategorySummaries(budgetSpendedResult));
+    }
+  }, [userReceipts, budgetList])
 
   // const logout = useCallback( async(setIsLoggingOut, setShowLogoutDialog) => {
   //   try {

@@ -19,9 +19,13 @@ import OrganicPrivacyPage from "./Home/PrivacySecurity";
 import LandingPage from "./Home/LandingPage";
 import LegalPage from "./components/LegalPage";
 import AiEnginePage from "./components/AiEngine";
+import { ToastProvider } from "./components/Toaster.jsx";
 function App() {
   return (
     <>
+
+
+    <ToastProvider>
 
     <AuthProvider>
      <BrowserRouter>
@@ -52,9 +56,12 @@ function App() {
       
       </Routes>
      </BrowserRouter>   
-      <Toaster position="top-right" richColors />
+      {/* <Toaster position="top-right" richColors /> */}
     
     </AuthProvider>
+
+    </ToastProvider>
+
    
     </>
     

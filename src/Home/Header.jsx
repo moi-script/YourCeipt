@@ -8,6 +8,11 @@ import {
   Leaf
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import NotificationBell from "@/components/NotificationBell";
+
+
+
 
 export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDialogOpen}) {
     const { user } = useAuth();
@@ -70,9 +75,8 @@ export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDi
                         onClick={handleBellClick}
                     >
                         <Bell className="w-5 h-5" />
-                        {/* Notification Dot 
-                            Ring color must match the header background to create the "cutout" effect
-                        */}
+                        {/* <NotificationBell/> */}
+                     
                         <span className="absolute top-2 right-2.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-[#f2f0e9] dark:ring-stone-950"></span>
                     </Button>
 }

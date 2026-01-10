@@ -23,8 +23,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Camera, Loader2, Sparkles, Receipt, PenTool, Settings2, Plus, Trash2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "../components/Toaster.jsx";
 import { Badge } from "@/components/ui/badge";
-
+import { uploadNotification } from "@/api/uploadNotification.js";
 // --- 1. DEFINITIONS & SCHEMA ---
 const EMPTY_ITEM_SCHEMA = {
   description: "", 
@@ -68,7 +69,7 @@ export function AdvanceForm({
   setIsAddDialogOpen,
 }) {
   const { user, uploadReceipts, setReceipts, setRefreshPage, activeModelName } = useAuth();
-
+  const  toast   = useToast();
   const [inputMode, setInputMode] = useState("manual");
   const [isAdvanced, setIsAdvanced] = useState(false);
   const [quickText, setQuickText] = useState("");
@@ -79,7 +80,10 @@ export function AdvanceForm({
 
   const [formData, setFormData] = useState(INITIAL_COMPLEX_STATE);
 
+  useEffect(() => {
 
+    // console.warn('The value of toast context ::', toast.success);
+  }, [])
   const handleSimpleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => {
@@ -108,10 +112,6 @@ export function AdvanceForm({
       return newState;
     });
   };
-
-  useEffect(() => {
-    console.log('Form data :: ', formData)
-  }, [formData]);
 
   const handleSimpleSelectChange = (field, value) => {
     setFormData(prev => {
@@ -189,7 +189,20 @@ export function AdvanceForm({
           ...receiptContent,
         }),
       });
-      alert("Uploaded Successfully");
+
+      const { store } = receiptContent;
+
+      const notifPayload = {
+        userId : user._id,
+        title : store,
+        message : "Your receipt was successfully parsed and logged.",
+        type : "success"
+      }
+      // alert("Uploaded Successfully");
+      
+      toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
+      await uploadNotification(notifPayload);
+
       setReceiptContent(null);
     } catch (err) {
       console.error("Unable to upload receipts", err);

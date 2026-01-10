@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Home as UserHome } from "./Home";
 import { DialogForm } from "@/Input/DialogForm";
 import TransactionsPage from "./Transactions";
 import { Toaster } from "sonner";
-import { toast } from "sonner";
+import { toast as t } from "sonner";
 import { Header } from "./Header";
 import {
   Home,
@@ -19,6 +19,8 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import UserMenu from "./Logout";
 import { useAuth } from "@/context/AuthContext";
 import { AdvanceForm } from "@/Input/AdvanceForm";
+// import { useToast } from "@/components/Toaster.jsx";
+import { useToast } from "@/components/Toaster.jsx";
 
 export function BudgetDashboard() {
   // ============================================================================
@@ -28,8 +30,17 @@ export function BudgetDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [homeDefault, setHomeDefault] = useState("Home");
+  const  toast  = useToast();
 
   const {isAddDialogOpen, setIsAddDialogOpen} = useAuth();
+
+  // useEffect(() => {
+  //   console.warn('Initiating the taost', toast);
+  //   setTimeout(()=> {
+  //     console.warn("After 5 seconds in toast");
+  //     toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
+  //   }, 5000)
+  // }, [])
 
 
   const location = useLocation();
@@ -54,20 +65,20 @@ export function BudgetDashboard() {
 
   const handleBellClick = () => {
     if (!notificationList.length) {
-      toast.info("No new notifications");
+      t.info("No new notifications");
       return;
     }
 
     notificationList.forEach((notif, index) => {
       setTimeout(() => {
         if (notif.type === "success") {
-          toast.success(notif.title, { description: notif.message });
+          t.success(notif.title, { description: notif.message });
         } else if (notif.type === "warning") {
-          toast.warning(notif.title, { description: notif.message });
+          t.warning(notif.title, { description: notif.message });
         } else if (notif.type === "error") {
-          toast.error(notif.title, { description: notif.message });
+          t.error(notif.title, { description: notif.message });
         } else {
-          toast.info(notif.title, { description: notif.message });
+          t.info(notif.title, { description: notif.message });
         }
       }, index * 300); // staggered animation
     });
@@ -81,6 +92,31 @@ export function BudgetDashboard() {
     { title: "Analytics", icon: TrendingUp, href: "/user/analytics" },
     // { title: "Settings", icon: Settings, href: "/user/settings" },
   ];
+
+
+  const [currentTheme, setCurrentTheme] = useState("light");
+
+  // 2. ADD THIS EFFECT TO WATCH FOR CLASS CHANGES
+  useEffect(() => {
+    // Function to check if 'dark' class exists on HTML tag
+    const checkTheme = () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setCurrentTheme(isDark ? "dark" : "light");
+    };
+
+    // Run once on mount
+    checkTheme();
+
+    // Create an observer to watch for class changes on <html>
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    // Cleanup
+    return () => observer.disconnect();
+  }, []);
 
   // ============================================================================
   // RENDER
@@ -173,7 +209,25 @@ export function BudgetDashboard() {
           setIsAddDialogOpen={setIsAddDialogOpen}
           isAddDialogOpen={isAddDialogOpen}
         />
-        <Toaster position="top-right" richColors />
+
+       <Toaster 
+          position="top-right" 
+          richColors 
+          theme={currentTheme} // <--- Forces 'light' or 'dark' based on your state
+          toastOptions={{
+            // Keep your Stone styling consistent
+            classNames: {
+              toast: 'group bg-white dark:bg-stone-900 text-stone-950 dark:text-stone-50 border-stone-200 dark:border-stone-800 shadow-xl',
+              description: 'text-stone-500 dark:text-stone-400 font-medium',
+              actionButton: 'bg-emerald-600 text-white font-bold',
+              cancelButton: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
+              error: 'text-red-600 dark:text-red-400',
+              success: 'text-emerald-600 dark:text-emerald-400',
+              warning: 'text-orange-600 dark:text-orange-400',
+              info: 'text-blue-600 dark:text-blue-400',
+            },
+          }}
+        />
       </div>
     </div>
   );
