@@ -14,7 +14,7 @@ import NotificationBell from "@/components/NotificationBell";
 
 
 
-export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDialogOpen}) {
+export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDialogOpen, length}) {
     const { user } = useAuth();
     
     // Listen for screen resize
@@ -77,7 +77,7 @@ export function Header({setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDi
                         <Bell className="w-5 h-5" />
                         {/* <NotificationBell/> */}
                      
-                        <span className="absolute top-2 right-2.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-[#f2f0e9] dark:ring-stone-950"></span>
+                        {length > 0 && <span className="absolute top-2 right-2.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-[#f2f0e9] dark:ring-stone-950"></span>}
                     </Button>
 }
                     {/* Desktop button - Emerald Theme 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Home as UserHome } from "./Home";
 import { DialogForm } from "@/Input/DialogForm";
@@ -32,7 +32,8 @@ export function BudgetDashboard() {
   const [homeDefault, setHomeDefault] = useState("Home");
   const  toast  = useToast();
 
-  const {isAddDialogOpen, setIsAddDialogOpen} = useAuth();
+  const {isAddDialogOpen, setIsAddDialogOpen, user} = useAuth();
+  const [notification, setNotification] = useState(null);
 
   // useEffect(() => {
   //   console.warn('Initiating the taost', toast);
@@ -42,6 +43,19 @@ export function BudgetDashboard() {
   //   }, 5000)
   // }, [])
 
+
+// toast.message('System Update', {
+//   description: 'Version 2.0 is live',
+//   // Fires when user swipes away or clicks close
+//   onDismiss: (t) => {
+//     console.log(`Toast ${t.id} was dismissed/read`);
+//     // markAsReadInDatabase(notificationId); // 
+//   },
+//   // Fires if the timer runs out (user didn't interact)
+//   onAutoClose: (t) => {
+//     console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
+//   }
+// });
 
   const location = useLocation();
 
@@ -63,22 +77,138 @@ export function BudgetDashboard() {
     },
   ];
 
+
+const getAllunreadMark = useMemo(() => {
+  if(Array.isArray(notification?.notifications)){
+    return notification.notifications.filter((notif) => {
+      console.log('Notif :: ', notif)
+      if(!notif.isRead) return true;
+    });
+  }
+}, [notification])
+
+const unreadMark = useCallback(async (notifId) => {
+  const res = await fetch('http://localhost:3000/notification/read', {
+    method : "PUT",
+    headers : {
+      "Content-type" : 'application/json'
+    },
+    body : JSON.stringify({notificationId : notifId})
+  })
+
+  if(!res.ok) {
+    console.error('Unable to mark as read this notification ' + notifId);
+  }
+
+}, [notification])
+
+useEffect(() =>{
+  console.log('All notification with unread value :: ', getAllunreadMark);
+}, getAllunreadMark);
+
+
+  useEffect(() => {
+    if(user._id) {
+      const getNotification = async () => {
+        const res = await fetch('http://localhost:3000/notification/get',{
+          method : "POST",
+          headers : {
+            "Content-type" : "application/json"
+          }, 
+          body : JSON.stringify({userId : user._id})
+        })
+
+        const { unreadCount, notifications } = await res.json();
+
+        setNotification({unreadCount, notifications});
+      }
+      getNotification();
+    }
+  }, [user])
+
+
+  useEffect(() => {
+    console.log('Notification list :: ', notification);
+
+    
+  }, [notification])
+
+  // --> mark as read /notification/read
+
+//   export const markAsRead = async (req, res) => {
+//   try {
+//     const { notificationId } = req.body;
+//     await Notification.findByIdAndUpdate(notificationId, { isRead: true });
+//     res.status(200).json({ success: true });
+//   } catch (err) {
+//     res.status(500).json({ message: "Error updating status" });
+//   }
+// };
+
+
   const handleBellClick = () => {
-    if (!notificationList.length) {
+    if (!getAllunreadMark.length) {
       t.info("No new notifications");
       return;
     }
+    
+  //   t.message('System Update', {
+  // description: 'Version 2.0 is live',
+  // onDismiss: (t) => {
+  //   console.log(`Toast ${t.id} was dismissed/read`);
+  //   // markAsReadInDatabase(notificationId); // 
+  // },
+  // onAutoClose: (t) => {
+  //   console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
+  // }
+  //   });
 
-    notificationList.forEach((notif, index) => {
+    getAllunreadMark.forEach((notif, index) => {
       setTimeout(() => {
         if (notif.type === "success") {
-          t.success(notif.title, { description: notif.message });
+          t.success(notif.title, { description: notif.message, 
+             onDismiss: async () => {
+              await unreadMark(notif._id);
+               // markAsReadInDatabase(notificationId); // 
+  },
+          onAutoClose: (t) => {
+          console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
+            }
+           });
         } else if (notif.type === "warning") {
-          t.warning(notif.title, { description: notif.message });
+          t.warning(notif.title, { description: notif.message,
+             onDismiss: (t) => {
+              console.log(`Toast ${t.id} was dismissed/read`);
+               // markAsReadInDatabase(notificationId); // 
+              },
+             onAutoClose: (t) => {
+              console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
+            }
+           });
+        
+        
+        
         } else if (notif.type === "error") {
-          t.error(notif.title, { description: notif.message });
+          t.error(notif.title, { description: notif.message, 
+             onDismiss: (t) => {
+              console.log(`Toast ${t.id} was dismissed/read`);
+               // markAsReadInDatabase(notificationId); // 
+            },
+          onAutoClose: (t) => {
+          console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
+            }
+           });
         } else {
-          t.info(notif.title, { description: notif.message });
+          t.info(notif.title, { description: notif.message, 
+             onDismiss: (t) => {
+              console.log(`Toast ${t.id} was dismissed/read`);
+               // markAsReadInDatabase(notificationId); // 
+  },
+          onAutoClose: (t) => {
+          console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
+            }
+
+           });
         }
       }, index * 300); // staggered animation
     });
@@ -191,6 +321,7 @@ export function BudgetDashboard() {
             sidebarOpen={sidebarOpen}
             handleBellClick={handleBellClick}
             setIsAddDialogOpen={setIsAddDialogOpen}
+            length={getAllunreadMark?.length}
             />
         </div>
 

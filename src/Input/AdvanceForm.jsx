@@ -174,6 +174,19 @@ export function AdvanceForm({
       });
       setFormData(INITIAL_COMPLEX_STATE);
 
+      const { store } = formData;
+
+       const notifPayload = {
+        userId : user._id,
+        title : store,
+        message : "Your receipt was successfully parsed and logged.",
+        type : "success"
+      }
+      
+      toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
+
+      await uploadNotification(notifPayload);
+
     } catch (err) {
       console.error(err);
     }
@@ -198,9 +211,10 @@ export function AdvanceForm({
         message : "Your receipt was successfully parsed and logged.",
         type : "success"
       }
-      // alert("Uploaded Successfully");
       
       toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
+
+
       await uploadNotification(notifPayload);
 
       setReceiptContent(null);
