@@ -81,7 +81,7 @@ export function BudgetDashboard() {
 const getAllunreadMark = useMemo(() => {
   if(Array.isArray(notification?.notifications)){
     return notification.notifications.filter((notif) => {
-      console.log('Notif :: ', notif)
+      // console.log('Notif :: ', notif)
       if(!notif.isRead) return true;
     });
   }
@@ -103,7 +103,7 @@ const unreadMark = useCallback(async (notifId) => {
 }, [notification])
 
 useEffect(() =>{
-  console.log('All notification with unread value :: ', getAllunreadMark);
+  // console.log('All notification with unread value :: ', getAllunreadMark);
 }, getAllunreadMark);
 
 
@@ -128,7 +128,7 @@ useEffect(() =>{
 
 
   useEffect(() => {
-    console.log('Notification list :: ', notification);
+    // console.log('Notification list :: ', notification);
 
     
   }, [notification])

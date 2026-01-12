@@ -11,6 +11,8 @@ import {
 import { apiFetch, loginFetch } from "@/api/client";
 import { calculateMonthlyTrendClientSide, getCategorySummaries, processBudgetInsights, transformBudgetsToInsights } from "@/api/analyticsAction";
 import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/Home/Analyts";
+import { useToast } from "@/components/Toaster";
+import { uploadNotification } from "@/api/uploadNotification";
 const AuthContext = createContext(null);
 
 const getTotalBalanceBudget = (budgetList) => {
@@ -362,6 +364,11 @@ export const AuthProvider = ({ children }) => {
    const [categorySummaries, setCagorySummaries] = useState({});
 
 
+   
+  const toast = useToast();
+  
+
+
    useEffect(() => {
     if(transformInsights) {
       console.log('Transform insights from auth context :: ', transformInsights);
@@ -517,9 +524,11 @@ export const AuthProvider = ({ children }) => {
         });
 
         const data = await res.json();
-        // console.log("Budget list after fetch ::", data);
+        // console.warn("Budget list after fetch ::", data);
         setBudgetList(data.budgetList);
         setTotalBudget(getTotalBalanceBudget(data.budgetList));
+        console.warn("Budget total with balance  ::", getTotalBalanceBudget(data.budgetList));
+
       } catch (err) {
         console.error("Unable to get budget list:: ", err);
       }
@@ -589,7 +598,7 @@ export const AuthProvider = ({ children }) => {
           console.log("Budget list for first render ::", budgetList)
           const budgetSpendedResult = calculateBudgetSpending(budgetList, userReceipts); 
 
-          console.log('The budget spended result :: ', budgetSpendedResult);
+          // console.log('The budget spended result :: ', budgetSpendedResult);
           setCategorySpent(budgetSpendedResult); // integrate the calculateBudgetSpending
           // setTransformInsights(budgetSpendedResult);
 
@@ -624,8 +633,45 @@ export const AuthProvider = ({ children }) => {
   // }, []);
 
 
+  useEffect(() => {
+   
+    const notificationAwareness = async (categorySpent) => {
+      await budgetNotification(categorySpent);
+    }
+
+     if(categorySpent){
+      notificationAwareness(categorySpent);
+    }
 
 
+    console.log("Category spent value :: ", categorySpent);
+  }, [categorySpent])
+
+
+
+
+  // settings the notification in budget
+  const budgetNotification = useCallback(async (categorySpent) => {
+    if(Array.isArray(categorySpent) && categorySpent?.length > 0 ){
+      for(let i =0; i< categorySpent.length; i++) {
+
+        const budget = categorySpent[i];
+        if(budget.spent > budget.budgetAmount){
+
+          const notifPayload = {
+          userId : user._id,
+          title : budget.budgetName + " Limit",
+          message : "Your budget in category " + budget.budgetName + "reach it limits",
+          type : "alert"
+        }
+      
+         toast.error("Limit Reach", "Beware of you budget.");
+         await uploadNotification(notifPayload);
+        }
+      }
+
+    }
+  }, [categorySpent])
 
   // Session Verification
 
