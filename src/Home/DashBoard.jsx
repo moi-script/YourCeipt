@@ -151,17 +151,6 @@ useEffect(() =>{
       t.info("No new notifications");
       return;
     }
-    
-  //   t.message('System Update', {
-  // description: 'Version 2.0 is live',
-  // onDismiss: (t) => {
-  //   console.log(`Toast ${t.id} was dismissed/read`);
-  //   // markAsReadInDatabase(notificationId); // 
-  // },
-  // onAutoClose: (t) => {
-  //   console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
-  // }
-  //   });
 
     getAllunreadMark.forEach((notif, index) => {
       setTimeout(() => {
@@ -322,6 +311,7 @@ useEffect(() =>{
             handleBellClick={handleBellClick}
             setIsAddDialogOpen={setIsAddDialogOpen}
             length={getAllunreadMark?.length}
+            // getAllunreadMark={getAllunreadMark}
             />
         </div>
 

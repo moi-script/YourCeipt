@@ -195,7 +195,7 @@ const BudgetPage = () => {
   const { user, budgetList,  categorySpent, totalSpent, totalBudget, setRefreshPage } = useAuth();
 
   useEffect(() => {
-    console.log('Budget list :: ', budgetList);
+    // console.log('Budget list :: ', budgetList);
     setBudgets(budgetList);
   }, [budgetList]);
 

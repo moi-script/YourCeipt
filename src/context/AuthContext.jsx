@@ -6,6 +6,7 @@ import {
   useCallback,
   useMemo,
   createContext,
+  useRef,
 } from "react";
 // import { useNavigate } from "react-router-dom";
 import { apiFetch, loginFetch } from "@/api/client";
@@ -14,6 +15,9 @@ import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/Home/Analyts";
 import { useToast } from "@/components/Toaster";
 import { uploadNotification } from "@/api/uploadNotification";
 const AuthContext = createContext(null);
+
+
+let globalState = 0;
 
 const getTotalBalanceBudget = (budgetList) => {
   return budgetList?.reduce((total, value) => {
@@ -362,7 +366,7 @@ export const AuthProvider = ({ children }) => {
    const [categoryInsights, setCategoryInsights] = useState(null);
     // const [merchantInsights, setMerchantInsights] = useState(null);
    const [categorySummaries, setCagorySummaries] = useState({});
-
+   const [notification, setNotification] = useState(null);
 
    
   const toast = useToast();
@@ -371,26 +375,10 @@ export const AuthProvider = ({ children }) => {
 
    useEffect(() => {
     if(transformInsights) {
-      console.log('Transform insights from auth context :: ', transformInsights);
+      // console.log('Transform insights from auth context :: ', transformInsights);
     }
    }, [transformInsights])
     
-  
-
-    //  useEffect(() => {
-    //     if(categorySpent) {
-    //       console.log('setting the category insights :: ', categorySpent);  // checking the transform insights for fist login not being null 
-    //       setTransformInsights(transformBudgetsToInsights(categorySpent, CATEGORY_MAP));
-    //       setCategoryInsights(processBudgetInsights(categorySpent, CATEGORY_CONFIG));
-    //       setCagorySummaries(getCategorySummaries(categorySpent));
-    //     }
-    
-    //   }, [categorySpent]) // category spent just render, then setting a new state after will delay the data display
-    
-
-
-
-
 
   const [isUserLogin, setIsUserLogin] = useState(() => {
     const item = localStorage.getItem('user');
@@ -467,11 +455,6 @@ export const AuthProvider = ({ children }) => {
     }
   }, [monthlyIncome, monthlyExpenses]);
 
-  // useEffect(() => {
-  //   if (categorySpent) {
-  //     console.log("categorySpent ::", categorySpent);
-  //   }
-  // }, [categorySpent]);
 
   useEffect(() => {
     if (!user) return;
@@ -595,42 +578,19 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if(setUserReceipts && budgetList){
-          console.log("Budget list for first render ::", budgetList)
+          // console.log("Budget list for first render ::", budgetList)
           const budgetSpendedResult = calculateBudgetSpending(budgetList, userReceipts); 
 
           // console.log('The budget spended result :: ', budgetSpendedResult);
           setCategorySpent(budgetSpendedResult); // integrate the calculateBudgetSpending
           // setTransformInsights(budgetSpendedResult);
 
-          console.log("Initializing ::", transformBudgetsToInsights(budgetSpendedResult, CATEGORY_MAP))
+          // console.log("Initializing ::", transformBudgetsToInsights(budgetSpendedResult, CATEGORY_MAP))
           setTransformInsights(transformBudgetsToInsights(budgetSpendedResult, CATEGORY_MAP));
           setCategoryInsights(processBudgetInsights(budgetSpendedResult, CATEGORY_CONFIG));
           setCagorySummaries(getCategorySummaries(budgetSpendedResult));
     }
   }, [userReceipts, budgetList])
-
-  // const logout = useCallback( async(setIsLoggingOut, setShowLogoutDialog) => {
-  //   try {
-  //     setIsLoggingOut(true);
-  //     const response = await fetch("http://localhost:3000/user/logout", {
-  //       method: "POST",
-  //       credentials : 'include',
-  //       headers: { "Content-Type": "application/json" },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Logout failed");
-  //     }
-  //   } catch (err) {
-  //     console.error("Unable to logout");
-  //   } finally {
-  //     setShowLogoutDialog(false);
-  //     setIsLoggingOut(false);
-  //     console.log("User logged out");
-  //     navigate("/", { replace: true });
-  //   }
-
-  // }, []);
 
 
   useEffect(() => {
@@ -644,34 +604,92 @@ export const AuthProvider = ({ children }) => {
     }
 
 
-    console.log("Category spent value :: ", categorySpent);
+    // console.log("Category spent value :: ", categorySpent);
   }, [categorySpent])
 
 
+   useEffect(() => {
+    if(user?._id) {
+      const getNotification = async () => {
+        const res = await fetch('http://localhost:3000/notification/get',{
+          method : "POST",
+          headers : {
+            "Content-type" : "application/json"
+          }, 
+          body : JSON.stringify({userId : user._id})
+        })
+
+        const { unreadCount, notifications } = await res.json();
+
+        setNotification({unreadCount, notifications});
+      }
+      getNotification();
+    }
+  }, [user])
 
 
-  // settings the notification in budget
-  const budgetNotification = useCallback(async (categorySpent) => {
-    if(Array.isArray(categorySpent) && categorySpent?.length > 0 ){
-      for(let i =0; i< categorySpent.length; i++) {
 
-        const budget = categorySpent[i];
-        if(budget.spent > budget.budgetAmount){
+  const isNotificationExist = (name) => {
+    return notification?.notifications.some((notif) => notif.title === name);
+  };
 
-          const notifPayload = {
-          userId : user._id,
-          title : budget.budgetName + " Limit",
-          message : "Your budget in category " + budget.budgetName + "reach it limits",
-          type : "alert"
-        }
-      
-         toast.error("Limit Reach", "Beware of you budget.");
-         await uploadNotification(notifPayload);
+  const sentNotificationsRef = useRef(new Set());
+
+const budgetNotification = useCallback(async (categorySpent) => {
+    // 1. Safety Check: If notifications haven't loaded yet, DO NOT run this logic.
+    // This prevents false positives on page load.
+    if (!notification || !notification.notifications) return; 
+
+    const addNotification = async (budget, user) => {
+      const budgetName = budget.budgetName;
+
+      // 2. Check if we already have this notification in State OR in our local Ref
+      // This prevents "multiplication" during the API delay
+      const alreadySentSession = sentNotificationsRef.current.has(budgetName);
+      const alreadyInDb = isNotificationExist(budgetName);
+
+      if (budget.spent > budget.budgetAmount && !alreadyInDb && !alreadySentSession) {
+        
+        // Mark as sent immediately to block duplicates
+        sentNotificationsRef.current.add(budgetName);
+
+        console.log('Sending Notification for:', budgetName);
+
+        const notifPayload = {
+          userId: user._id,
+          title: budgetName,
+          message: "Your budget in category " + budgetName + " has reached its limit",
+          type: "alert"
+        };
+
+        try {
+          await uploadNotification(notifPayload);
+          toast.error("Limit Reached", `Beware of your budget: ${budgetName}`);
+          
+          // Optional: You might want to trigger a refresh of the notification list here
+          // triggerNotificationRefresh(); 
+        } catch (error) {
+           // If it failed, remove from Ref so we can try again later
+           sentNotificationsRef.current.delete(budgetName);
+           console.error("Failed to upload notification", error);
         }
       }
+    };
 
+    for (let i = 0; i < categorySpent.length; i++) {
+      const budget = categorySpent[i];
+      addNotification(budget, user);
     }
-  }, [categorySpent])
+
+  }, [notification, user]); // Add 'user' to dependency
+
+useEffect(() => {
+    // Only run if we have calculated spending AND we have fetched existing notifications
+    if (categorySpent && notification) {
+       budgetNotification(categorySpent);
+    }
+  }, [categorySpent, notification]); // We need to run this when notification loads too
+
 
   // Session Verification
 
