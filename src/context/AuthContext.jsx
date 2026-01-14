@@ -636,21 +636,16 @@ export const AuthProvider = ({ children }) => {
   const sentNotificationsRef = useRef(new Set());
 
 const budgetNotification = useCallback(async (categorySpent) => {
-    // 1. Safety Check: If notifications haven't loaded yet, DO NOT run this logic.
-    // This prevents false positives on page load.
     if (!notification || !notification.notifications) return; 
 
     const addNotification = async (budget, user) => {
       const budgetName = budget.budgetName;
 
-      // 2. Check if we already have this notification in State OR in our local Ref
-      // This prevents "multiplication" during the API delay
       const alreadySentSession = sentNotificationsRef.current.has(budgetName);
       const alreadyInDb = isNotificationExist(budgetName);
 
       if (budget.spent > budget.budgetAmount && !alreadyInDb && !alreadySentSession) {
         
-        // Mark as sent immediately to block duplicates
         sentNotificationsRef.current.add(budgetName);
 
         console.log('Sending Notification for:', budgetName);
@@ -666,7 +661,6 @@ const budgetNotification = useCallback(async (categorySpent) => {
           await uploadNotification(notifPayload);
           toast.error("Limit Reached", `Beware of your budget: ${budgetName}`);
           
-          // Optional: You might want to trigger a refresh of the notification list here
           // triggerNotificationRefresh(); 
         } catch (error) {
            // If it failed, remove from Ref so we can try again later
@@ -679,7 +673,7 @@ const budgetNotification = useCallback(async (categorySpent) => {
     for (let i = 0; i < categorySpent.length; i++) {
       const budget = categorySpent[i];
       addNotification(budget, user);
-    }
+    } // needst to add some notifcitaion too
 
   }, [notification, user]); // Add 'user' to dependency
 
@@ -717,12 +711,6 @@ useEffect(() => {
     };
     checkSession();
   }, [isUserLogin, refreshPage]);
-
-
-
-
-
-
 
   const value = useMemo(
     () => ({
