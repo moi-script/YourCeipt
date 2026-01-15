@@ -19,7 +19,7 @@ export async function apiFetch(endpoint, options = {}) {
 }
 
 export async function loginFetch(endpoint, options = {}) {
-  console.log('Using login fetch');
+  console.log('Using login fetch', endpoint);
   const res = await fetch(endpoint, {
     credentials: "include",
     headers: {

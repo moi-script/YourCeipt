@@ -115,7 +115,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await login('http://localhost:3000/user/login', {
+      const res = await login(BASE_API_URL + '/user/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(loginData)
@@ -142,7 +142,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     setError(null);
 
     try {
-      const response = await register("http://localhost:3000/user/register", {
+      const response = await register(BASE_API_URL + "/user/register", {
         credentials: "include",
         method: "POST",
         headers: { "Content-Type": "application/json" },
