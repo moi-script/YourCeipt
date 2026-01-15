@@ -17,6 +17,10 @@ import { uploadNotification } from "@/api/uploadNotification";
 const AuthContext = createContext(null);
 
 
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
+
 let globalState = 0;
 
 const getTotalBalanceBudget = (budgetList) => {
@@ -404,7 +408,7 @@ export const AuthProvider = ({ children }) => {
       // console.log('Fetching ai --> ');
       try {
         setIsModelLoading(true);
-        const res = await fetch("http://localhost:3000/extract/getModels");
+        const res = await fetch(BASE_API_URL + "/extract/getModels");
         const data = await res.json();
         setModels(data.models);
         setIsModelLoading(false);
@@ -431,7 +435,7 @@ export const AuthProvider = ({ children }) => {
   const fetchActiveModel = async () => {
     
     try {
-      const res = await fetch(`http://localhost:3000/extract/getUserModel?userId=${user._id}`);
+      const res = await fetch(BASE_API_URL + `/extract/getUserModel?userId=${user._id}`);
       const data = await res.json();
       if (data.success) {
         setActiveModelName(data.model_name);
@@ -498,7 +502,7 @@ export const AuthProvider = ({ children }) => {
     if(!user?._id) return;
     const handleGetBudgetItem = async () => {
       try {
-        const res = await fetch("http://localhost:3000/get/budget", {
+        const res = await fetch(BASE_API_URL + "/get/budget", {
           method: "POST",
           headers: {
             "Content-type": "application/json",
@@ -532,7 +536,7 @@ export const AuthProvider = ({ children }) => {
     const getUserReceipts = async () => {
       try {
         setIsReceiptsLoading(true);
-        const receipts = await fetch("http://localhost:3000/user/receipts", {
+        const receipts = await fetch(BASE_API_URL + "/user/receipts", {
           method: "POST",
           headers: { "Content-type": "application/json" },
           body: JSON.stringify({ userId: user?._id }),
@@ -611,7 +615,7 @@ export const AuthProvider = ({ children }) => {
    useEffect(() => {
     if(user?._id) {
       const getNotification = async () => {
-        const res = await fetch('http://localhost:3000/notification/get',{
+        const res = await fetch(BASE_API_URL + '/notification/get',{
           method : "POST",
           headers : {
             "Content-type" : "application/json"
@@ -673,7 +677,8 @@ const budgetNotification = useCallback(async (categorySpent) => {
     for (let i = 0; i < categorySpent.length; i++) {
       const budget = categorySpent[i];
       addNotification(budget, user);
-    } // needst to add some notifcitaion too
+    } 
+    // needst to add some notifcitaion too
 
   }, [notification, user]); // Add 'user' to dependency
 
@@ -694,7 +699,7 @@ useEffect(() => {
     console.log("Running the check sessions");
     const checkSession = async () => {
       try {
-        const response = await apiFetch("http://localhost:3000/user/verify", {
+        const response = await apiFetch(BASE_API_URL + "/user/verify", {
           credentials: "include",
         });
 

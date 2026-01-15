@@ -28,6 +28,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 export default function ProfilePage() {
   const { user, setRefreshPage } = useAuth();
   
@@ -81,7 +85,7 @@ export default function ProfilePage() {
 
     // 2. Send String to Backend
     try {
-      await fetch('http://localhost:3000/user/theme', {
+      await fetch(BASE_API_URL + '/user/theme', { // 
         method : "POST",
         headers : { 'Content-type' : 'application/json' },
         body : JSON.stringify({
@@ -99,7 +103,7 @@ export default function ProfilePage() {
   const updateCurrency = async (currency) => {
     setCurrency(currency);
     try {
-        const res = await fetch('http://localhost:3000/user/currency', {
+        const res = await fetch(BASE_API_URL + '/user/currency', {
             method : "POST",
             headers : {
                 'Content-type' : 'application/json'
@@ -114,7 +118,7 @@ export default function ProfilePage() {
   const updateOverSpending = async (overSpending) => {
     setOverSpending(overSpending);
     try {
-        const res = await fetch('http://localhost:3000/user/overSpending', {
+        const res = await fetch(BASE_API_URL + '/user/overSpending', {
             method : "POST",
             headers : {
                 'Content-type' : 'application/json'
@@ -130,7 +134,7 @@ export default function ProfilePage() {
    const updateNearLimit = async (nearLimit) => {
     setNearLimit(nearLimit);
     try {
-        const res = await fetch('http://localhost:3000/user/nearLimit', {
+        const res = await fetch(BASE_API_URL + '/user/nearLimit', {
             method : "POST",
             headers : {
                 'Content-type' : 'application/json'
@@ -146,14 +150,14 @@ export default function ProfilePage() {
   const updateNames = async () => {
     console.log('Updating names');
     setIsChangingName(true);
-    const fullnameResponse = await fetch('http://localhost:3000/user/fullname', {
+    const fullnameResponse = await fetch(BASE_API_URL + '/user/fullname', {
         headers : {
             'Content-type' : 'application/json'
         },
         method : "POST",
         body : JSON.stringify({fullname : fullname, userId : user._id})
     })
-     const nicknameResponse = await fetch('http://localhost:3000/user/nickname', {
+     const nicknameResponse = await fetch(BASE_API_URL + '/user/nickname', {
         headers : {
             'Content-type' : 'application/json'
         },
@@ -166,7 +170,7 @@ export default function ProfilePage() {
    const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const response = await fetch("http://localhost:3000/user/logout", {
+      const response = await fetch(BASE_API_URL + "/user/logout", {
         method: "POST",
         credentials : 'include',
         headers: { "Content-Type": "application/json" },
@@ -182,7 +186,7 @@ export default function ProfilePage() {
       setIsLoggingOut(false);
       console.log("User logged out");
       localStorage.setItem('user', false);
-      navigate("/main", { replace: true });
+      navigate("/", { replace: true });
       // setRefreshPage(true);
 
     }

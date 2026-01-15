@@ -60,6 +60,8 @@ const CHART_COLORS = {
   stone: "#e7e5e4",   // background budget
   stoneDark: "#44403c" // background budget dark
 };
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 
 const CustomBudgetTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -183,7 +185,7 @@ export function Home() {
 
   const handleDeleteReceipts = async (id) => {
       try {
-        await fetch(`http://localhost:3000/receipt/delete?id=${id}`,{
+        await fetch(BASE_API_URL + `/receipt/delete?id=${id}`,{
          method : "DELETE"
         });
         setRefreshPage(true);

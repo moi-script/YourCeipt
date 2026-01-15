@@ -1,6 +1,8 @@
 import React, { useState, useRef } from "react";
 import { ScanLine, Loader2, UploadCloud, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 
 const HeroScannerDemo = () => {
   const [scanState, setScanState] = useState('idle'); // idle, uploading, processing, complete, error
@@ -27,7 +29,7 @@ const HeroScannerDemo = () => {
       setTimeout(() => setScanState('processing'), 1500);
 
       // 3. Hit the Mock Endpoint
-      const response = await fetch("http://localhost:3000/extract/mockazure", {
+      const response = await fetch(BASE_API_URL + "/extract/mockazure", {
         method: "POST",
         body: formData,
       });

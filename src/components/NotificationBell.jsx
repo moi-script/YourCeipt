@@ -9,6 +9,9 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 const NotificationBell = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
@@ -19,7 +22,7 @@ const NotificationBell = () => {
   const fetchNotifs = async () => {
     if (!user?._id) return;
     try {
-      const res = await fetch("http://localhost:3000/notification/get", {
+      const res = await fetch(BASE_API_URL + "/notification/get", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user._id })
@@ -42,7 +45,7 @@ const NotificationBell = () => {
   // 2. Mark Read Action
   const handleMarkRead = async (id) => {
     try {
-      await fetch("http://localhost:3000/notification/read", {
+      await fetch(BASE_API_URL + "/notification/read", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notificationId: id })

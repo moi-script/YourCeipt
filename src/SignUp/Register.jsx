@@ -4,6 +4,10 @@ import { Suspense, use, useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/AuthContext";
 
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
+
 export function RegisterForm({
   formData,
   handleChange,
@@ -25,7 +29,7 @@ export function RegisterForm({
 
     try {
       console.log('Form data --> ', formData);
-      const response = await register("http://localhost:3000/user" + location.pathname, {
+      const response = await register( BASE_API_URL + "/user" +  location.pathname, {
         credentials: "include",
         method: "POST",
         headers: {

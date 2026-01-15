@@ -21,6 +21,8 @@ import { useAuth } from "@/context/AuthContext";
 import { AdvanceForm } from "@/Input/AdvanceForm";
 // import { useToast } from "@/components/Toaster.jsx";
 import { useToast } from "@/components/Toaster.jsx";
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 
 export function BudgetDashboard() {
   // ============================================================================
@@ -88,7 +90,7 @@ const getAllunreadMark = useMemo(() => {
 }, [notification])
 
 const unreadMark = useCallback(async (notifId) => {
-  const res = await fetch('http://localhost:3000/notification/read', {
+  const res = await fetch(BASE_API_URL + '/notification/read', {
     method : "PUT",
     headers : {
       "Content-type" : 'application/json'
@@ -110,7 +112,7 @@ useEffect(() =>{
   useEffect(() => {
     if(user._id) {
       const getNotification = async () => {
-        const res = await fetch('http://localhost:3000/notification/get',{
+        const res = await fetch(BASE_API_URL + '/notification/get',{
           method : "POST",
           headers : {
             "Content-type" : "application/json"

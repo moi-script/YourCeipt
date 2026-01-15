@@ -15,6 +15,8 @@ import {
 import { useAuth } from "@/context/AuthContext";
 // import receptaLogo from '../assets/receptaLogo.png'; // Uncomment if needed
 
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 const Login = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
@@ -56,7 +58,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await login('http://localhost:3000/user/login', {
+      const res = await login(BASE_API_URL + "/user/login" ,{ //'http://localhost:3000/user/login'
         method : 'POST',
         headers : {
           'Content-Type' : 'application/json'

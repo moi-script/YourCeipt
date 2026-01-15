@@ -25,6 +25,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, NavLink } from "react-router-dom";
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 
 export default function UserMenu({setHomeDefault}) {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -40,7 +43,7 @@ export default function UserMenu({setHomeDefault}) {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const response = await fetch("http://localhost:3000/user/logout", {
+      const response = await fetch(BASE_API_URL+"/user/logout", {
         method: "POST",
         credentials : 'include',
         headers: { "Content-Type": "application/json" },
@@ -56,7 +59,7 @@ export default function UserMenu({setHomeDefault}) {
       setIsLoggingOut(false);
       console.log("User logged out");
       localStorage.setItem('user', false);
-      navigate("/main", { replace: true });
+      navigate("/", { replace: true });
       // setRefreshPage(true);
 
     }

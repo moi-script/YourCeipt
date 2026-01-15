@@ -121,9 +121,10 @@ const initialTransactions = [
   },
 ];
 
-/* ============================
-   PAGE
-   ============================ */
+
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 export default function TransactionsPage({
   sidebarOpen,
   setSidebarOpen,
@@ -146,7 +147,7 @@ export default function TransactionsPage({
 
     if (confirm("Do you want to delete this transaction?")) {
       try {
-        await fetch(`http://localhost:3000/receipt/delete?id=${id}`, {
+        await fetch(BASE_API_URL + `/receipt/delete?id=${id}`, {
           method: "DELETE",
         });
         setTransactions((prev) => prev.filter((t) => t.id !== id));

@@ -72,7 +72,9 @@ const initialBudgets = [
   }
 ];
 
-// --- SIMULATED SHADCN UI COMPONENTS (Customized for Organic Look & Dark Mode) ---
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 
 const Card = ({ children, className = "" }) => (
   <div className={`backdrop-blur-md border border-white/50 dark:border-white/10 bg-white/60 dark:bg-stone-900/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden transition-all duration-300 ${className}`}>
@@ -254,7 +256,7 @@ const BudgetPage = () => {
     console.log('user id', user._id);
     
     try {
-        const res = await fetch('http://localhost:3000/budget', {
+        const res = await fetch(BASE_API_URL + '/budget', {
             method: "DELETE",
             headers: {
                 'Content-type': 'application/json'
@@ -282,7 +284,7 @@ const handleAddItem = async (formData) => {
     //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
     // })
     try {
-        const res = await fetch('http://localhost:3000/budget', {
+        const res = await fetch(BASE_API_URL + '/budget', {
         method: "POST",
         headers: {
             'Content-type': 'application/json'
@@ -302,7 +304,7 @@ const handleUpdateItem = async (itemData) => {
     console.log("Item data --> ", itemData);
     console.log('Form - data ::', formData);
     try {
-        const res = await fetch('http://localhost:3000/update/budget', {
+        const res = await fetch(BASE_API_URL + '/update/budget', {
             method: "POST",
             headers: {
                 'Content-type': 'application/json'
@@ -318,7 +320,7 @@ const handleUpdateItem = async (itemData) => {
 // get all budget of user
 const handleGetBudgetItemList = async () => {
     try {
-        const res = await fetch('http://localhost:3000/budget');
+        const res = await fetch(BASE_API_URL + '/budget');
 
     } catch (err) {
         console.error('Unable to fetch budget list', err);

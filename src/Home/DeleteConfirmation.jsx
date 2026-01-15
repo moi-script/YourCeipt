@@ -14,6 +14,11 @@ import { Label } from "@/components/ui/label";
 import { Loader2, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext"; // Assuming you have this
 import { useNavigate } from "react-router-dom";
+
+
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 export function DeleteConfirmation() {
   const [isOpen, setIsOpen] = useState(false);
   const [password, setPassword] = useState("");
@@ -35,7 +40,7 @@ export function DeleteConfirmation() {
 
     try {
       // Replace with your actual delete endpoint
-      const deleteAcc = await fetch("http://localhost:3000/user/delete-account", {
+      const deleteAcc = await fetch(BASE_API_URL + "/user/delete-account", {
         method: "DELETE",
         credentials : "include",
         headers: { "Content-Type": "application/json" },
@@ -45,7 +50,7 @@ export function DeleteConfirmation() {
         }),
       });
       console.log('User public image url :: ', user.image_public_url);
-      const deleteProfile = await fetch('http://localhost:3000/image', {
+      const deleteProfile = await fetch(BASE_API_URL + '/image', {
         method : "DELETE",
         headers : {
             'Content-type' : 'application/json'

@@ -4,6 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 
+
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
+
 export default function ProfilePicPage() {
   const { user, setUser } = useAuth();
   const fileInputRef = useRef(null);
@@ -24,7 +29,7 @@ export default function ProfilePicPage() {
       formData.append("image", file); // key must match 'uploadCloudImage' middleware expectation
       formData.append("public_url", user?.image_public_url);
 
-      const uploadRes = await fetch("http://localhost:3000/image", {
+      const uploadRes = await fetch(BASE_API_URL + "/image", { // http://localhost:3000
         method: "POST",
         body: formData,
       });
@@ -36,7 +41,7 @@ export default function ProfilePicPage() {
       const uploadData = await uploadRes.json();
       console.log("Upload data -->", uploadData);
 
-      const updateRes = await fetch("http://localhost:3000/user/image_profile", {
+      const updateRes = await fetch(BASE_API_URL + "/user/image_profile", { // http://localhost:3000
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 

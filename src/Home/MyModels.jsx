@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
 
 // --- CUSTOM ORGANIC COMPONENTS ---
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 const OrganicCard = ({ children, className = "" }) => (
   <div
@@ -50,7 +51,7 @@ export default function AIModelDashboard() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const res = await fetch("http://localhost:3000/extract/getModels");
+      const res = await fetch(BASE_API_URL + "/extract/getModels");
       const data = await res.json();
       setModels(data.models);
       setRefreshPage(true);
@@ -69,7 +70,7 @@ export default function AIModelDashboard() {
 
     setIsRefreshing(true);
     try {
-      const res = await fetch("http://localhost:3000/extract/postmodel", {
+      const res = await fetch(BASE_API_URL + "/extract/postmodel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

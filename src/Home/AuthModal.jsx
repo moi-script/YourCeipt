@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,9 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 
 export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
   const [mode, setMode] = useState(defaultTab); 
@@ -160,15 +164,15 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     }
   };
 
-  // --- HANDLERS: FORGOT PASSWORD (Integrated Logic) ---
+
+
   
-  // Step 1: Send OTP
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post("http://localhost:3000/user/send-otp", { email: fpEmail });
+      await axios.post(BASE_API_URL + "/user/send-otp", { email: fpEmail });
       setFpStep(2); // Move to next step
     } catch (err) {
       setError("User not found or error sending email.");
@@ -177,13 +181,12 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     }
   };
 
-  // Step 2: Verify OTP
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post("http://localhost:3000/user/verify-otp", { email: fpEmail, otp: fpOtp });
+      await axios.post(BASE_API_URL + "/user/verify-otp", { email: fpEmail, otp: fpOtp });
       setFpStep(3); // Move to next step
     } catch (err) {
       console.error("OTP Error", err);
@@ -193,20 +196,17 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     }
   };
 
-  // Step 3: Reset Password
   const handleResetPassword = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     try {
-      await axios.post("http://localhost:3000/user/reset-password", { 
+      await axios.post(BASE_API_URL + "/user/reset-password", { 
         email: fpEmail, 
         otp: fpOtp, 
         newPassword: fpNewPassword 
       });
-      // Success! Move back to login
       resetFPState(); 
-      // Optional: Show a success message here or via toast
       alert("Password reset successfully! Please login.");
     } catch (err) {
       setError("Failed to update password.");
@@ -215,9 +215,6 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     }
   };
 
-  // =========================================================
-  // RENDER
-  // =========================================================
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl p-0 overflow-hidden bg-transparent border-none shadow-2xl focus:outline-none [&>button]:hidden">

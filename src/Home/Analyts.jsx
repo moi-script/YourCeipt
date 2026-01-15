@@ -48,6 +48,8 @@ const CHART_COLORS = {
   sky: "#0ea5e9",     // sky-500
 };
 
+
+
 // A custom Tooltip that matches your Card component style
 const CustomChartTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {

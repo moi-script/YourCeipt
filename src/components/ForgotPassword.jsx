@@ -1,6 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1);
@@ -14,7 +16,7 @@ const ForgotPassword = () => {
   const handleSendOTP = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/user/send-otp", { email });
+      await axios.post(BASE_API_URL + "/user/send-otp", { email });
       alert("OTP sent to your email!");
       setStep(2);
     } catch (err) {
@@ -25,7 +27,7 @@ const ForgotPassword = () => {
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/user/verify-otp", { email, otp });
+      await axios.post(BASE_API_URL + "/user/verify-otp", { email, otp });
       setStep(3);
     } catch (err) {
       console.error("Unable to verify otp ::", err);
@@ -36,7 +38,7 @@ const ForgotPassword = () => {
   const handleResetPassword = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/user/reset-password", { email, otp, newPassword });
+      await axios.post(BASE_API_URL + "/user/reset-password", { email, otp, newPassword });
       alert("Password reset successfully!");
       navigate("/login");
     } catch (err) {

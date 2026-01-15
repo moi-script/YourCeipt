@@ -70,7 +70,9 @@ const LatencyBar = ({ ms }) => {
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
+
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
 
 export default function AiEnginePage() {
   const [models, setModels] = useState([]);
@@ -85,7 +87,7 @@ export default function AiEnginePage() {
     const fetchModels = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:3000/extract/getModels'); 
+        const response = await fetch(BASE_API_URL + '/extract/getModels'); 
         if (!response.ok) throw new Error(`Error: ${response.status}`);
         const data = await response.json();
         

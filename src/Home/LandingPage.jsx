@@ -10,7 +10,6 @@ import { AuthModal } from "./AuthModal";
 import { DemoModal } from "@/components/DemoModal";
 import { Link } from "react-router-dom";
 
-// --- CUSTOM HOOK FOR SCROLL ANIMATIONS ---
 const useScrollAnimation = () => {
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef();
@@ -704,6 +703,7 @@ export default function LandingPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
 
   return (
     <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans selection:bg-emerald-500/30 transition-colors duration-500">

@@ -36,6 +36,9 @@ const EMPTY_ITEM_SCHEMA = {
   quantity: 1      
 };
 
+const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+
+
 const INITIAL_COMPLEX_STATE = {
   store: "",
   slogan: "",
@@ -164,7 +167,7 @@ export function AdvanceForm({
 
   const uploadManualReceipt = async () => {
     try {
-      await fetch("http://localhost:3000/receipt/uploadManual", {
+      await fetch(BASE_API_URL + "/receipt/uploadManual",  { // http://localhost:3000/receipt/uploadManual",
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({
@@ -264,7 +267,7 @@ export function AdvanceForm({
   const handleParseText = async () => {
     try {
       setIsLoader(true);
-      const res = await fetch("http://localhost:3000/extract/quickText", {
+      const res = await fetch(BASE_API_URL + "/extract/quickText",  { // http://localhost:3000/extract/quickText",
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ userId: user._id, quickText: quickText, activeModelName : activeModelName }),
@@ -282,7 +285,7 @@ export function AdvanceForm({
   const hanldeUploadQuickText = async () => {
     try {
       setIsLoader(true);
-      const res = await fetch("http://localhost:3000/extract/uploadQuick", {
+      const res = await fetch(BASE_API_URL + "/extract/uploadQuick", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({ userId: user._id, quickText: quickText.output }),
