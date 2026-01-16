@@ -324,7 +324,7 @@ export function Home() {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-8 min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative transition-colors duration-300">
+    <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 space-y-8 min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative transition-colors duration-300 w-full">
        
        {/* Background Effects */}
        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-emerald-100 dark:bg-emerald-900/20 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-30 pointer-events-none animate-pulse"></div>
@@ -384,17 +384,34 @@ export function Home() {
 
         {/* Tabs Section */}
         <Tabs defaultValue="transactions" className="space-y-6">
-          <TabsList className="bg-white/40 dark:bg-stone-900/40 border border-white/50 dark:border-white/10 backdrop-blur-md p-1.5 rounded-full inline-flex h-auto">
-            {['transactions', 'overview', 'budgets'].map(val => (
-                <TabsTrigger 
-                    key={val}
-                    value={val} 
-                    className="rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 data-[state=active]:bg-emerald-700 data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
-                >
-                    {val}
-                </TabsTrigger>
-            ))}
-          </TabsList>
+<TabsList className="
+    w-full flex items-center justify-between
+    bg-white/40 dark:bg-stone-900/40 
+    border border-white/50 dark:border-white/10 
+    backdrop-blur-md 
+    p-1 sm:p-1.5 rounded-full h-auto
+">
+    {['transactions', 'overview', 'budgets'].map(val => (
+        <TabsTrigger 
+            key={val}
+            value={val} 
+            className="
+                flex-1 w-full
+                rounded-full 
+                py-2 sm:py-2.5 
+                text-[10px] sm:text-xs font-bold uppercase tracking-wider 
+                text-stone-500 dark:text-stone-400 
+                data-[state=active]:bg-emerald-700 
+                data-[state=active]:text-white 
+                data-[state=active]:shadow-md 
+                transition-all
+                truncate
+            "
+        >
+            {val}
+        </TabsTrigger>
+    ))}
+</TabsList>
           
           {/* 1. TRANSACTIONS TAB */}
           <TabsContent value="transactions" className="space-y-6">

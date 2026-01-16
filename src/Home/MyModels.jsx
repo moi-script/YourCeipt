@@ -42,9 +42,9 @@ export default function AIModelDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { setIsModelLoading, isModelLoading, models, setModels, user, setRefreshPage } = useAuth();
 
-  useEffect(() => {
-    console.log("Model list :: ", models);
-  }, [models]);
+  // useEffect(() => {
+  //   // console.log("Model list :: ", models);
+  // }, [models]);
 
   // --- METHODS ---
 

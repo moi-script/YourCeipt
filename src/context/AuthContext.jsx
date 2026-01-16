@@ -385,9 +385,10 @@ export const AuthProvider = ({ children }) => {
     
 
   const [isUserLogin, setIsUserLogin] = useState(() => {
+
     const item = localStorage.getItem('user');
     if(item) {
-      return true;
+      return true; // needed to update the user
     } 
     return null;
   })
@@ -404,6 +405,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // console.log('Fetching ai models ');
     // if(!user?._id) return;
+    
     const fetchAi = async () => {
       // console.log('Fetching ai --> ');
       try {
@@ -514,7 +516,7 @@ export const AuthProvider = ({ children }) => {
         // console.warn("Budget list after fetch ::", data);
         setBudgetList(data.budgetList);
         setTotalBudget(getTotalBalanceBudget(data.budgetList));
-        console.warn("Budget total with balance  ::", getTotalBalanceBudget(data.budgetList));
+        // console.warn("Budget total with balance  ::", getTotalBalanceBudget(data.budgetList));
 
       } catch (err) {
         console.error("Unable to get budget list:: ", err);
@@ -694,9 +696,9 @@ useEffect(() => {
 
 
   useEffect(() => {
-    console.log("Activiated the verify session ");
+    // console.log("Activiated the verify session ");
     if(!isUserLogin) return;
-    console.log("Running the check sessions");
+    // console.log("Running the check sessions");
     const checkSession = async () => {
       try {
         const response = await apiFetch(BASE_API_URL + "/user/verify", {

@@ -418,7 +418,7 @@ export default function Analytics({
 
   useEffect(() => {
     if(categoryInsights) {
-      console.log('Category insights in analyst :: ', categoryInsights);
+      // console.log('Category insights in analyst :: ', categoryInsights);
     }
   }, [categoryInsights])
 
