@@ -197,7 +197,7 @@ export function AdvanceForm({
 
   const handleUploadReceipts = async () => {
     try {
-      await uploadReceipts("http://localhost:3000/receipt/upload", {
+      await uploadReceipts(BASE_API_URL + "/receipt/upload", {
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({
@@ -235,11 +235,11 @@ export function AdvanceForm({
         formDataUpload.append("myImages", files[i]);
       }
       try {
-        await axios.post("http://localhost:3000/upload", formDataUpload, {
+        await axios.post(BASE_API_URL + "/upload", formDataUpload, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         console.log
-        const extractText = await axios.post("http://localhost:3000/extract/azure", 
+        const extractText = await axios.post(BASE_API_URL + "/extract/azure", 
           {
           activeModelName : activeModelName
           }, {
