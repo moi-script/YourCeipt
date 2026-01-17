@@ -230,18 +230,31 @@ export function AdvanceForm({
     const files = e.target.files;
     if (files) {
       setIsLoader(true);
+
+      // limit to just only 1 files first
       const formDataUpload = new FormData();
       for (let i = 0; i < files.length; i++) {
         formDataUpload.append("myImages", files[i]);
       }
       try {
-        await axios.post(BASE_API_URL + "/upload", formDataUpload, {
+           // BASE_API_URL 'http://localhost:3000'
+        const res = await fetch('http://localhost:3000' + "/receiptImage", formDataUpload, {
+          method : "POST",
           headers: { "Content-Type": "multipart/form-data" },
         });
-        console.log
-        const extractText = await axios.post(BASE_API_URL + "/extract/azure", 
+
+        const { url } = await res.json();
+        console.log("Url to fetch image for buffer --> ", url);
+        const image_response = await fetch(url);
+
+        const arrayBuffer = await image_response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        const extractText = await axios.post('http://localhost:3000' + "/extract/azure", //  BASE_API_URL
           {
-          activeModelName : activeModelName
+          activeModelName : activeModelName,
+          img : buffer,
+          
           }, {
           headers : {
             'Content-type' : 'application/json'
@@ -258,7 +271,9 @@ export function AdvanceForm({
         setReceiptContent(extractText.data.contents);
       } catch (err) {
         alert('Unable to parse image ::', err);
-        console.error(err);
+        console.error('Unable to parse image ::' + err);
+        console.log('Unable to parse image ::' + err);
+
         setIsLoader(false);
       }
     }

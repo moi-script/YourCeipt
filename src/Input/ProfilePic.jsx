@@ -29,7 +29,7 @@ export default function ProfilePicPage() {
       formData.append("image", file); // key must match 'uploadCloudImage' middleware expectation
       formData.append("public_url", user?.image_public_url);
 
-      const uploadRes = await fetch(BASE_API_URL + "/image", { // http://localhost:3000
+      const uploadRes = await fetch("http://localhost:3000" +  "/image", { // http://localhost:3000 BASE_API_URL 
         method: "POST",
         body: formData,
       });
