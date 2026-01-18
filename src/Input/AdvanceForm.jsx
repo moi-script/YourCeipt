@@ -227,40 +227,39 @@ export function AdvanceForm({
   };
 
   const handleFileChanges = async (e) => {
-    const files = e.target.files;
-    if (files) {
+    const file = e.target.files?.[0];
+    if (file) {
       setIsLoader(true);
 
       // limit to just only 1 files first
       const formDataUpload = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formDataUpload.append("myImages", files[i]);
-      }
+      
+      // for (let i = 0; i < files.length; i++) {
+      //   formDataUpload.append("myImages", files[i]);
+      // }
+
+      formDataUpload.append('image', file)
       try {
            // BASE_API_URL 'http://localhost:3000'
-        const res = await fetch('http://localhost:3000' + "/receiptImage", formDataUpload, {
+        const res = await fetch(BASE_API_URL + "/receiptImage", {
           method : "POST",
-          headers: { "Content-Type": "multipart/form-data" },
+          body : formDataUpload
+          // headers: { "Content-Type": "multipart/form-data" },
         });
 
         const { url } = await res.json();
         console.log("Url to fetch image for buffer --> ", url);
         const image_response = await fetch(url);
 
-        const arrayBuffer = await image_response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        const postImageForm = new FormData();
+          const arrayBuffer = await image_response.arrayBuffer();
+          const blob = new Blob([arrayBuffer], { type: "image/*" });
+          console.log('This is the buffer -->', blob);
+          postImageForm.append("image_buffer", blob);
+          postImageForm.append("activeModelName", activeModelName);
+          // const buffer = Buffer.from(arrayBuffer);
 
-        const extractText = await axios.post('http://localhost:3000' + "/extract/azure", //  BASE_API_URL
-          {
-          activeModelName : activeModelName,
-          img : buffer,
-          
-          }, {
-          headers : {
-            'Content-type' : 'application/json'
-          }
-        }
-      );
+          const extractText = await axios.post(BASE_API_URL + "/extract/azure", postImageForm); //  BASE_API_URL
 
         if(extractText.status !== 200){
            setIsLoader(false);

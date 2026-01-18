@@ -133,7 +133,7 @@ export default function AiEnginePage() {
       <nav className="border-b border-stone-200 dark:border-stone-800 bg-white/50 dark:bg-stone-950/50 backdrop-blur-md sticky top-0 z-50 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/main" className="p-2 -ml-2 rounded-full hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-colors group">
+            <Link to="/" className="p-2 -ml-2 rounded-full hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-colors group">
               <ArrowLeft className="w-5 h-5 text-stone-500 group-hover:-translate-x-1 transition-transform" />
             </Link>
             <div className="flex items-center gap-2">
