@@ -241,15 +241,16 @@ export function AdvanceForm({
       formDataUpload.append('image', file)
       try {
            // BASE_API_URL 'http://localhost:3000'
-        const res = await fetch(BASE_API_URL + "/receiptImage", {
+        const res = await fetch(BASE_API_URL + "/receipt-image-cloud", {
           method : "POST",
           body : formDataUpload
           // headers: { "Content-Type": "multipart/form-data" },
         });
 
-        const { url } = await res.json();
-        console.log("Url to fetch image for buffer --> ", url);
-        const image_response = await fetch(url);
+        const { imageUrl } = await res.json();
+
+        console.log("Url to fetch image for buffer --> ", imageUrl);
+        const image_response = await fetch(imageUrl);
 
         const postImageForm = new FormData();
           const arrayBuffer = await image_response.arrayBuffer();

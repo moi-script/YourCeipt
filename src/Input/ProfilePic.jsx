@@ -29,7 +29,7 @@ export default function ProfilePicPage() {
       formData.append("image", file); // key must match 'uploadCloudImage' middleware expectation
       formData.append("public_url", user?.image_public_url);
 
-      const uploadRes = await fetch("http://localhost:3000" +  "/image", { // http://localhost:3000 BASE_API_URL 
+      const uploadRes = await fetch(BASE_API_URL +  "/image", { // http://localhost:3000 BASE_API_URL 
         method: "POST",
         body: formData,
       });
@@ -46,19 +46,17 @@ export default function ProfilePicPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
             userId: user._id, 
-            image_source: uploadData.url,
-            image_public_url : uploadData.public_url
+            image_source: uploadData.imageUrl,
+            image_public_url : uploadData?.public_url ?? ""
         }),
       });
 
       if (!updateRes.ok) throw new Error("Profile update failed");
 
-      // 5. Update Local User Context so it reflects everywhere immediately
       setUser({ ...user, image_profile: uploadData.url, image_public_url : uploadData.public_url});
 
     } catch (error) {
       console.error("Avatar change failed:", error);
-      // setAvatarPreview(user?.image_profile); 
     } finally {
       setIsUploading(false);
     }
