@@ -280,6 +280,7 @@ export function AdvanceForm({
   };
 
   const handleParseText = async () => {
+    // needs to be study
     try {
       setIsLoader(true);
       const res = await fetch(BASE_API_URL + "/extract/quickText",  { // http://localhost:3000/extract/quickText",
