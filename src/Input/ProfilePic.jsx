@@ -3,11 +3,9 @@ import { Loader2, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
+import { BASE_API_URL } from "@/api/getKeys.js";
 
-
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
-
-
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 export default function ProfilePicPage() {
   const { user, setUser } = useAuth();

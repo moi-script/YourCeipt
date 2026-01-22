@@ -60,7 +60,8 @@ const CHART_COLORS = {
   stone: "#e7e5e4",   // background budget
   stoneDark: "#44403c" // background budget dark
 };
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+import { BASE_API_URL } from "@/api/getKeys.js";
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 const CustomBudgetTooltip = ({ active, payload, label }) => {

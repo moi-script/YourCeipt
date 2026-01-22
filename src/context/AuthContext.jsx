@@ -15,11 +15,9 @@ import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/Home/Analyts";
 import { useToast } from "@/components/Toaster";
 import { uploadNotification } from "@/api/uploadNotification";
 const AuthContext = createContext(null);
+import { BASE_API_URL } from "@/api/getKeys.js"; 
 
-
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
-
-
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 let globalState = 0;
 
@@ -693,7 +691,7 @@ useEffect(() => {
     if(!isUserLogin) return;
     const checkSession = async () => {
       try {
-        const response = await apiFetch("http://localhost:3000" + "/user/verify", { // BASE_API_URL 
+        const response = await apiFetch(BASE_API_URL + "/user/verify", { // BASE_API_URL 
           credentials: "include",
         });
 

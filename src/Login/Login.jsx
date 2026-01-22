@@ -14,8 +14,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 // import receptaLogo from '../assets/receptaLogo.png'; // Uncomment if needed
-
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+import { BASE_API_URL } from "@/api/getKeys.js";
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 const Login = () => {
   const [currentStep, setCurrentStep] = useState(0);

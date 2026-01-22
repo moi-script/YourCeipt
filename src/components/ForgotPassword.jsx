@@ -1,7 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+import { BASE_API_URL } from "@/api/getKeys.js";
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 const ForgotPassword = () => {

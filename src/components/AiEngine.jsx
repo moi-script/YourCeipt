@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-
+import { BASE_API_URL } from "@/api/getKeys.js";
 // --- HELPER COMPONENTS ---
 
 const StatusBadge = ({ status }) => {
@@ -71,7 +71,7 @@ const LatencyBar = ({ ms }) => {
 };
 
 
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+// const BASE_API_URL  = im port.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 export default function AiEnginePage() {

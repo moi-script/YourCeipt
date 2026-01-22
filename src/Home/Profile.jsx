@@ -28,8 +28,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+import { BASE_API_URL } from '@/api/getKeys';
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 export default function ProfilePage() {

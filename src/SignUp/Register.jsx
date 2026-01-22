@@ -3,8 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Suspense, use, useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { useAuth } from "@/context/AuthContext";
-
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+import { BASE_API_URL } from "@/api/getKeys.js";
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 

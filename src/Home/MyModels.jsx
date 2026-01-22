@@ -12,9 +12,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
-
+import { BASE_API_URL } from "@/api/getKeys";
 // --- CUSTOM ORGANIC COMPONENTS ---
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 const OrganicCard = ({ children, className = "" }) => (
   <div

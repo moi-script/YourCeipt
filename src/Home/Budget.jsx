@@ -19,7 +19,7 @@ import {
   Leaf
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
+import { BASE_API_URL } from '@/api/getKeys.js';
 // --- YOUR DATA STRUCTURE ---
 const initialBudgets = [
   {
@@ -72,7 +72,7 @@ const initialBudgets = [
   }
 ];
 
-const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 
