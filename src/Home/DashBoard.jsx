@@ -19,16 +19,11 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 import UserMenu from "./Logout";
 import { useAuth } from "@/context/AuthContext";
 import { AdvanceForm } from "@/Input/AdvanceForm";
-// import { useToast } from "@/components/Toaster.jsx";
 import { useToast } from "@/components/Toaster.jsx";
 const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 export function BudgetDashboard() {
-  // ============================================================================
-  // STATE MANAGEMENT
-  // ============================================================================
-
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [homeDefault, setHomeDefault] = useState("Home");
@@ -37,48 +32,7 @@ export function BudgetDashboard() {
   const {isAddDialogOpen, setIsAddDialogOpen, user} = useAuth();
   const [notification, setNotification] = useState(null);
 
-  // useEffect(() => {
-  //   console.warn('Initiating the taost', toast);
-  //   setTimeout(()=> {
-  //     console.warn("After 5 seconds in toast");
-  //     toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
-  //   }, 5000)
-  // }, [])
-
-
-// toast.message('System Update', {
-//   description: 'Version 2.0 is live',
-//   // Fires when user swipes away or clicks close
-//   onDismiss: (t) => {
-//     console.log(`Toast ${t.id} was dismissed/read`);
-//     // markAsReadInDatabase(notificationId); // 
-//   },
-//   // Fires if the timer runs out (user didn't interact)
-//   onAutoClose: (t) => {
-//     console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
-//   }
-// });
-
   const location = useLocation();
-
-  const notificationList = [
-    {
-      title: "Salary Credited",
-      message: "₱4,200 has been added to your balance.",
-      type: "success",
-    },
-    {
-      title: "Budget Warning",
-      message: "You are close to exceeding your Food budget.",
-      type: "warning",
-    },
-    {
-      title: "Subscription Charged",
-      message: "Netflix charged ₱15.99",
-      type: "info",
-    },
-  ];
-
 
 const getAllunreadMark = useMemo(() => {
   if(Array.isArray(notification?.notifications)){
@@ -104,11 +58,6 @@ const unreadMark = useCallback(async (notifId) => {
 
 }, [notification])
 
-useEffect(() =>{
-  // console.log('All notification with unread value :: ', getAllunreadMark);
-}, getAllunreadMark);
-
-
   useEffect(() => {
     if(user._id) {
       const getNotification = async () => {
@@ -130,23 +79,9 @@ useEffect(() =>{
 
 
   useEffect(() => {
-    // console.log('Notification list :: ', notification);
 
     
   }, [notification])
-
-  // --> mark as read /notification/read
-
-//   export const markAsRead = async (req, res) => {
-//   try {
-//     const { notificationId } = req.body;
-//     await Notification.findByIdAndUpdate(notificationId, { isRead: true });
-//     res.status(200).json({ success: true });
-//   } catch (err) {
-//     res.status(500).json({ message: "Error updating status" });
-//   }
-// };
-
 
   const handleBellClick = () => {
     if (!getAllunreadMark.length) {
@@ -217,42 +152,30 @@ useEffect(() =>{
 
   const [currentTheme, setCurrentTheme] = useState("light");
 
-  // 2. ADD THIS EFFECT TO WATCH FOR CLASS CHANGES
   useEffect(() => {
-    // Function to check if 'dark' class exists on HTML tag
     const checkTheme = () => {
       const isDark = document.documentElement.classList.contains("dark");
       setCurrentTheme(isDark ? "dark" : "light");
     };
 
-    // Run once on mount
     checkTheme();
 
-    // Create an observer to watch for class changes on <html>
     const observer = new MutationObserver(checkTheme);
     observer.observe(document.documentElement, {
       attributes: true,
       attributeFilter: ["class"],
     });
 
-    // Cleanup
     return () => observer.disconnect();
   }, []);
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
   return (
-    // 1. MAIN CONTAINER
     <div className="flex min-h-screen w-full bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 transition-colors duration-300">
       
       {/* Decorative Blobs */}
       <div className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-40 dark:opacity-20 pointer-events-none z-0"></div>
       <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-40 dark:opacity-20 pointer-events-none z-0"></div>
 
-      {/* ========================================================================
-          SIDEBAR
-          ======================================================================== */}
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-0"
@@ -297,15 +220,9 @@ useEffect(() =>{
         </nav>
       </aside>
 
-      {/* ========================================================================
-          MAIN CONTENT - UPDATED FOR STICKY HEADER
-          ======================================================================== */}
-      {/* 1. 'overflow-y-auto' and 'h-screen' move the scrollbar to this container.
-          2. This allows children with 'sticky' to actually stick.
-      */}
+      
       <div className="flex-1 flex flex-col min-w-0 z-10 relative overflow-y-auto h-screen">
         
-        {/* Sticky Wrapper for Header */}
         <div className="sticky top-0 z-50 bg-white/0 dark:bg-stone-950/0 backdrop-blur-sm transition-all">
             <Header
             setSidebarOpen={setSidebarOpen}
@@ -317,7 +234,6 @@ useEffect(() =>{
             />
         </div>
 
-        {/* Content Area - Removed overflow-auto from here */}
         <div className="flex-1">
             {(homeDefault === 'Home' && location.pathname === '/user/') ? (
             <UserHome
@@ -336,9 +252,8 @@ useEffect(() =>{
        <Toaster 
           position="top-right" 
           richColors 
-          theme={currentTheme} // <--- Forces 'light' or 'dark' based on your state
+          theme={currentTheme}
           toastOptions={{
-            // Keep your Stone styling consistent
             classNames: {
               toast: 'group bg-white dark:bg-stone-900 text-stone-950 dark:text-stone-50 border-stone-200 dark:border-stone-800 shadow-xl',
               description: 'text-stone-500 dark:text-stone-400 font-medium',

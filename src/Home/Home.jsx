@@ -160,6 +160,21 @@ const PebbleCard = ({ children, className = "" }) => (
   </div>
 );
 
+function getCurrencySymbol(currencyCode) {
+  try {
+    const formatter = new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currencyCode,
+      currencyDisplay: 'narrowSymbol' // 'narrowSymbol' gives '$' instead of 'US$'
+    });
+    
+    return formatter.formatToParts(0).find(part => part.type === 'currency').value;
+  } catch (e) {
+    console.error(`Invalid currency code: ${currencyCode}`);
+    return undefined; // or return currencyCode if you prefer
+  }
+}
+
 export function Home() {
   const [transactions, setTransactions] = useState(null);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
@@ -193,6 +208,15 @@ export function Home() {
         console.error('Unable to delete', err);
       } 
   }
+
+  useEffect(() => {
+    if(user){
+      console.log("Currency code :: ", user);
+    }
+  }, user)
+
+
+
 
   // --- 1. DYNAMIC BUDGET CALCULATOR (FIXED FOR YOUR JSON) ---
   const processedBudgets = useMemo(() => {
@@ -248,7 +272,6 @@ export function Home() {
   }, [categorySpent, userReceipts]);
 
 
-  // --- 2. CALCULATE SAVINGS METRICS ---
   const savingsMetrics = useMemo(() => {
     if (!categorySpent) return { percent: 0, target: 0, current: 0 };
     // Assuming savings are budget items with a specific flag or category 'Savings'
@@ -283,7 +306,7 @@ export function Home() {
   const stats = [
     {
       title: "Total Balance",
-      value: "$" + parseFloat(totalBalance?.toFixed(2) || 0).toLocaleString(),
+      value: getCurrencySymbol(user?.currency) + parseFloat(totalBalance?.toFixed(2) || 0).toLocaleString(),
       change: `${balanceGrowth.isPositive ? "+" : ""}${balanceGrowth.value}%`,
       isPositive: balanceGrowth.isPositive,
       icon: Wallet,
@@ -291,7 +314,7 @@ export function Home() {
     },
     {
       title: "Monthly Income",
-      value: "$" + parseFloat(monthlyIncome?.toFixed(2) || 0).toLocaleString(),
+      value: getCurrencySymbol(user?.currency) + parseFloat(monthlyIncome?.toFixed(2) || 0).toLocaleString(),
       change: (previousIncome > 0) 
         ? (((parseFloat(monthlyIncome || 0) - previousIncome ) / previousIncome) * 100).toFixed(1) + "%" 
         : "+100%",
@@ -301,7 +324,7 @@ export function Home() {
     },
     {
       title: "Monthly Expenses",
-      value: "$" + parseFloat(monthlyExpenses?.toFixed(2) || 0).toLocaleString(),
+      value: getCurrencySymbol(user?.currency) + parseFloat(monthlyExpenses?.toFixed(2) || 0).toLocaleString(),
       change: (previousExpense > 0) 
         ? (((parseFloat(monthlyExpenses || 0) - previousExpense ) / previousExpense) * 100).toFixed(1) + "%" 
         : "+100%",
@@ -312,7 +335,7 @@ export function Home() {
     {
       title: "Savings Goal",
       value: `${savingsMetrics.percent}%`,
-      change: `Target: $${(savingsMetrics.target / 1000).toFixed(1)}k`, 
+      change: `Target: ${ getCurrencySymbol(user?.currency) + (savingsMetrics.target / 1000).toFixed(1)}`, 
       isPositive: savingsMetrics.percent > 0,
       icon: PieChart,
       color: savingsMetrics.percent >= 100 ? "emerald" : "blue",

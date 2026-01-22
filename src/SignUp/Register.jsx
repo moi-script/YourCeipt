@@ -25,11 +25,11 @@ export function RegisterForm({
   const handleSubmit = async (e, setRegisterLoading) => {
     e.preventDefault();
 
-    console.log("Uploading user data");
+    console.log("Uploading user data", location.pathname);
 
     try {
       console.log('Form data --> ', formData);
-      const response = await register( BASE_API_URL + "/user" +  location.pathname, {
+      const response = await register( BASE_API_URL + "/user" +  location.pathname, { // http://localhost:3000
         credentials: "include",
         method: "POST",
         headers: {

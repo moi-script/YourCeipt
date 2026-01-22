@@ -82,7 +82,13 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     nickname: "",
     fullname: "",
     email: "",
-    password: ""
+    password: "",
+    image_profile : "",
+    image_public_url : "",
+    currency : "PHP",
+    theme : "default",
+    overSpending : false,
+    nearLimit : false
   });
 
   // --- FORGOT PASSWORD STATE (Integrated) ---

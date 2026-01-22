@@ -398,16 +398,10 @@ export const AuthProvider = ({ children }) => {
 
 
   // fetching user receipt list
-
   const [models, setModels] = useState(null);
 
-// ... (Your existing useEffects remain the same) ...
   useEffect(() => {
-    // console.log('Fetching ai models ');
-    // if(!user?._id) return;
-    
     const fetchAi = async () => {
-      // console.log('Fetching ai --> ');
       try {
         setIsModelLoading(true);
         const res = await fetch(BASE_API_URL + "/extract/getModels");
@@ -696,12 +690,10 @@ useEffect(() => {
 
 
   useEffect(() => {
-    // console.log("Activiated the verify session ");
     if(!isUserLogin) return;
-    // console.log("Running the check sessions");
     const checkSession = async () => {
       try {
-        const response = await apiFetch(BASE_API_URL + "/user/verify", {
+        const response = await apiFetch("http://localhost:3000" + "/user/verify", { // BASE_API_URL 
           credentials: "include",
         });
 
