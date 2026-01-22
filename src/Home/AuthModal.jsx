@@ -90,7 +90,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
   // =========================================================
   // AUTH STATE & LOGIC
   // =========================================================
-  const { login, register, setUser, user } = useAuth(); 
+  const { login, register, setUser } = useAuth(); 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/user";
@@ -170,7 +170,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     setIsLoading(true);
     setError(null);
 
-    const postAi = await uploadAiDefaultModel(user._id, modelName = uploadAiDefaultModel(), BASE_API_URL);
+    // const postAi = await uploadAiDefaultModel(user._id, modelName = uploadAiDefaultModel(), BASE_API_URL);
 
     if(postAi.ok) throw Error('Ai default error');
     
