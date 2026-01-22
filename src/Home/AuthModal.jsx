@@ -23,8 +23,31 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_API_URL } from "@/api/getKeys.js";
+import { getAiDefaultModel } from "@/api/getKeys.js";
 // const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
+
+
+
+const uploadAiDefaultModel = async (userId, modelName, BASE_API_URL) => {
+     const res = await fetch(BASE_API_URL + "/extract/postmodel", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              userId: userId,
+              modelName: modelName,
+            }),
+          });
+
+          try {
+            const data = await res.json();
+            return data;
+          } catch(err) {
+            console.error("Unable to post ai default model ::", err);
+          }
+}
+
+const modelName = "xiaomi/mimo-v2-flash:free";
 
 export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
   const [mode, setMode] = useState(defaultTab); 
@@ -67,7 +90,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
   // =========================================================
   // AUTH STATE & LOGIC
   // =========================================================
-  const { login, register, setUser } = useAuth(); 
+  const { login, register, setUser, user } = useAuth(); 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/user";
@@ -147,6 +170,10 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     setIsLoading(true);
     setError(null);
 
+    const postAi = await uploadAiDefaultModel(user._id, modelName = uploadAiDefaultModel(), BASE_API_URL);
+
+    if(postAi.ok) throw Error('Ai default error');
+    
     try {
       const response = await register(BASE_API_URL + "/user/register", {
         credentials: "include",

@@ -31,6 +31,8 @@ const BudgetSignup = () => {
     nearLimit : false
   });
 
+  
+
   const steps = [
     {
       title: "Scan or Upload Receipts",

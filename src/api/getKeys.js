@@ -8,4 +8,6 @@ const getBaseApiUrl = (type) => {
 
 export const BASE_API_URL = getBaseApiUrl('production');  
 
+
+export const getAiDefaultModel = () => import.meta.env.VITE_AI_DEFAULT_MODEL;
 // console.log(getCloudName());
