@@ -15,7 +15,7 @@ import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/Home/Analyts";
 import { useToast } from "@/components/Toaster";
 import { uploadNotification } from "@/api/uploadNotification";
 const AuthContext = createContext(null);
-import { BASE_API_URL } from "@/api/getKeys.js"; 
+import { BASE_API_URL, getAiDefaultModel } from "@/api/getKeys.js"; 
 
 // const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
@@ -436,7 +436,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if(!res.ok) {
-        setActiveModelName("kwaipilot/kat-coder-pro:free");
+        setActiveModelName(getAiDefaultModel());
       }
     } catch (err) {
       console.error("Error No active model status");

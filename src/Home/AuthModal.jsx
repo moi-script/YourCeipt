@@ -172,7 +172,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
 
     // const postAi = await uploadAiDefaultModel(user._id, modelName = uploadAiDefaultModel(), BASE_API_URL);
 
-    if(postAi.ok) throw Error('Ai default error');
+    // if(postAi.ok) throw Error('Ai default error');
     
     try {
       const response = await register(BASE_API_URL + "/user/register", {
