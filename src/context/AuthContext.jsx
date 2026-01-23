@@ -236,10 +236,15 @@ const calculateBudgetSpending = (budgetList, transactions) => {
 
     receipt.items.forEach((item) => {
       // Normalize category to lowercase to ensure matches (e.g., "Food" == "food")
+      // console.log('Items category in receipts --> ', item.category);
       const category = item.category?.toLowerCase().trim() ?? "other";
       const price = parseFloat(item.price) || 0;
       const quantity = parseFloat(item.quantity) || 1;
-      const totalItemCost = price * quantity;
+      const totalItemCost = price * quantity; 
+      // if(category === "FOOD"){
+      //   // console.log('Item cost -->', price); // this can be updated, let ai search for price automatically
+      //   // using country as dependency 
+      // }
 
       if (spendingMap[category]) {
         spendingMap[category] += totalItemCost;
@@ -252,7 +257,10 @@ const calculateBudgetSpending = (budgetList, transactions) => {
   // console.log('Spending map -> ', spendingMap);
 
   return budgetList.map((budget) => {
+    // console.log('Budget list object --> ', budget);
     const budgetCategory = budget.category.toLowerCase().trim();
+    // console.log('Budget Map --> ', JSON.stringify(spendingMap));
+    // console.log('Category to select from object --> ', budgetCategory); 
     const totalSpent = spendingMap[budgetCategory] || 0; 
     
     return {

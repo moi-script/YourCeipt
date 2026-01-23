@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { BASE_API_URL } from '@/api/getKeys.js';
-// --- YOUR DATA STRUCTURE ---
 const initialBudgets = [
   {
     _id: 1,
@@ -71,11 +70,6 @@ const initialBudgets = [
     color: "#f97316"
   }
 ];
-
-// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
-
-
-
 const Card = ({ children, className = "" }) => (
   <div className={`backdrop-blur-md border border-white/50 dark:border-white/10 bg-white/60 dark:bg-stone-900/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden transition-all duration-300 ${className}`}>
     {children}
@@ -169,8 +163,6 @@ const Alert = ({ children, className = "", variant = "default" }) => {
   );
 };
 
-// --- DATA & LOGIC ---
-
 const categoryIcons = {
   groceries: ShoppingCart,
   housing: Home,
@@ -210,7 +202,7 @@ const BudgetPage = () => {
   const nearLimitCategories = budgets?.filter(b => (b.spent / b.budgetAmount) >= 0.9 && b.spent <= b.budgetAmount);
 
   const handleAddEdit = async () => {
-    console.log('Handle add edit triggered');
+    // console.log('Handle add edit triggered');
     if (editingBudget) {
       // Edit Mode
       setBudgets(budgets?.map(b => b._id === editingBudget._id 
@@ -235,11 +227,12 @@ const BudgetPage = () => {
     
     setIsDialogOpen(false);
     setEditingBudget(null);
+    setRefreshPage(true);
     setFormData({ category: 'groceries', budgetName: '', budgetAmount: '', color: '#10b981' });
   };
 
   const handleEdit = (budget) => {
-    console.log('Handle edit for budget --> ', budget);
+    // console.log('Handle edit for budget --> ', budget);
     setEditingBudget(budget);
     // Map existing data to form state
     setFormData({ 
@@ -252,8 +245,8 @@ const BudgetPage = () => {
   };
 
   const handleDelete = async (id) => {
-    console.log("Handle delete with id :: ", ...budgets);
-    console.log('user id', user._id);
+    // console.log("Handle delete with id :: ", ...budgets);
+    // console.log('user id', user._id);
     
     try {
         const res = await fetch(BASE_API_URL + '/budget', {
@@ -301,8 +294,8 @@ const handleUpdateItem = async (itemData) => {
     // const budgetForm = useState({
     //     userId : "", category : " ", budgetName : "", budgetAmount : 0, color : ""
     // })
-    console.log("Item data --> ", itemData);
-    console.log('Form - data ::', formData);
+    // console.log("Item data --> ", itemData);
+    // console.log('Form - data ::', formData);
     try {
         const res = await fetch(BASE_API_URL + '/update/budget', {
             method: "POST",
@@ -488,6 +481,7 @@ const handleGetBudgetItemList = async () => {
         {/* Budget Categories Grid - UPDATED with correct keys */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {categorySpent?.map((budget) => {
+            // console.log('Budget --> ', budget);
             const percentage = (budget.spent / budget.budgetAmount) * 100;
             const isOverBudget = budget.spent > budget.budgetAmount;
             const Icon = categoryIcons[budget.category] || DollarSign;
@@ -582,6 +576,7 @@ const handleGetBudgetItemList = async () => {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
                   <option value="groceries">Groceries</option>
+                  <option value="food">Food</option>
                   <option value="housing">Housing</option>
                   <option value="transportation">Transportation</option>
                   <option value="dining">Dining Out</option>
@@ -660,8 +655,6 @@ const handleGetBudgetItemList = async () => {
                   Cancel
                 </Button>
               </div>
-
-              
             </div>
           </div>
         </Dialog>

@@ -541,6 +541,12 @@ export function AdvanceForm({
                  <Label className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 ml-3">Quick Entry</Label>
                  <Textarea placeholder='e.g., "Paid $45 for groceries..."' value={quickText} onChange={(e) => setQuickText(e.target.value)} rows={4} className="rounded-[1.5rem] bg-stone-50 dark:bg-stone-900 border-transparent dark:border-stone-800 px-4 sm:px-5 py-3 sm:py-4 focus-visible:ring-emerald-200 dark:focus-visible:ring-emerald-900 text-base sm:text-lg resize-none" />
               </div>
+                 <div className="bg-orange-50 dark:bg-orange-900/20 p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border border-orange-100 dark:border-orange-800/30 flex gap-3 items-start">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 dark:text-orange-400 mt-0.5" />
+              <p className="text-xs sm:text-sm text-orange-800/80 dark:text-orange-200/80">
+                <span className="font-bold">Tip:</span> Ensure each item had price value to have a budget computation 
+              </p>
+            </div>
               <Button variant="secondary" onClick={handleParseText} className="w-full rounded-full h-11 sm:h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/50"><Sparkles className="w-4 h-4 mr-2" /> Parse with AI</Button>
            </div>
         )}
