@@ -329,7 +329,7 @@ export function AnalyticsDashBoards() {
   return (
     <>
       <Analytics
-        monthlyData={dummyMonthlyData}
+        // monthlyData={dummyMonthlyData}
         // spendingTrend={dummySpendingTrend}
         // categoryInsights={dummyCategoryInsights}
         // merchantInsights={dummyMerchantInsights}
@@ -341,7 +341,7 @@ export function AnalyticsDashBoards() {
 }
 
 export default function Analytics({
-  monthlyData,
+  // monthlyData,
   // spendingTrend,
   // categoryInsights,
   // merchantInsights,
@@ -351,11 +351,29 @@ export default function Analytics({
   const [selectedPeriod, setSelectedPeriod] = useState("month");
   const [metricValue, setMetricValue] = useState(null);  
   const { metricsAnalytic, getMetrics, totalIncome, totalSpent, spendingTrend,
- categorySpent, userReceipts, transformInsights, categoryInsights, categorySummaries } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
+ categorySpent, userReceipts, transformInsights, previousIncome, previousExpense, totalBalance, monthlyIncome, monthlyExpenses, savings, categoryInsights, categorySummaries } = useAuth(); // metricsAnalytic.info -> transaction, metricsAnalytic.setMetric -> (transaction, date); 
  
   const [merchantInsights, setMerchantInsights] = useState(null);
+const monthlyData = {
+  totalIncome,
+  totalExpenses: totalSpent,
+  netSavings: savings,
+  savingsRate:
+    totalIncome > 0 ? ((savings / totalIncome) * 100).toFixed(2) : 0,
+  incomeStability:
+    previousIncome && previousIncome > 0
+      ? Math.max(
+          0,
+          Math.min(
+            (1 - Math.abs(totalIncome - previousIncome) / previousIncome) *
+              100,
+            100
+          )
+        ).toFixed(2)
+      : null,
+};
 
-  
+
       // transformInsights,
       // categoryInsights,
       // categorySummaries,
@@ -829,7 +847,7 @@ export default function Analytics({
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
           <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Total</span>
           <span className="text-xl font-serif text-stone-800 dark:text-stone-100">
-            ₱{monthlyData.totalExpenses.toLocaleString()}
+            ₱{monthlyData.totalExpenses?.toLocaleString()}
           </span>
         </div>
       </CardContent>
