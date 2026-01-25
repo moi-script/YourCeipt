@@ -42,7 +42,7 @@ export default function LegalPage() {
         }`}
       >
         <div className="max-w-4xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/main" className="flex items-center gap-2 group text-stone-600 dark:text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+          <Link to="/" className="flex items-center gap-2 group text-stone-600 dark:text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium text-sm">Back to Home</span>
           </Link>
