@@ -618,7 +618,7 @@ export function Home() {
                           {category.name}
                         </span>
                         <span className="text-sm text-stone-500 dark:text-stone-400 font-medium">
-                          ${category.spent.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ${category.budget.toLocaleString()}
+                          ₱{category.spent.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ₱{category.budget.toLocaleString()}
                         </span>
                       </div>
                       <div className="w-full bg-stone-100 dark:bg-stone-800 rounded-full h-3 overflow-hidden">
@@ -722,7 +722,7 @@ export function Home() {
                 {category.name}
               </h4>
               <p className="text-sm text-stone-500 dark:text-stone-400">
-                ${category.spent.toLocaleString()} spent of ${category.budget.toLocaleString()} budget
+                ₱{category.spent.toLocaleString()} spent of ₱{category.budget.toLocaleString()} budget
               </p>
             </div>
             <Badge

@@ -669,6 +669,7 @@ const InteractiveDashboard = () => {
 
 export default function LandingPage() {
   const [scrolled, setScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     if (typeof document !== "undefined") return document.documentElement.classList.contains("dark");
     return false;
@@ -719,61 +720,64 @@ export default function LandingPage() {
 {/* NAVBAR */}
 <nav className={`fixed top-0 w-full z-50 transition-all duration-500 border-b ${
     scrolled 
-    ? "bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl border-stone-200 dark:border-white/10 py-3 sm:py-4 shadow-sm" 
-    : "bg-transparent border-transparent py-4 sm:py-6"
+    ? "bg-white/80 dark:bg-stone-950/80 backdrop-blur-xl border-stone-200 dark:border-white/10" 
+    : "bg-transparent border-transparent"
 }`}>
-    {/* Changed px-6 to px-4 for mobile to save horizontal space */}
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 sm:h-20">
         
-        {/* --- LEFT: Logo --- */}
-        <div className="flex items-center gap-1.5 sm:gap-2 group cursor-pointer shrink-0">
-            <div className="bg-emerald-100 dark:bg-emerald-900/50 p-1.5 sm:p-2 rounded-full transition-all duration-300 group-hover:scale-110 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900">
-                <Leaf className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            {/* Reduced text size to text-lg on mobile, 2xl on desktop */}
-            <span className="font-serif italic text-lg sm:text-2xl tracking-wide text-stone-800 dark:text-stone-100 group-hover:text-emerald-700 transition-colors">
-                Recepta
-            </span>
+        {/* LOGO */}
+        <div className="flex items-center gap-1.5 shrink-0">
+            <Leaf className="w-5 h-5 text-emerald-600" />
+            <span className="font-serif italic text-lg sm:text-xl">Recepta</span>
         </div>
 
-        {/* --- CENTER: Desktop Links (Hidden on Mobile) --- */}
+        {/* DESKTOP LINKS (Hidden on mobile) */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-stone-600 dark:text-stone-400">
-            <a href="#features" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors hover:-translate-y-0.5 transform duration-200">Features</a>
-            <Link to="/aiEngine" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors hover:-translate-y-0.5 transform duration-200">AI Engine</Link>
-            <a href="#pricing" className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors hover:-translate-y-0.5 transform duration-200">Pricing</a>
+            <a href="#features" className="hover:text-emerald-600 transition-colors">Features</a>
+            <Link to="/aiEngine" className="hover:text-emerald-600 transition-colors">AI Engine</Link>
+            <a href="#pricing" className="hover:text-emerald-600 transition-colors">Pricing</a>
         </div>
 
-        {/* --- RIGHT: Actions --- */}
-        {/* Added shrink-0 to prevent this section from being crushed */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            
-            {/* Theme Toggle */}
-            <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={toggleTheme} 
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full text-stone-600 dark:text-stone-400 hover:bg-stone-200/50 dark:hover:bg-stone-800/50 transition-all hover:scale-110"
-            >
-                {isDark ? <Sun className="w-4 h-4 sm:w-5 sm:h-5" /> : <Moon className="w-4 h-4 sm:w-5 sm:h-5" />}
+        {/* RIGHT ACTIONS */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+            {/* Theme Toggle - Hidden on very small screens to save space if needed, 
+                but kept here for consistency */}
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full w-8 h-8 sm:w-10 sm:h-10">
+                {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </Button>
-
-            {/* Log In Link - Slightly smaller text on mobile */}
-            <button 
-                onClick={() => openAuth('login')} 
-                className="text-xs sm:text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white transition-colors px-1 sm:px-2 hover:underline decoration-emerald-500 decoration-2 underline-offset-4 whitespace-nowrap"
-            >
-                Log In
-            </button>
-
-            {/* Get Started Button - Tighter padding (px-3) and smaller text on mobile */}
+            
+            {/* GET STARTED - Now always visible */}
             <Button 
                 onClick={() => openAuth('register')} 
-                className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-full px-3 sm:px-6 h-8 sm:h-10 text-xs sm:text-sm transition-all hover:shadow-lg hover:shadow-emerald-500/20 hover:-translate-y-0.5 whitespace-nowrap"
+                className="bg-emerald-700 hover:bg-emerald-800 text-white rounded-full px-3 sm:px-6 h-8 sm:h-10 text-xs sm:text-sm whitespace-nowrap"
             >
                 Get Started
             </Button>
+
+            {/* MOBILE MENU TOGGLE */}
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                className="md:hidden w-8 h-8" 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Zap className="w-5 h-5 rotate-90 text-emerald-600" />}
+            </Button>
         </div>
     </div>
+
+    {/* MOBILE MENU DROPDOWN */}
+    {isMobileMenuOpen && (
+        <div className="md:hidden bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 p-4 space-y-4 animate-in slide-in-from-top-5">
+            <a href="#features" className="block text-sm font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Features</a>
+            <Link to="/aiEngine" className="block text-sm font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>AI Engine</Link>
+            <a href="#pricing" className="block text-sm font-medium py-2" onClick={() => setIsMobileMenuOpen(false)}>Pricing</a>
+            <hr className="border-stone-100 dark:border-stone-800" />
+            <Button onClick={() => { openAuth('login'); setIsMobileMenuOpen(false); }} className="w-full justify-center" variant="outline">
+                Log In
+            </Button>
+        </div>
+    )}
 </nav>
       {/* HERO SECTION */}
       <header className="relative z-10 pt-48 pb-20 px-6">
