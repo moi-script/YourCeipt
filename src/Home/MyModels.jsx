@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { RefreshCw, Check, ChevronDown, Sparkles, AlertTriangle } from "lucide-react";
+import {RefreshCw, Check, ChevronDown, AlertTriangle} from "lucide-react";
+import { IconStamp } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/Toaster.jsx";
@@ -194,7 +195,7 @@ export default function AIModelDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 px-4 sm:px-5 py-4">
             <div className="flex-1">
               <p className="font-medium text-stone-900 dark:text-stone-100 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> Auto
+                <IconStamp className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> Auto
                 <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Recommended</span>
               </p>
               <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Wallet, DollarSign, TrendingUp, UploadCloud, Cpu, Mail, ArrowLeft, ChevronLeft, ChevronRight, Leaf } from 'lucide-react';
+import {Wallet, DollarSign, TrendingUp, UploadCloud, Cpu, Mail, ArrowLeft, ChevronLeft, ChevronRight} from "lucide-react";
 
 const ForgotPassword = () => {
   const [currentStep, setCurrentStep] = useState(0);

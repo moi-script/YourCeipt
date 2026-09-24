@@ -216,7 +216,7 @@ const FEATURES = [
 const FAQ = [
   {
     q: "What happens to my receipt photos?",
-    a: "The photo goes to Microsoft Azure to read the text, and that text goes to Google Gemini (or the model you picked) to be split into items and totals. Recepta stores the extracted details, not the photo. Passwords are hashed and sessions use secure, HTTP-only cookies.",
+    a: "The photo goes to Microsoft Azure to read the text, and that text goes to Google Gemini (or the model you picked) to be split into items and totals. The photo is kept with the entry so you can look at it later, unless you switch that off in Privacy settings. Passwords are hashed, and you can turn on two-step sign-in with an emailed code.",
   },
   {
     q: "How accurate is it?",

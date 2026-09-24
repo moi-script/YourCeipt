@@ -14,6 +14,8 @@ import { calculateMonthlyTrendClientSide, getCategorySummaries, processBudgetIns
 import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/lib/categories";
 import { useToast } from "@/components/Toaster";
 import { uploadNotification } from "@/api/uploadNotification";
+import { setTheme } from "@/lib/theme";
+import { loadRates, makeMoney, readCachedRates } from "@/lib/money";
 const AuthContext = createContext(null);
 import { BASE_API_URL, getAiDefaultModel } from "@/api/getKeys.js"; 
 
@@ -21,112 +23,42 @@ import { BASE_API_URL, getAiDefaultModel } from "@/api/getKeys.js";
 
 let globalState = 0;
 
+// Monthly totals. Type is compared case-insensitively ("expense" from the
+// manual form, "Expense" from the AI), and totals are parsed as numbers.
+const txAmount = (t) => {
+  const n = parseFloat(String(t?.total ?? t?.subtotal ?? 0).replace(/[^0-9.-]+/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+const txType = (t) => (String(t?.metadata?.type || "").toLowerCase() === "income" ? "income" : "expense");
+const sumForMonth = (transactions, type, monthsAgo = 0) => {
+  const now = new Date();
+  const target = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+  return (transactions || []).reduce((sum, t) => {
+    const d = new Date(t?.metadata?.datetime);
+    if (Number.isNaN(d.getTime()) || txType(t) !== type) return sum;
+    if (d.getFullYear() !== target.getFullYear() || d.getMonth() !== target.getMonth()) return sum;
+    return sum + txAmount(t);
+  }, 0);
+};
+const getMonthlyIncome = (transactions) => sumForMonth(transactions, "income");
+const getMonthlyExpenses = (transactions) => sumForMonth(transactions, "expense");
+const getPreviousMonthlyExpensesOrIncome = (transactions, receiptType) =>
+  sumForMonth(transactions, String(receiptType).toLowerCase() === "income" ? "income" : "expense", 1);
+
 const getTotalBalanceBudget = (budgetList) => {
   return budgetList?.reduce((total, value) => {
     return total + value.budgetAmount;
   }, 0);
 };
 
-const getMonthlyIncome = (transaction) => {
-  return transaction
-    .filter((transact) => {
-      // transact.metadata.type === "Income"
-      const type = transact.metadata.type;
-      const date = new Date(transact.metadata.datetime);
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const yearNow = new Date();
 
-      if (
-        type === "Income" &&
-        year === yearNow.getFullYear() &&
-        month === yearNow.getMonth()
-      ) {
-        return transact;
-      }
-    })
-    .reduce((sum, spent) => {
-      return sum + parseFloat(spent.total);
-    }, 0);
-};
 
-const getPreviousMonthlyExpensesOrIncome = (transaction, receiptType) => {
-  return transaction // track year and month
-    .filter((transact) => {
-      const type = transact.metadata.type;
-      const date = new Date(transact.metadata.datetime);
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const dateNow = new Date();
-      const getPreviousDate = () => {
-        if (dateNow.getMonth() - 1 < 0) {
-          let prevDateObject = [
-            dateNow.getFullYear() - 1,
-            dateNow.getMonth() - 1 + 13,
-            dateNow.getDay(),
-          ].join("-");
-          return new Date(prevDateObject);
-        }
-        return new Date([
-          dateNow.getFullYear(),
-          dateNow.getMonth() - 1,
-          dateNow.getDay(),
-        ]);
-      };
 
-      const previousDate = getPreviousDate();
+const getTotalExpenses = (transactions) =>
+  (transactions || []).filter((t) => txType(t) === "expense").reduce((sum, t) => sum + txAmount(t), 0);
 
-      if (
-        type === receiptType &&
-        year === previousDate.getFullYear() &&
-        month === previousDate.getMonth()
-      ) {
-        return transact;
-      }
-    })
-    .reduce((sum, spent) => {
-      return sum + parseFloat(spent.total)?.toFixed(2);
-    }, 0);
-};
-
-const getMonthlyExpenses = (transaction) => {
-  return transaction // track year and month
-    .filter((transact) => {
-      const type = transact.metadata.type;
-      const date = new Date(transact.metadata.datetime);
-      const year = date.getFullYear();
-      const month = date.getMonth();
-      const yearNow = new Date();
-
-      if (
-        type === "Expense" &&
-        year === yearNow.getFullYear() &&
-        month === yearNow.getMonth()
-      ) {
-        return transact;
-      }
-    })
-    .reduce((sum, spent) => {
-      // console.log('Store for month ::', spent.store)
-      return sum + parseFloat(spent.total);
-    }, 0);
-};
-
-const getTotalExpenses = (transaction) => {
-  return transaction
-    .filter((transact) => transact.metadata.type === "Expense")
-    .reduce((sum, spent) => {
-      return (sum += parseFloat(spent.total));
-    }, 0);
-};
-
-const getTotalIncome = (transaction) => {
-  return transaction
-    .filter((transact) => transact.metadata.type === "Income")
-    .reduce((sum, spent) => {
-      return (sum += parseFloat(spent.total));
-    }, 0);
-};
+const getTotalIncome = (transactions) =>
+  (transactions || []).filter((t) => txType(t) === "income").reduce((sum, t) => sum + txAmount(t), 0);
 
 const getSavings = (monthlyIncome = 0, monthlyExpenses = 0) => {
   
@@ -223,51 +155,35 @@ const convertToInitialTransactions = (receipts = []) => {
   });
 };
 
+// Budgets are monthly: count this month's expense items per category.
+// Category names differ between the manual form ("Food", "Transport") and
+// the AI ("Groceries", "Transportation"), so fold the aliases together.
+const CATEGORY_ALIAS = { food: "groceries", grocery: "groceries", transport: "transportation", health: "healthcare", general: "other" };
+const normCategory = (c) => {
+  const k = String(c || "other").toLowerCase().trim();
+  return CATEGORY_ALIAS[k] || k;
+};
+
 const calculateBudgetSpending = (budgetList, transactions) => {
   if (!budgetList || !transactions) return [];
-
-  // Step 1: Create a map to store total spending per category
-  // Example: { "groceries": 150.00, "utilities": 40.50 }
+  const now = new Date();
   const spendingMap = {};
 
-  transactions.forEach((receipt) => {
-    // skip invalid receipts
-    if (!receipt.items) return; 
+  for (const receipt of transactions) {
+    if (!receipt?.items || txType(receipt) !== "expense") continue;
+    const d = new Date(receipt.metadata?.datetime);
+    if (Number.isNaN(d.getTime()) || d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) continue;
 
-    receipt.items.forEach((item) => {
-      // Normalize category to lowercase to ensure matches (e.g., "Food" == "food")
-      // console.log('Items category in receipts --> ', item.category);
-      const category = item.category?.toLowerCase().trim() ?? "other";
-      const price = parseFloat(item.price) || 0;
-      const quantity = parseFloat(item.quantity) || 1;
-      const totalItemCost = price * quantity; 
-      // if(category === "FOOD"){
-      //   // console.log('Item cost -->', price); // this can be updated, let ai search for price automatically
-      //   // using country as dependency 
-      // }
-
-      if (spendingMap[category]) {
-        spendingMap[category] += totalItemCost;
-      } else {
-        spendingMap[category] = totalItemCost;
-      }
-    });
-  });
-
-  // console.log('Spending map -> ', spendingMap);
+    for (const item of receipt.items) {
+      const cost = (parseFloat(item.price) || 0) * (parseFloat(item.quantity) || 1);
+      const key = normCategory(item.category);
+      spendingMap[key] = (spendingMap[key] || 0) + cost;
+    }
+  }
 
   return budgetList.map((budget) => {
-    // console.log('Budget list object --> ', budget);
-    const budgetCategory = budget.category.toLowerCase().trim();
-    // console.log('Budget Map --> ', JSON.stringify(spendingMap));
-    // console.log('Category to select from object --> ', budgetCategory); 
-    const totalSpent = spendingMap[budgetCategory] || 0; 
-    
-    return {
-      ...budget, // Keep existing budget properties (color, name, etc.)
-      spent: totalSpent, // Update the spent amount
-      remaining: budget.budgetAmount - totalSpent 
-    };
+    const totalSpent = spendingMap[normCategory(budget.category)] || 0;
+    return { ...budget, spent: totalSpent, remaining: budget.budgetAmount - totalSpent };
   });
 };
 
@@ -462,18 +378,23 @@ export const AuthProvider = ({ children }) => {
   }, [monthlyIncome, monthlyExpenses]);
 
 
+  // Apply the saved theme once it arrives (no crossfade on page load).
   useEffect(() => {
-    if (!user) return;
-    const root = window.document.documentElement;
-    // Check the boolean state 'isDarkMode', not the string "dark"
-    if (user?.theme === "dark") {
-      root.classList.add("dark");
-      root.style.colorScheme = "dark";
-    } else {
-      root.classList.remove("dark");
-      root.style.colorScheme = "light";
-    }
-  }, [user]);
+    if (!user?.theme) return;
+    setTheme(user.theme === "dark", { animate: false });
+  }, [user?.theme]);
+
+  // Display currency: amounts are stored in pesos and converted for display.
+  const [fxRates, setFxRates] = useState(() => readCachedRates());
+  useEffect(() => {
+    if (!user?._id) return;
+    loadRates().then(setFxRates);
+  }, [user?._id]);
+  const money = useMemo(() => makeMoney((user?.currency || "PHP").toUpperCase(), fxRates), [user?.currency, fxRates]);
+
+  // Update the signed-in user locally after a settings change, so every
+  // page reflects it without a reload.
+  const updateUser = useCallback((patch) => setUser((prev) => (prev ? { ...prev, ...patch } : prev)), []);
 
   useEffect(() => {
     if (totalBudget && totalSpent) {
@@ -645,54 +566,55 @@ export const AuthProvider = ({ children }) => {
 
 
 
-  const isNotificationExist = (name) => {
-    return notification?.notifications.some((notif) => notif.title === name);
-  };
+  // One alert per budget, per kind, per month. The title carries the kind so
+  // "near limit" and "over limit" don't block each other.
+  const monthKey = () => new Date().toISOString().slice(0, 7);
+  const alertTitle = (budgetName, kind) =>
+    kind === "over" ? `${budgetName} is over budget` : `${budgetName} is close to its limit`;
+  const isNotificationExist = (title) =>
+    notification?.notifications.some(
+      (n) => n.title === title && String(n.createdAt || "").slice(0, 7) === monthKey()
+    );
 
   const sentNotificationsRef = useRef(new Set());
 
-const budgetNotification = useCallback(async (categorySpent) => {
-    if (!notification || !notification.notifications) return; 
+  // Honors the two switches in Settings. Both default to on.
+  const budgetNotification = useCallback(async (categorySpent) => {
+    if (!notification || !notification.notifications || !user?._id) return;
+    const wantOver = user.overSpending !== false;
+    const wantNear = user.nearLimit !== false;
 
-    const addNotification = async (budget, user) => {
-      const budgetName = budget.budgetName;
+    for (const budget of categorySpent || []) {
+      const limit = Number(budget.budgetAmount) || 0;
+      if (!limit) continue;
+      const ratio = (Number(budget.spent) || 0) / limit;
+      const kind = ratio > 1 && wantOver ? "over" : ratio >= 0.85 && ratio <= 1 && wantNear ? "near" : null;
+      if (!kind) continue;
 
-      const alreadySentSession = sentNotificationsRef.current.has(budgetName);
-      const alreadyInDb = isNotificationExist(budgetName);
+      const title = alertTitle(budget.budgetName, kind);
+      const key = `${title}:${monthKey()}`;
+      if (sentNotificationsRef.current.has(key) || isNotificationExist(title)) continue;
+      sentNotificationsRef.current.add(key);
 
-      if (budget.spent > budget.budgetAmount && !alreadyInDb && !alreadySentSession) {
-        
-        sentNotificationsRef.current.add(budgetName);
-
-        console.log('Sending Notification for:', budgetName);
-
-        const notifPayload = {
+      const used = Math.round(ratio * 100);
+      try {
+        await uploadNotification({
           userId: user._id,
-          title: budgetName,
-          message: "Your budget in category " + budgetName + " has reached its limit",
-          type: "alert"
-        };
-
-        try {
-          await uploadNotification(notifPayload);
-          toast.error("Limit Reached", `Beware of your budget: ${budgetName}`);
-          
-          // triggerNotificationRefresh(); 
-        } catch (error) {
-           // If it failed, remove from Ref so we can try again later
-           sentNotificationsRef.current.delete(budgetName);
-           console.error("Failed to upload notification", error);
-        }
+          title,
+          message:
+            kind === "over"
+              ? `You've spent ${money.format(budget.spent)} of your ${money.format(limit)} ${budget.budgetName} budget (${used}%).`
+              : `${used}% of your ${budget.budgetName} budget is used. ${money.format(limit - budget.spent)} left this month.`,
+          type: kind === "over" ? "error" : "warning",
+        });
+        if (kind === "over") toast.error(title, `${used}% of the budget used.`);
+        else toast.warning?.(title, `${used}% of the budget used.`);
+      } catch (error) {
+        sentNotificationsRef.current.delete(key);
+        console.error("Failed to upload notification", error);
       }
-    };
-
-    for (let i = 0; i < categorySpent.length; i++) {
-      const budget = categorySpent[i];
-      addNotification(budget, user);
-    } 
-    // needst to add some notifcitaion too
-
-  }, [notification, user]); // Add 'user' to dependency
+    }
+  }, [notification, user, money]);
 
 useEffect(() => {
     // Only run if we have calculated spending AND we have fetched existing notifications
@@ -765,6 +687,8 @@ useEffect(() => {
       setModels,
       setUser,
       markSignedIn,
+      money,
+      updateUser,
       login,
       setLoading,
       isLoading,
@@ -810,6 +734,8 @@ useEffect(() => {
       setModels,
       setUser,
       markSignedIn,
+      money,
+      updateUser,
       login,
       isLoading,
       register,

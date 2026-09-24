@@ -1,15 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Shield, 
-  FileText, 
-  Lock, 
-  ArrowLeft, 
-  Server, 
-  Eye, 
-  Cpu, 
-  Scale
-} from "lucide-react";
+import {Shield, FileText, Lock, ArrowLeft, Server, Eye, Cpu, Scale} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LegalPage() {

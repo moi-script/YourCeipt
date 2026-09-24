@@ -30,10 +30,10 @@ import { BASE_API_URL } from "@/api/getKeys";
 
 
 
-export default function UserMenu({setHomeDefault}) {
+export default function UserMenu({ onNavigate }) {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { user, setRefreshPage } = useAuth() || { user: null };
+  const { user, setUser } = useAuth() || { user: null };
   const navigate = useNavigate();
 
 
@@ -58,8 +58,8 @@ export default function UserMenu({setHomeDefault}) {
     } finally {
       setShowLogoutDialog(false);
       setIsLoggingOut(false);
-      console.log("User logged out");
       localStorage.setItem('user', false);
+      setUser(null);
       navigate("/", { replace: true });
       // setRefreshPage(true);
 
@@ -83,21 +83,20 @@ export default function UserMenu({setHomeDefault}) {
   return (
     <>
       {/* Container: Light gradient vs Dark gradient */}
-      <div className="p-4 border-t border-white/50 dark:border-stone-800 bg-gradient-to-b from-transparent to-white/30 dark:to-stone-900/30 backdrop-blur-sm transition-colors">
+      <div className="p-3 border-t border-stone-200 dark:border-stone-800">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 w-full hover:bg-white/60 dark:hover:bg-stone-800/60 p-3 rounded-[1.5rem] transition-all duration-300 outline-none focus:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 text-left shadow-sm hover:shadow-md border border-transparent hover:border-white/50 dark:hover:border-stone-700 group">
+            <button className="flex items-center gap-3 w-full hover:bg-stone-200/50 dark:hover:bg-stone-800/60 p-2.5 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/40 text-left group">
               <div className="relative">
-                <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-stone-700 shadow-sm">
+                <Avatar className="h-9 w-9">
                   <AvatarImage src={user?.image_profile} />
-                  <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-emerald-600 text-white font-semibold">
-                    JD
+                  <AvatarFallback className="bg-emerald-800 text-white text-sm font-medium">
+                    {(user?.nickname || user?.fullname || "?").slice(0, 1).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-stone-800 rounded-full"></div>
               </div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-serif font-bold text-stone-800 dark:text-stone-100 truncate group-hover:text-emerald-800 dark:group-hover:text-emerald-400 transition-colors">
+                <p className="text-sm font-medium text-stone-800 dark:text-stone-100 truncate">
                   {user?.fullname}
                 </p>
                 <p className="text-xs text-stone-500 dark:text-stone-400 truncate">
@@ -109,7 +108,7 @@ export default function UserMenu({setHomeDefault}) {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            className="w-64 border border-white/50 dark:border-stone-800 shadow-xl rounded-[1.5rem] bg-white/95 dark:bg-stone-900/95 backdrop-blur-md p-2"
+            className="w-64 border border-stone-200 dark:border-stone-800 shadow-xl rounded-xl bg-white dark:bg-stone-900 p-1.5"
             align="start"
             side="top"
             sideOffset={8}
@@ -127,15 +126,15 @@ export default function UserMenu({setHomeDefault}) {
             <DropdownMenuSeparator className="bg-stone-100 dark:bg-stone-800" />
             
             <DropdownMenuGroup className="p-1">
-                <NavLink to="/user/profile" onClick={() => setHomeDefault('Profile')}>
+                <NavLink to="/user/profile" onClick={onNavigate}>
                     <DropdownMenuItem className="cursor-pointer py-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 focus:bg-stone-50 dark:focus:bg-stone-800 transition-colors">
                         <User className="mr-3 h-4 w-4 text-stone-500 dark:text-stone-400" />
-                        <span className="flex-1 text-stone-700 dark:text-stone-200 font-medium">Profile</span>
+                        <span className="flex-1 text-stone-700 dark:text-stone-200 font-medium">Profile & settings</span>
                         <ChevronRight className="h-3.5 w-3.5 text-stone-300 dark:text-stone-600" />
                     </DropdownMenuItem>
                 </NavLink>
 
-                <NavLink to="/user/privacy" onClick={() => setHomeDefault('Profile')}>
+                <NavLink to="/user/privacy" onClick={onNavigate}>
                     <DropdownMenuItem className="cursor-pointer py-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 focus:bg-stone-50 dark:focus:bg-stone-800 transition-colors">
                         <Shield className="mr-3 h-4 w-4 text-stone-500 dark:text-stone-400" />
                         <span className="flex-1 text-stone-700 dark:text-stone-200 font-medium">Privacy & Security</span>

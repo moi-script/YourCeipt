@@ -6,23 +6,11 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
-import {
-  UploadCloud,
-  Cpu,
-  TrendingUp,
-  Eye,
-  EyeOff,
-  Leaf,
-  X,
-  Mail,
-  ArrowLeft,
-  KeyRound,
-  Lock,
-  Loader2,
-  CheckCircle2
-} from "lucide-react";
+import {UploadCloud, Cpu, TrendingUp, Eye, EyeOff, X, Mail, ArrowLeft, KeyRound, Lock, Loader2, CheckCircle2} from "lucide-react";
+import { IconLedger } from "@/components/icons";
 import { useAuth } from "@/context/AuthContext";
 import { BASE_API_URL } from "@/api/getKeys.js";
+import { SignInCode } from "@/components/SignInCode";
 import { getAiDefaultModel } from "@/api/getKeys.js";
 // const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
@@ -101,6 +89,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
 
   // --- LOGIN & REGISTER STATE ---
   const [loginData, setLoginData] = useState({ email: "", password: "" });
+  const [pendingCode, setPendingCode] = useState(null); // two-step sign-in
   const [registerData, setRegisterData] = useState({
     nickname: "",
     fullname: "",
@@ -109,9 +98,10 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
     image_profile : "",
     image_public_url : "",
     currency : "PHP",
-    theme : "default",
-    overSpending : false,
-    nearLimit : false
+    theme : "light",
+    // Budget alerts start switched on; they can be turned off in Settings.
+    overSpending : true,
+    nearLimit : true
   });
 
   // --- FORGOT PASSWORD STATE (Integrated) ---
@@ -150,6 +140,11 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
         body: JSON.stringify(loginData)
       });
 
+      if (res.twoFactor) {
+        setPendingCode({ email: res.email, maskedEmail: res.maskedEmail });
+        setMode('code');
+        return;
+      }
       if (res.status === 200) {
         setUser(res);
         onClose(false); 
@@ -319,7 +314,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
                 {/* Logo */}
                 <div className="flex items-center gap-2 mb-6">
                     <div className="bg-emerald-100 dark:bg-emerald-900/50 p-2 rounded-full">
-                        <Leaf className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
+                        <IconLedger className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
                     </div>
                     <span className="font-serif italic font-bold text-2xl text-stone-800 dark:text-stone-100">Recepta</span>
                 </div>
@@ -329,6 +324,18 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
                     {/* ==========================
                         VIEW: LOGIN
                         ========================== */}
+                    {mode === 'code' && pendingCode && (
+                        <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                            <SignInCode
+                                email={pendingCode.email}
+                                maskedEmail={pendingCode.maskedEmail}
+                                onBack={() => { setPendingCode(null); setMode('login'); }}
+                                onResend={() => login(BASE_API_URL + '/user/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loginData) }).catch(() => {})}
+                                onSuccess={(data) => { setUser(data); onClose(false); markSignedIn(); navigate("/user"); }}
+                            />
+                        </div>
+                    )}
+
                     {mode === 'login' && (
                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="mb-6">

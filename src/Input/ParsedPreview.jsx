@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
-const peso = (n) =>
-  typeof n === "number"
-    ? "₱" + n.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    : "—";
 
 const modelLabel = (id = "") =>
   id.split("/").pop().replace(/:free$/, "").replace(/-preview$/, "").replace(/-/g, " ");
@@ -13,7 +10,9 @@ const modelLabel = (id = "") =>
 // caught here instead of in next month's budget.
 export function ParsedPreview({ receipt, info }) {
   const [imageOk, setImageOk] = useState(true);
+  const { money } = useAuth();
   if (!receipt) return null;
+  const peso = (n) => (typeof n === "number" ? money.format(n) : "—");
 
   const items = receipt.items || [];
   const date = receipt.metadata?.datetime ? new Date(receipt.metadata.datetime) : null;

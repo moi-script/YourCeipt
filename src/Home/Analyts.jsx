@@ -1,29 +1,21 @@
 import React, { useEffect, useState, useMemo } from "react";
-import {
-  TrendingDown,
-  Store,
-  Target,
-  Activity,
-  Home,
-  Coffee,
-  Wallet,
-  AlertCircle,
-  Sparkles,
-  ArrowUpRight,
-  ArrowDownRight,
-  CheckCircle,
-  Utensils,      // Food
-  Car,           // Transportation
-  Ticket,        // Entertainment
-  ShoppingBag,   // Shopping
-  Zap,           // Utilities
-  TrendingUp,    // Income
-  HeartPulse,    // Healthcare
-  CircleEllipsis, // Other
-  Leaf
-
+import {TrendingDown, Store, Target, Activity, Home, Coffee, Wallet, AlertCircle, ArrowUpRight, ArrowDownRight, CheckCircle, Utensils, // Food
+  Car, // Transportation
+  Ticket, // Entertainment
+  ShoppingBag, // Shopping
+  Zap, // Utilities
+  TrendingUp, // Income
+  HeartPulse, // Healthcare
+  CircleEllipsis // Other
 } from "lucide-react";
+import { IconStamp } from "@/components/icons";
 import { useAuth } from "@/context/AuthContext";
+import { makeMoney } from "@/lib/money";
+
+// Set from the page's render so every chart and card on this page uses the
+// user's display currency (amounts are stored in pesos).
+let pageMoney = makeMoney();
+const fmt = (pesos) => pageMoney.format(Number(pesos) || 0);
 import { calculateKeyInsights, getCategorySummaries, getMerchantPatterns, processBudgetInsights,
    transformBudgetsToInsights,
     transformToDailyHeatmap,
@@ -66,7 +58,7 @@ const CustomChartTooltip = ({ active, payload, label }) => {
               {entry.name}:
             </span>
             <span className="text-stone-800 dark:text-stone-200">
-              ₱{Number(entry.value).toLocaleString()}
+              {fmt(Number(entry.value))}
             </span>
           </div>
         ))}
@@ -309,6 +301,8 @@ function dummyGetColorClass(color) {
 }
 
 export function AnalyticsDashBoards() {
+  const { money } = useAuth();
+  pageMoney = money;
   return (
     <>
       <Analytics
@@ -452,8 +446,6 @@ const monthlyData = {
     <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 p-4 sm:p-6 pb-20 transition-colors duration-300">
       
       {/* Decorative Blobs - Adjusted opacity for Dark Mode */}
-      <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none animate-pulse"></div>
-      <div className="absolute top-[20%] right-[-5%] w-[400px] h-[400px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         
@@ -461,7 +453,7 @@ const monthlyData = {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-stone-800/40 border border-white/60 dark:border-white/10 backdrop-blur-md mb-3 shadow-sm">
-               <Sparkles className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
+               <IconStamp className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
                <span className="text-[10px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold">Deep Dive</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-serif italic text-[#2c2c2c] dark:text-stone-100">Analytics Flow</h1>
@@ -506,7 +498,7 @@ const monthlyData = {
                 Total Income
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{totalIncome}
+                {fmt(totalIncome)}
               </h3>
             </CardContent>
           </Card>
@@ -526,7 +518,7 @@ const monthlyData = {
                 Total Expenses
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{totalSpent?.toFixed(2) || 0}
+                {fmt(totalSpent)}
               </h3>
             </CardContent>
           </Card>
@@ -546,7 +538,7 @@ const monthlyData = {
                 Net Savings
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{metricValue?.netSavings.toLocaleString()}
+                {fmt(metricValue?.netSavings)}
               </h3>
             </CardContent>
           </Card>
@@ -620,10 +612,10 @@ const monthlyData = {
                           </span>
                           <div className="flex gap-4 text-xs font-medium">
                             <span className="text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full">
-                              ↑ ₱{data.income.toLocaleString()}
+                              ↑ {fmt(data.income)}
                             </span>
                             <span className="text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 rounded-full">
-                              ↓ ₱{data.expense.toLocaleString()}
+                              ↓ {fmt(data.expense)}
                             </span>
                           </div>
                         </div>
@@ -670,7 +662,7 @@ const monthlyData = {
                               </span>
                             </div>
                             <span className="text-sm font-bold text-stone-900 dark:text-stone-100">
-                              ₱{category.spent.toLocaleString()}
+                              {fmt(category.spent)}
                             </span>
                           </div>
                           <div className="relative h-2 bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
@@ -737,7 +729,7 @@ const monthlyData = {
           <p className="text-sm text-stone-600 dark:text-stone-400">
             Monthly average:{" "}
             <span className="font-bold text-sky-600">
-              ₱{(userReceipts?.reduce((acc, r) => acc + parseFloat(r.total), 0) / 2).toLocaleString()}
+              {fmt((userReceipts?.reduce((acc, r) => acc + parseFloat(r.total), 0) / 2))}
             </span>
           </p>
         </div>
@@ -830,7 +822,7 @@ const monthlyData = {
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
           <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Total</span>
           <span className="text-xl font-serif text-stone-800 dark:text-stone-100">
-            ₱{monthlyData.totalExpenses?.toLocaleString()}
+            {fmt(monthlyData.totalExpenses)}
           </span>
         </div>
       </CardContent>
@@ -895,7 +887,7 @@ const monthlyData = {
                  <p className="text-sm text-stone-600 dark:text-stone-400">
                     Monthly average:{" "}
                     <span className="font-bold text-sky-600">
-                    ₱{(userReceipts?.reduce((acc, r) => acc + parseFloat(r.total), 0) / 2).toLocaleString()}
+                    {fmt((userReceipts?.reduce((acc, r) => acc + parseFloat(r.total), 0) / 2))}
                     </span>
                  </p>
             </div>
@@ -931,7 +923,7 @@ const monthlyData = {
                     </div>
                   </div>
                   <p className="text-3xl font-serif text-emerald-700 dark:text-emerald-300">
-                    ₱{(categoryInsights?.topCategory?.spent || 0).toLocaleString()}
+                    {fmt((categoryInsights?.topCategory?.spent || 0))}
                   </p>
                 </CardContent>
               </Card>
@@ -951,7 +943,7 @@ const monthlyData = {
                     </div>
                   </div>
                   <p className="text-3xl font-serif text-sky-700 dark:text-sky-300">
-                     ₱{(categoryInsights?.leastSpending?.spent || 0).toLocaleString()}
+                     {fmt((categoryInsights?.leastSpending?.spent || 0))}
                   </p>
                 </CardContent>
               </Card>
@@ -1023,8 +1015,8 @@ const monthlyData = {
                                 {category.name}
                               </h3>
                               <p className="text-xs font-medium text-stone-500 dark:text-stone-400 mt-0.5">
-                                <span className="text-stone-900 dark:text-stone-200 font-bold">₱{(category.spent || 0).toLocaleString()}</span> 
-                                <span className="opacity-60"> / ₱{(category.budget || 0).toLocaleString()}</span>
+                                <span className="text-stone-900 dark:text-stone-200 font-bold">{fmt((category.spent || 0))}</span> 
+                                <span className="opacity-60"> / {fmt((category.budget || 0))}</span>
                               </p>
                             </div>
                           </div>
@@ -1084,7 +1076,7 @@ const monthlyData = {
                           </div>
                           
                           <span className="text-[10px] text-stone-400 dark:text-stone-600 font-medium">
-                            Prev: ₱{(category.lastMonth || 0).toLocaleString()}
+                            Prev: {fmt((category.lastMonth || 0))}
                           </span>
                         </div>
                       </CardContent>
@@ -1131,10 +1123,10 @@ const monthlyData = {
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-stone-800 dark:text-stone-100">
-                          ₱{merchant.totalSpent.toLocaleString()}
+                          {fmt(merchant.totalSpent)}
                         </p>
                         <p className="text-xs text-stone-400 dark:text-stone-500">
-                          ~₱{merchant.avgSpent} / visit
+                          ~{fmt(merchant.avgSpent)} / visit
                         </p>
                       </div>
                     </div>
@@ -1175,7 +1167,7 @@ const monthlyData = {
             {merchantPattern?.biggestSpender ? merchantPattern?.biggestSpender.name : "N/A"}
           </p>
           <p className="text-sm text-stone-500 dark:text-stone-400">
-            {merchantPattern?.biggestSpender ? `₱${merchantPattern?.biggestSpender.totalSpent.toLocaleString()} total spent` : "No spending recorded"}
+            {merchantPattern?.biggestSpender ? `${fmt(merchantPattern?.biggestSpender.totalSpent)} total spent` : "No spending recorded"}
           </p>
         </div>
 
@@ -1221,7 +1213,7 @@ const monthlyData = {
                 </span>
                 
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-stone-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                  Day {day.day}: ₱{day.amount.toLocaleString()}
+                  Day {day.day}: {fmt(day.amount)}
                   {day.amount > 10000 && " 💰"}
                 </div>
               </div>
@@ -1315,7 +1307,7 @@ const monthlyData = {
                 
                 {/* Tooltip with Real Data */}
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-stone-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
-                    Day {day.day}: ₱{day.amount.toLocaleString()}
+                    Day {day.day}: {fmt(day.amount)}
                     {day.amount > 10000 && " 💰"}
                 </div>
                 </div>

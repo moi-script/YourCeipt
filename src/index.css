@@ -126,7 +126,23 @@
   }
 }
 
-/* 3. MOBILE PERFORMANCE
+/* 3. THEME SWITCH (see lib/theme.js)
+   View Transitions crossfade the whole page between themes. The fallback
+   animates colors only, for one switch, so it costs nothing the rest of the time. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-fade,
+.theme-fade *,
+.theme-fade *::before,
+.theme-fade *::after {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease, fill 300ms ease !important;
+}
+
+/* 4. MOBILE PERFORMANCE
    backdrop-filter and 90-120px blur layers are re-rasterised by the GPU on
    every scroll frame. On phones that was the main source of heat and jank,
    so on touch/small screens the glass panels fall back to their solid

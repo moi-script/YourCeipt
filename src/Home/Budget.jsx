@@ -1,23 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Plus, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  Calendar, 
-  Edit2, 
-  Trash2, 
-  DollarSign, 
-  ShoppingCart, 
-  Home, 
-  Car, 
-  Utensils, 
-  Heart, 
-  Film, 
-  Zap,
-  Sparkles,
-  Leaf
-} from 'lucide-react';
+import {Plus, TrendingUp, TrendingDown, AlertTriangle, Calendar, Edit2, Trash2, DollarSign, ShoppingCart, Home, Car, Utensils, Heart, Film, Zap} from "lucide-react";
+import { IconStamp, IconLedger } from "@/components/icons";
 import { useAuth } from '@/context/AuthContext';
 import { BASE_API_URL } from '@/api/getKeys.js';
 const initialBudgets = [
@@ -186,7 +169,7 @@ const BudgetPage = () => {
     color: '#10b981' 
   });
   
-  const { user, budgetList,  categorySpent, totalSpent, totalBudget, setRefreshPage } = useAuth();
+  const { user, budgetList,  categorySpent, totalSpent, totalBudget, setRefreshPage, money } = useAuth();
 
   useEffect(() => {
     // console.log('Budget list :: ', budgetList);
@@ -206,7 +189,7 @@ const BudgetPage = () => {
     if (editingBudget) {
       // Edit Mode
       setBudgets(budgets?.map(b => b._id === editingBudget._id 
-        ? { ...b, ...formData, budgetAmount: parseFloat(formData.budgetAmount) }
+        ? { ...b, ...formData, budgetAmount: money.toBase(formData.budgetAmount) }
         : b
       ));
 
@@ -216,7 +199,7 @@ const BudgetPage = () => {
       setBudgets([...budgets, { 
         _id: Date.now(), // Generate a temp ID
         ...formData, 
-        budgetAmount: parseFloat(formData.budgetAmount),
+        budgetAmount: money.toBase(formData.budgetAmount),
         spent: 0 
       }]);
 
@@ -238,7 +221,7 @@ const BudgetPage = () => {
     setFormData({ 
       category: budget.category, 
       budgetName: budget.budgetName, 
-      budgetAmount: budget.budgetAmount.toString(), 
+      budgetAmount: String(Math.round(money.convert(budget.budgetAmount) * 100) / 100), 
       color: budget.color 
     });
     setIsDialogOpen(true);
@@ -282,7 +265,7 @@ const handleAddItem = async (formData) => {
         headers: {
             'Content-type': 'application/json'
         },
-        body: JSON.stringify({...formData, userId : user?._id })
+        body: JSON.stringify({...formData, budgetAmount: money.toBase(formData.budgetAmount), userId : user?._id })
     })
     } catch(err) {
         console.error('Unable to add item ::', err);
@@ -302,7 +285,7 @@ const handleUpdateItem = async (itemData) => {
             headers: {
                 'Content-type': 'application/json'
             },
-            body: JSON.stringify({userId : user._id, ...formData, budget_id : itemData._id})
+            body: JSON.stringify({userId : user._id, ...formData, budgetAmount: money.toBase(formData.budgetAmount), budget_id : itemData._id})
         })
 
     } catch (err) {
@@ -327,8 +310,6 @@ const handleGetBudgetItemList = async () => {
     <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 p-4 sm:p-6 pb-20 transition-colors duration-300">
       
       {/* Decorative Blobs */}
-      <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none animate-pulse"></div>
-      <div className="absolute bottom-[0%] left-[-10%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-60 dark:opacity-20 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto space-y-8 relative z-10">
         
@@ -336,7 +317,7 @@ const handleGetBudgetItemList = async () => {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-stone-800/40 border border-white/60 dark:border-white/10 backdrop-blur-md mb-3 shadow-sm">
-               <Leaf className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
+               <IconLedger className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
                <span className="text-[10px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold">Financial Health</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-serif italic text-[#2c2c2c] dark:text-stone-100">Budget Flow</h1>
@@ -397,7 +378,7 @@ const handleGetBudgetItemList = async () => {
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Total Budget</p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{totalBudget?.toLocaleString()}
+                {money.format(totalBudget || 0)}
               </h3>
             </CardContent>
           </Card>
@@ -413,7 +394,7 @@ const handleGetBudgetItemList = async () => {
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Total Spent</p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                ₱{totalSpent?.toLocaleString()}
+                {money.format(totalSpent || 0)}
               </h3>
             </CardContent>
           </Card>
@@ -431,7 +412,7 @@ const handleGetBudgetItemList = async () => {
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">Remaining</p>
               <h3 className={`text-2xl font-serif ${totalRemaining >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                ₱{Math.abs(totalRemaining)?.toLocaleString()}
+                {money.format(Math.abs(totalRemaining || 0))}
               </h3>
             </CardContent>
           </Card>
@@ -457,7 +438,7 @@ const handleGetBudgetItemList = async () => {
         <Card className="bg-white/70 dark:bg-stone-900/70 border-white/80 dark:border-white/10">
           <CardContent>
             <h2 className="text-xl font-serif text-stone-800 dark:text-stone-100 mb-6 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-500" />
+              <IconStamp className="w-5 h-5 text-emerald-500" />
               Monthly Overview
             </h2>
             <div className="space-y-4">
@@ -516,7 +497,7 @@ const handleGetBudgetItemList = async () => {
                     <div className="flex justify-between text-sm items-end">
                       <span className="text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-3 py-1 rounded-full text-xs font-medium">
                         {/* UPDATED: budget.budgetAmount */}
-                        ₱{budget.spent?.toLocaleString()} <span className="text-stone-300 dark:text-stone-600">/</span> ₱{budget.budgetAmount?.toLocaleString()}
+                        {money.format(budget.spent || 0)} <span className="text-stone-300 dark:text-stone-600">/</span> {money.format(budget.budgetAmount || 0)}
                       </span>
                       <span 
                         className="font-bold text-lg"
@@ -539,7 +520,7 @@ const handleGetBudgetItemList = async () => {
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-xs font-medium text-stone-400 dark:text-stone-500">
                         {/* UPDATED: budget.budgetAmount */}
-                        REMAINING: <span className="text-stone-600 dark:text-stone-300">₱{Math.max(0, budget.budgetAmount - budget.spent)?.toLocaleString()}</span>
+                        REMAINING: <span className="text-stone-600 dark:text-stone-300">{money.format(Math.max(0, budget.budgetAmount - budget.spent))}</span>
                       </span>
                       {isOverBudget && (
                         <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Over Budget</Badge>
@@ -601,10 +582,10 @@ const handleGetBudgetItemList = async () => {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2 ml-4">
-                  Budget Amount (₱)
+                  Budget amount ({money.code})
                 </label>
                 <div className="relative">
-                    <span className="absolute left-5 top-3.5 text-stone-400 dark:text-stone-500">₱</span>
+                    <span className="absolute left-5 top-3.5 text-stone-400 dark:text-stone-500">{money.symbol}</span>
                     <Input
                     type="number"
                     /* UPDATED: formData.budgetAmount */

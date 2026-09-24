@@ -1,120 +1,61 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  Bell,
-  Plus,
-  X,
-  Leaf
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { NotificationBell } from "@/components/NotificationPanel";
+import { IconMenu, IconTheme, LogoMark } from "@/components/icons";
+import { isDarkTheme, setTheme } from "@/lib/theme";
+import { BASE_API_URL } from "@/api/getKeys";
 
-export function Header({ setSidebarOpen, sidebarOpen, handleBellClick, setIsAddDialogOpen, length }) {
-    const { user } = useAuth();
-    
-    // We need a state to track mounting to avoid hydration mismatch if you were using window checks before
-    // But primarily, we will rely on CSS for the layout logic.
+export function Header({ onMenu, menuOpen, onAdd }) {
+  const { user, updateUser } = useAuth();
 
-    useEffect(() => {
-        const handleResize = () => {
-            const width = window.innerWidth;
-            if (width < 640) {
-                setSidebarOpen(false);
-            } else {
-                setSidebarOpen(true);
-            }
-        };
+  const toggleTheme = () => {
+    const dark = !isDarkTheme();
+    setTheme(dark);
+    updateUser({ theme: dark ? "dark" : "light" });
+    fetch(BASE_API_URL + "/user/theme", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ preferences: dark ? "dark" : "light", userId: user?._id }),
+    }).catch(() => {});
+  };
 
-        // Run once on mount to set initial state
-        handleResize();
+  return (
+    <header className="sticky top-0 z-40 h-16 bg-[#f7f6f2]/95 dark:bg-stone-950/95 border-b border-stone-200/80 dark:border-stone-800/80">
+      <div className="h-full max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            onClick={onMenu}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            className="grid place-items-center w-10 h-10 rounded-full text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 transition-colors"
+          >
+            <IconMenu className="w-5 h-5" />
+          </button>
+          <span className="lg:hidden flex items-center gap-2 min-w-0">
+            <LogoMark className="w-6 h-6 text-sm" />
+            <span className="font-medium tracking-tight truncate">Recepta</span>
+          </span>
+        </div>
 
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [user, setSidebarOpen]); // Added setSidebarOpen to dependency array
-
-    return (
-        <header className="sticky top-0 z-40 bg-[#f2f0e9]/80 dark:bg-stone-950/80 backdrop-blur-md border-b border-white/50 dark:border-stone-800 px-3 sm:px-6 py-3 sm:py-4 transition-all duration-300">
-            {/* Using max-w-7xl ensures it doesn't stretch too far on huge screens.
-                mx-auto centers it.
-            */}
-            <div className="flex items-center justify-between max-w-7xl mx-auto w-full">
-                
-                {/* --- Left Side: Toggle & Logo --- */}
-                {/* min-w-0 allows the container to shrink below its content size if needed */}
-                <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="shrink-0 rounded-full hover:bg-white/50 dark:hover:bg-stone-800/50 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-colors"
-                    >
-                        {sidebarOpen ? (
-                            <X className="w-5 h-5" />
-                        ) : (
-                            <Menu className="w-5 h-5" />
-                        )}
-                        <span className="sr-only">Toggle Menu</span>
-                    </Button>
-                    
-                    {/* Mobile Logo 
-                        Using `whitespace-nowrap` prevents the text from wrapping on 360px screens.
-                        `shrink-0` ensures the logo icon stays round.
-                    */}
-                    <div className="sm:hidden flex items-center gap-2 text-emerald-800 dark:text-emerald-400 font-serif italic whitespace-nowrap">
-                       <Leaf className="w-4 h-4 shrink-0" />
-                       <span className="text-lg">Recepta</span>
-                    </div>
-                </div>
-
-                {/* --- Right Side: Actions --- */}
-                <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                    
-                    {/* Notification Bell 
-                        LOGIC: Replaced window.innerWidth check with CSS classes.
-                        `flex`: Always visible by default.
-                        `hidden`: Hidden if (sidebarOpen is true AND screen is small).
-                        `sm:flex`: Force visible on desktop regardless of sidebar.
-                    */}
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={handleBellClick}
-                        className={`
-                            relative rounded-full shrink-0
-                            hover:bg-white/50 dark:hover:bg-stone-800/50 
-                            text-stone-600 dark:text-stone-400 
-                            hover:text-stone-900 dark:hover:text-stone-100 
-                            transition-colors
-                            ${sidebarOpen ? 'hidden sm:flex' : 'flex'} 
-                        `}
-                    >
-                        <Bell className="w-5 h-5" />
-                        {length > 0 && (
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-orange-500 rounded-full ring-2 ring-[#f2f0e9] dark:ring-stone-950 pointer-events-none"></span>
-                        )}
-                        <span className="sr-only">Notifications</span>
-                    </Button>
-
-                    {/* Desktop Add Button */}
-                    <Button
-                        onClick={() => setIsAddDialogOpen(true)}
-                        className="hidden sm:flex shrink-0 rounded-full bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/10 border border-transparent transition-all duration-300 px-6"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Transaction
-                    </Button>
-
-                    {/* Mobile Add Button - Icon Only */}
-                    <Button
-                        onClick={() => setIsAddDialogOpen(true)}
-                        size="icon"
-                        className="sm:hidden shrink-0 rounded-full bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/10 border border-transparent transition-all duration-300"
-                    >
-                        <Plus className="w-5 h-5" />
-                        <span className="sr-only">Add Transaction</span>
-                    </Button>
-                </div>
-            </div>
-        </header>
-    );
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <button
+            onClick={toggleTheme}
+            aria-label="Switch light or dark theme"
+            className="grid place-items-center w-10 h-10 rounded-full text-stone-600 hover:text-stone-900 hover:bg-stone-200/60 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800 transition-colors"
+          >
+            <IconTheme className="w-5 h-5 transition-transform duration-500 dark:rotate-180" />
+          </button>
+          <NotificationBell userId={user?._id} />
+          <button
+            onClick={onAdd}
+            className="ml-1 inline-flex items-center gap-2 h-10 px-3 sm:px-4 rounded-full bg-emerald-800 hover:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-sm font-medium active:translate-y-px transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Add transaction</span>
+            <span className="sr-only sm:hidden">Add transaction</span>
+          </button>
+        </div>
+      </div>
+    </header>
+  );
 }

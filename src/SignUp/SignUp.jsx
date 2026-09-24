@@ -1,17 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import {
-  Wallet,
-  DollarSign,
-  TrendingUp,
-  UploadCloud,
-  Cpu,
-  Eye,
-  EyeOff,
-  ChevronLeft,
-  ChevronRight,
-  Leaf
-} from "lucide-react";
+import {Wallet, DollarSign, TrendingUp, UploadCloud, Cpu, Eye, EyeOff, ChevronLeft, ChevronRight} from "lucide-react";
+import { IconLedger } from "@/components/icons";
 import { RegisterForm } from "./Register.jsx";
 
 
@@ -174,7 +164,7 @@ const BudgetSignup = () => {
               {/* Logo */}
               <div className="flex items-center justify-center mb-10 gap-3">
                 <div className="bg-emerald-100 p-3 rounded-full shadow-sm">
-                    <Leaf className="w-8 h-8 text-emerald-700" />
+                    <IconLedger className="w-8 h-8 text-emerald-700" />
                 </div>
                 {/* <div
                   className="p-3 rounded-2xl bg-cover bg-center"

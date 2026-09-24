@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Camera, Loader2, Sparkles, Receipt, PenTool, Settings2, Plus, Trash2 } from "lucide-react";
+import { Camera, Loader2, Settings2, Plus, Trash2 } from "lucide-react";
+import { IconNib, IconLedger, IconStamp } from "@/components/icons";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "../components/Toaster.jsx";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +73,7 @@ export function AdvanceForm({
   isAddDialogOpen,
   setIsAddDialogOpen,
 }) {
-  const { user, uploadReceipts, setReceipts, setRefreshPage, activeModelName } = useAuth();
+  const { user, uploadReceipts, setReceipts, setRefreshPage, activeModelName, money } = useAuth();
   const  toast   = useToast();
   const [inputMode, setInputMode] = useState("manual");
   const [isAdvanced, setIsAdvanced] = useState(false);
@@ -174,9 +175,21 @@ export function AdvanceForm({
       const res = await fetch(BASE_API_URL + "/receipt/uploadManual",  { // http://localhost:3000/receipt/uploadManual",
         method: "POST",
         headers: { "Content-type": "application/json" },
+        // Amounts are typed in the display currency; store them in pesos.
         body: JSON.stringify({
           userId: user._id,
-          ...formData, 
+          ...formData,
+          items: formData.items.map((it) => ({ ...it, price: money.toBase(it.price) })),
+          subtotal: money.toBase(formData.subtotal),
+          tax_amount: money.toBase(formData.tax_amount),
+          total: money.toBase(formData.total),
+          amount_paid: money.toBase(formData.amount_paid || formData.total),
+          metadata: {
+            ...formData.metadata,
+            currency: "PHP",
+            type: String(formData.metadata?.type).toLowerCase() === "income" ? "Income" : "Expense",
+            datetime: formData.metadata?.datetime ? new Date(formData.metadata.datetime).toISOString() : new Date().toISOString(),
+          },
         }),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -259,6 +272,7 @@ export function AdvanceForm({
       const form = new FormData();
       form.append("image_buffer", file);
       form.append("activeModelName", activeModelName || "auto");
+      form.append("keepImage", String(user?.keepReceiptImages !== false));
 
       setParseStage("Reading the receipt…");
       const res = await fetch(BASE_API_URL + "/extract/azure", { method: "POST", body: form });
@@ -383,9 +397,9 @@ export function AdvanceForm({
               }`}
               onClick={() => setInputMode(mode)}
             >
-              {mode === "manual" && <PenTool className="w-4 h-4 sm:w-6 sm:h-6 mb-1 sm:mb-2" />}
-              {mode === "receipt" && <Camera className="w-4 h-4 sm:w-6 sm:h-6 mb-1 sm:mb-2" />}
-              {mode === "quick" && <Sparkles className="w-4 h-4 sm:w-6 sm:h-6 mb-1 sm:mb-2" />}
+              {mode === "manual" && <IconNib className="w-4 h-4 sm:w-6 sm:h-6 mb-1 sm:mb-2" />}
+              {mode === "receipt" && <IconLedger className="w-4 h-4 sm:w-6 sm:h-6 mb-1 sm:mb-2" />}
+              {mode === "quick" && <IconStamp className="w-4 h-4 sm:w-6 sm:h-6 mb-1 sm:mb-2" />}
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">
                 {mode === "quick" ? "AI Quick" : mode.charAt(0).toUpperCase() + mode.slice(1)}
               </span>
@@ -430,7 +444,7 @@ export function AdvanceForm({
                       <div className="space-y-1.5 sm:space-y-2">
                         <Label className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-400 ml-3">Amount</Label>
                         <div className="relative">
-                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-sm">₱</span>
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-sm">{money.symbol}</span>
                           <Input type="number" step="0.01" placeholder="0.00" name="amount" value={formData.total || ""} onChange={handleSimpleChange} className="rounded-full bg-stone-50 dark:bg-stone-900 border-transparent dark:border-stone-800 h-11 sm:h-12 pl-8" />
                         </div>
                       </div>
@@ -491,7 +505,7 @@ export function AdvanceForm({
                                   </div>
                                   <div className="grid grid-cols-3 gap-2">
                                       <div className="relative col-span-1">
-                                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">₱</span>
+                                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-stone-400 text-xs">{money.symbol}</span>
                                           <Input type="number" className="pl-6 h-9 text-xs bg-stone-50 dark:bg-stone-900 border-none" value={item.price} onChange={(e) => handleItemChange(idx, 'price', e.target.value)} />
                                       </div>
                                       <Select value={item.category} onValueChange={(val) => handleItemChange(idx, 'category', val)}>
@@ -507,10 +521,10 @@ export function AdvanceForm({
 
                       {/* Totals */}
                       <div className="bg-stone-50 dark:bg-stone-900/50 p-4 rounded-[1.5rem] space-y-2">
-                          <div className="flex justify-between text-sm text-stone-500"><span>Subtotal</span><span className="font-mono">{formData.subtotal.toFixed(2)}</span></div>
+                          <div className="flex justify-between text-sm text-stone-500"><span>Subtotal</span><span className="font-mono">{Number(formData.subtotal || 0).toFixed(2)}</span></div>
                           <div className="flex justify-between items-center gap-4"><span className="text-stone-500 text-sm">Tax</span><Input type="number" className="w-20 h-8 text-right rounded-md bg-white dark:bg-stone-950 border-none text-xs" value={formData.tax_amount} onChange={(e) => { const tax = parseFloat(e.target.value) || 0; setFormData(prev => ({...prev, tax_amount: tax, total: prev.subtotal + tax})); }} /></div>
                           <Separator className="bg-stone-200 dark:bg-stone-800" />
-                          <div className="flex justify-between items-center pt-2"><span className="font-serif font-bold text-stone-800 dark:text-stone-100">Total</span><span className="font-serif font-bold text-xl text-emerald-600">₱{formData.total.toFixed(2)}</span></div>
+                          <div className="flex justify-between items-center pt-2"><span className="font-serif font-bold text-stone-800 dark:text-stone-100">Total</span><span className="font-serif font-bold text-xl text-emerald-600">{money.symbol}{Number(formData.total || 0).toFixed(2)}</span></div>
                       </div>
                    </div>
                 </ScrollArea>
@@ -531,7 +545,7 @@ export function AdvanceForm({
             ) : (
               <div className="border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl p-6 sm:p-10 text-center">
                 <div className="bg-emerald-50 dark:bg-emerald-900/30 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
-                  {isLoading ? <Loader2 className="w-6 h-6 text-emerald-700 dark:text-emerald-400 animate-spin" /> : <Receipt className="w-6 h-6 text-emerald-700 dark:text-emerald-400" />}
+                  {isLoading ? <Loader2 className="w-6 h-6 text-emerald-700 dark:text-emerald-400 animate-spin" /> : <IconLedger className="w-6 h-6 text-emerald-700 dark:text-emerald-400" />}
                 </div>
                 <p className="text-base font-medium text-stone-900 dark:text-stone-100 mb-1">
                   {isLoading ? parseStage || "Working…" : "Upload a receipt"}
@@ -563,7 +577,7 @@ export function AdvanceForm({
                 <ParsedPreview receipt={quickResult} info={parseInfo} />
               ) : (
                 <Button variant="secondary" onClick={handleParseText} disabled={isLoading || !quickText.trim()} className="w-full rounded-full h-11 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50">
-                  {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {parseStage || "Working…"}</> : <><Sparkles className="w-4 h-4 mr-2" /> Read it</>}
+                  {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {parseStage || "Working…"}</> : <><IconStamp className="w-4 h-4 mr-2" /> Read it</>}
                 </Button>
               )}
            </div>

@@ -1,272 +1,169 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Home as UserHome } from "./Home";
-import TransactionsPage from "./Transactions";
-import { Toaster } from "sonner";
-import { toast as t } from "sonner";
-import { Header } from "./Header";
-import {
-  Home,
-  TrendingUp,
-  CreditCard,
-  PieChart,
-  Brain,
-  Settings,
-  Leaf
-} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { Header } from "./Header";
 import UserMenu from "./Logout";
 import { useAuth } from "@/context/AuthContext";
 import { AdvanceForm } from "@/Input/AdvanceForm";
-import { useToast } from "@/components/Toaster.jsx";
-import { BASE_API_URL } from "@/api/getKeys.js";
-// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
+import { IconOverview, IconLedger, IconBudget, IconReader, IconTrends, LogoMark } from "@/components/icons";
 
+const NAV = [
+  { title: "Overview", icon: IconOverview, href: "/user/" },
+  { title: "Transactions", icon: IconLedger, href: "/user/transactions" },
+  { title: "Budgets", icon: IconBudget, href: "/user/budgets" },
+  { title: "Analytics", icon: IconTrends, href: "/user/analytics" },
+  { title: "AI models", icon: IconReader, href: "/user/models" },
+];
+
+const DESKTOP_QUERY = "(min-width: 1024px)";
+
+// On phones the menu is a drawer over the page; on desktop it's a column that
+// can collapse. The old version sized the sidebar from `resize` events, which
+// mobile browsers fire whenever the address bar shows or hides, so the menu
+// opened and closed by itself while scrolling.
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_QUERY).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(DESKTOP_QUERY);
+    const onChange = (e) => setIsDesktop(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return isDesktop;
+}
+
+function NavList({ onNavigate }) {
+  const location = useLocation();
+  return (
+    <nav className="px-3 py-2" aria-label="Main">
+      <ul className="space-y-0.5">
+        {NAV.map((item) => {
+          const active = item.href === "/user/" ? location.pathname === "/user" || location.pathname === "/user/" : location.pathname.startsWith(item.href);
+          return (
+            <li key={item.href}>
+              <NavLink
+                to={item.href}
+                end={item.href === "/user/"}
+                onClick={onNavigate}
+                aria-current={active ? "page" : undefined}
+                className={`group relative flex items-center gap-3 h-10 px-3 rounded-lg text-sm transition-colors ${
+                  active
+                    ? "bg-white text-stone-900 shadow-[0_1px_2px_rgba(28,25,23,0.08)] dark:bg-stone-800 dark:text-stone-50"
+                    : "text-stone-600 hover:text-stone-900 hover:bg-stone-200/50 dark:text-stone-400 dark:hover:text-stone-100 dark:hover:bg-stone-800/60"
+                }`}
+              >
+                {active && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-emerald-700 dark:bg-emerald-400" />}
+                <item.icon className={`w-[18px] h-[18px] ${active ? "text-emerald-800 dark:text-emerald-400" : ""}`} />
+                <span className="font-medium">{item.title}</span>
+              </NavLink>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+function SidebarContent({ onNavigate }) {
+  return (
+    <div className="flex flex-col h-full">
+      <div className="h-16 px-5 flex items-center gap-2.5 shrink-0">
+        <LogoMark />
+        <span className="font-medium tracking-tight text-stone-900 dark:text-stone-50">Recepta</span>
+      </div>
+      <NavList onNavigate={onNavigate} />
+      <div className="mt-auto">
+        <UserMenu onNavigate={onNavigate} />
+      </div>
+    </div>
+  );
+}
 
 export function BudgetDashboard() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [homeDefault, setHomeDefault] = useState("Home");
-  const  toast  = useToast();
-
-  const {isAddDialogOpen, setIsAddDialogOpen, user} = useAuth();
-  const [notification, setNotification] = useState(null);
-
+  const { isAddDialogOpen, setIsAddDialogOpen } = useAuth();
+  const isDesktop = useIsDesktop();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("recepta.sidebar") === "collapsed";
+    } catch {
+      return false;
+    }
+  });
   const location = useLocation();
 
-const getAllunreadMark = useMemo(() => {
-  if(Array.isArray(notification?.notifications)){
-    return notification.notifications.filter((notif) => {
-      // console.log('Notif :: ', notif)
-      if(!notif.isRead) return true;
-    });
-  }
-}, [notification])
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-const unreadMark = useCallback(async (notifId) => {
-  const res = await fetch(BASE_API_URL + '/notification/read', {
-    method : "PUT",
-    headers : {
-      "Content-type" : 'application/json'
-    },
-    body : JSON.stringify({notificationId : notifId})
-  })
-
-  if(!res.ok) {
-    console.error('Unable to mark as read this notification ' + notifId);
-  }
-
-}, [notification])
-
+  // Close the drawer on every navigation, and when switching to desktop.
+  useEffect(() => closeDrawer(), [location.pathname, closeDrawer]);
   useEffect(() => {
-    if(user._id) {
-      const getNotification = async () => {
-        const res = await fetch(BASE_API_URL + '/notification/get',{
-          method : "POST",
-          headers : {
-            "Content-type" : "application/json"
-          }, 
-          body : JSON.stringify({userId : user._id})
-        })
+    if (isDesktop) closeDrawer();
+  }, [isDesktop, closeDrawer]);
 
-        const { unreadCount, notifications } = await res.json();
-
-        setNotification({unreadCount, notifications});
-      }
-      getNotification();
-    }
-  }, [user])
-
-
+  // Lock page scroll behind the open drawer; Escape closes it.
   useEffect(() => {
+    if (!drawerOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => e.key === "Escape" && closeDrawer();
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [drawerOpen, closeDrawer]);
 
-    
-  }, [notification])
-
-  const handleBellClick = () => {
-    if (!getAllunreadMark.length) {
-      t.info("No new notifications");
-      return;
-    }
-
-    getAllunreadMark.forEach((notif, index) => {
-      setTimeout(() => {
-        if (notif.type === "success") {
-          t.success(notif.title, { description: notif.message, 
-             onDismiss: async () => {
-              await unreadMark(notif._id);
-               // markAsReadInDatabase(notificationId); // 
-  },
-          onAutoClose: (t) => {
-          console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
-            }
-           });
-        } else if (notif.type === "warning") {
-          t.warning(notif.title, { description: notif.message,
-             onDismiss: (t) => {
-              console.log(`Toast ${t.id} was dismissed/read`);
-               // markAsReadInDatabase(notificationId); // 
-              },
-             onAutoClose: (t) => {
-              console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
-            }
-           });
-        
-        
-        
-        } else if (notif.type === "error") {
-          t.error(notif.title, { description: notif.message, 
-             onDismiss: (t) => {
-              console.log(`Toast ${t.id} was dismissed/read`);
-               // markAsReadInDatabase(notificationId); // 
-            },
-          onAutoClose: (t) => {
-          console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
-            }
-           });
-        } else {
-          t.info(notif.title, { description: notif.message, 
-             onDismiss: (t) => {
-              console.log(`Toast ${t.id} was dismissed/read`);
-               // markAsReadInDatabase(notificationId); // 
-  },
-          onAutoClose: (t) => {
-          console.log(`Toast ${t.id} auto-closed (user might have missed it)`);
-            }
-
-           });
+  const toggleMenu = () => {
+    if (isDesktop) {
+      setCollapsed((c) => {
+        try {
+          localStorage.setItem("recepta.sidebar", c ? "open" : "collapsed");
+        } catch {
+          /* ignore */
         }
-      }, index * 300); // staggered animation
-    });
+        return !c;
+      });
+    } else {
+      setDrawerOpen((o) => !o);
+    }
   };
 
-  const navItems = [
-    { title: "Home", icon: Home, href: "/user/" },
-    { title: "Transactions", icon: CreditCard, href: "/user/transactions" },
-    { title: "Budgets", icon: PieChart, href: "/user/budgets" },
-    { title: 'AI Models', icon : Brain, href : '/user/models'},
-    { title: "Analytics", icon: TrendingUp, href: "/user/analytics" },
-    // { title: "Settings", icon: Settings, href: "/user/settings" },
-  ];
-
-
-  const [currentTheme, setCurrentTheme] = useState("light");
-
-  useEffect(() => {
-    const checkTheme = () => {
-      const isDark = document.documentElement.classList.contains("dark");
-      setCurrentTheme(isDark ? "dark" : "light");
-    };
-
-    checkTheme();
-
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <div className="flex min-h-screen w-full bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 transition-colors duration-300">
-      
-      {/* Decorative Blobs */}
-      <div className="fixed top-[-10%] left-[-10%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-40 dark:opacity-20 pointer-events-none z-0"></div>
-      <div className="fixed bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[90px] opacity-40 dark:opacity-20 pointer-events-none z-0"></div>
-
+    <div className="min-h-[100dvh] w-full bg-[#f7f6f2] dark:bg-stone-950 font-ui text-stone-800 dark:text-stone-100">
+      {/* Desktop sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-0"
-        } transition-all duration-300 bg-white/60 dark:bg-stone-950/60 backdrop-blur-md border-r border-white/50 dark:border-stone-800 flex flex-col overflow-hidden z-20 shadow-sm`}
+        className={`hidden lg:block fixed inset-y-0 left-0 z-30 w-64 border-r border-stone-200 dark:border-stone-800 bg-[#efede6] dark:bg-stone-900/60 transition-transform duration-300 ease-out ${
+          collapsed ? "-translate-x-full" : "translate-x-0"
+        }`}
       >
-        <div className="p-4 flex items-center gap-2 mb-2">
-            <div className="bg-emerald-100 dark:bg-emerald-900/50 p-2 rounded-full transition-colors">
-                <Leaf className="w-5 h-5 text-emerald-700 dark:text-emerald-400" />
-            </div>
-            <h2 className={`font-serif italic text-2xl text-stone-800 dark:text-stone-100 transition-opacity duration-300 ${sidebarOpen ? 'opacity-100' : 'opacity-0'}`}>
-                Recepta
-            </h2>
-        </div>
-
-        <UserMenu setHomeDefault={setHomeDefault} />
-
-        <nav className="flex-1 p-4 space-y-1">
-          <p className="text-stone-400 dark:text-stone-500 text-[10px] uppercase px-4 mb-3 font-bold tracking-widest">
-            Menu
-          </p>
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.href;
-            return (
-                <Button
-                key={item.title}
-                variant="ghost"
-                onClick={() => setHomeDefault(item.title)}
-                asChild
-                className={`w-full justify-start gap-3 rounded-full mb-1 transition-all duration-300 ${
-                    isActive 
-                    ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-bold shadow-sm" 
-                    : "text-stone-500 dark:text-stone-400 hover:bg-white/50 dark:hover:bg-stone-800/50 hover:text-stone-700 dark:hover:text-stone-200"
-                }`}
-                >
-                <NavLink to={item.href}>
-                    <item.icon className={`w-5 h-5 ${isActive ? "text-emerald-600 dark:text-emerald-400" : "text-stone-400 dark:text-stone-500"}`} />
-                    <span>{item.title}</span>
-                </NavLink>
-                </Button>
-            );
-          })}
-        </nav>
+        <SidebarContent />
       </aside>
 
-      
-      <div className="flex-1 flex flex-col min-w-0 z-10 relative overflow-y-auto h-screen">
-        
-        <div className="sticky top-0 z-50 bg-white/0 dark:bg-stone-950/0 backdrop-blur-sm transition-all">
-            <Header
-            setSidebarOpen={setSidebarOpen}
-            sidebarOpen={sidebarOpen}
-            handleBellClick={handleBellClick}
-            setIsAddDialogOpen={setIsAddDialogOpen}
-            length={getAllunreadMark?.length}
-            // getAllunreadMark={getAllunreadMark}
-            />
-        </div>
-
-        <div className="flex-1">
-            {(homeDefault === 'Home' && location.pathname === '/user/') ? (
-            <UserHome
-             
-            />
-            ) : (
-                <Outlet />
-            )}
-        </div>
-
-        <AdvanceForm
-          setIsAddDialogOpen={setIsAddDialogOpen}
-          isAddDialogOpen={isAddDialogOpen}
+      {/* Mobile drawer */}
+      <div className={`lg:hidden fixed inset-0 z-50 ${drawerOpen ? "" : "pointer-events-none"}`} aria-hidden={!drawerOpen} inert={!drawerOpen}>
+        <div
+          onClick={closeDrawer}
+          className={`absolute inset-0 bg-stone-950/40 transition-opacity duration-300 ${drawerOpen ? "opacity-100" : "opacity-0"}`}
         />
-
-       <Toaster 
-          position="top-right" 
-          richColors 
-          theme={currentTheme}
-          toastOptions={{
-            classNames: {
-              toast: 'group bg-white dark:bg-stone-900 text-stone-950 dark:text-stone-50 border-stone-200 dark:border-stone-800 shadow-xl',
-              description: 'text-stone-500 dark:text-stone-400 font-medium',
-              actionButton: 'bg-emerald-600 text-white font-bold',
-              cancelButton: 'bg-stone-100 text-stone-500 dark:bg-stone-800 dark:text-stone-400',
-              error: 'text-red-600 dark:text-red-400',
-              success: 'text-emerald-600 dark:text-emerald-400',
-              warning: 'text-orange-600 dark:text-orange-400',
-              info: 'text-blue-600 dark:text-blue-400',
-            },
-          }}
-        />
+        <aside
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+          className={`absolute inset-y-0 left-0 w-[82%] max-w-[300px] bg-[#f7f6f2] dark:bg-stone-900 shadow-2xl transition-transform duration-300 ease-out ${
+            drawerOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <SidebarContent onNavigate={closeDrawer} />
+        </aside>
       </div>
+
+      <div className={`transition-[padding] duration-300 ease-out ${collapsed ? "lg:pl-0" : "lg:pl-64"}`}>
+        <Header onMenu={toggleMenu} menuOpen={isDesktop ? !collapsed : drawerOpen} onAdd={() => setIsAddDialogOpen(true)} />
+        <main className="min-w-0">
+          <Outlet />
+        </main>
+      </div>
+
+      <AdvanceForm setIsAddDialogOpen={setIsAddDialogOpen} isAddDialogOpen={isAddDialogOpen} />
     </div>
   );
 }

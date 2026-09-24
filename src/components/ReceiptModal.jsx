@@ -1,252 +1,197 @@
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Store, 
-  MapPin, 
-  Calendar, 
-  Hash, 
-  Receipt, 
-  CreditCard, 
-  Clock,
-  User,
-  Phone,
-  Tag // Added Tag icon
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { X, RotateCw, Trash2, Maximize2, MapPin } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
-// ... (Keep your dummyReceiptData exactly as it was) ...
+// Receipt details. A plain fixed overlay rather than the Radix dialog: that
+// version put the content in a ScrollArea with only a max-height, so tall
+// receipts overflowed the screen, couldn't scroll, and pushed the close
+// button out of reach. Here the header is pinned and the body scrolls.
 
-const ReceiptDetailModal = ({ isOpen, onClose, data }) => {
-  if (!data) return null;
-
-  // Helper for safe currency display
-  const currencySymbol = data.metadata?.currency === "PHP" ? "₱" : "$";
-  
-  const formatMoney = (amount) => {
-    if (amount === null || amount === undefined) return "0.00";
-    return typeof amount === 'number' ? amount.toFixed(2) : amount;
+const formatDate = (iso) => {
+  const d = iso ? new Date(iso) : null;
+  if (!d || Number.isNaN(d.getTime())) return null;
+  return {
+    date: d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", year: "numeric" }),
+    time: d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }),
   };
+};
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Unknown Date";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+function PhotoViewer({ src, alt, onClose }) {
+  const [turns, setTurns] = useState(0);
+  const sideways = turns % 2 === 1;
 
-  const formatTime = (dateString) => {
-    if (!dateString) return "--:--";
-    return new Date(dateString).toLocaleTimeString("en-US", {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      if (e.key.toLowerCase() === "r") setTurns((t) => t + 1);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="[&>button]:z-50 max-w-md w-[95%] rounded-[2.5rem] bg-[#f2f0e9] dark:bg-stone-950 border-white/50 dark:border-stone-800 shadow-2xl p-0 overflow-hidden gap-0">
-        
-        {/* Decorative Header Blob (Subtle) */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-100 dark:bg-emerald-900/20 rounded-full blur-[50px] pointer-events-none opacity-50" />
+    <div className="fixed inset-0 z-[70] bg-black flex flex-col" role="dialog" aria-label="Receipt photo">
+      <div className="flex items-center justify-end gap-2 p-3">
+        <button
+          onClick={() => setTurns((t) => t + 1)}
+          className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm"
+        >
+          <RotateCw className="w-4 h-4" /> Rotate
+        </button>
+        <button onClick={onClose} aria-label="Close photo" className="grid place-items-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="flex-1 min-h-0 flex items-center justify-center p-4 overflow-hidden" onClick={onClose}>
+        <img
+          src={src}
+          alt={alt}
+          onClick={(e) => e.stopPropagation()}
+          style={{ transform: `rotate(${turns * 90}deg)` }}
+          className={`object-contain transition-transform duration-300 ${sideways ? "max-h-[92vw] max-w-[80dvh]" : "max-h-full max-w-full"}`}
+        />
+      </div>
+    </div>
+  );
+}
 
-        <DialogHeader className="p-6 pb-2 relative z-10">
-          <div className="flex items-center gap-2 mb-2 opacity-50">
-            <Receipt className="w-4 h-4" />
-            <span className="text-[10px] uppercase tracking-widest font-bold">Transaction Details</span>
+const ReceiptDetailModal = ({ isOpen, onClose, data, onDelete }) => {
+  const { money } = useAuth();
+  const [viewing, setViewing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [imageOk, setImageOk] = useState(true);
+
+  useEffect(() => {
+    setViewing(false);
+    setConfirmDelete(false);
+    setImageOk(true);
+  }, [data?._id, data?.id]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => e.key === "Escape" && !viewing && onClose(false);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, viewing, onClose]);
+
+  if (!isOpen || !data) return null;
+
+  const meta = data.metadata || {};
+  const when = formatDate(meta.datetime);
+  const isIncome = String(meta.type || data.type || "").toLowerCase() === "income";
+  const photo = meta.receipt_image || null;
+  const picture = photo || meta.image_source;
+  const address = [data.address?.street, data.address?.city, data.address?.state, data.address?.zip].filter(Boolean).join(", ");
+  const items = data.items || [];
+
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
+      <div className="absolute inset-0 bg-stone-950/45 motion-safe:animate-in motion-safe:fade-in duration-200" onClick={() => onClose(false)} />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="receipt-title"
+        className="relative w-full sm:w-[440px] max-h-[92dvh] sm:max-h-[86dvh] flex flex-col bg-[#fdfcf8] dark:bg-stone-900 text-stone-800 dark:text-stone-100 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden motion-safe:animate-in motion-safe:slide-in-from-bottom-6 sm:motion-safe:zoom-in-95 duration-200"
+      >
+        {/* Pinned header */}
+        <div className="shrink-0 flex items-start justify-between gap-3 px-5 pt-4 pb-3 border-b border-stone-200 dark:border-stone-800">
+          <div className="min-w-0">
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-stone-400">
+              {isIncome ? "Income" : "Expense"}{meta.source_type ? ` · ${meta.source_type}` : ""}
+            </p>
+            <h2 id="receipt-title" className="font-display text-2xl leading-tight truncate">{data.store || "Unnamed entry"}</h2>
+            {when && <p className="text-xs text-stone-500 dark:text-stone-400">{when.date} · {when.time}</p>}
           </div>
-          <DialogTitle className="font-serif text-2xl text-stone-800 dark:text-stone-100 italic">
-            {data.store || "Unknown Store"}
-          </DialogTitle>
-          {data.slogan && (
-            <p className="text-sm text-stone-500 dark:text-stone-400 font-medium">"{data.slogan}"</p>
+          <button onClick={() => onClose(false)} aria-label="Close" className="shrink-0 grid place-items-center w-9 h-9 rounded-full text-stone-500 hover:text-stone-900 hover:bg-stone-200/70 dark:hover:text-white dark:hover:bg-stone-800">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
+          {picture && imageOk && (
+            <button onClick={() => setViewing(true)} className="group relative block w-full h-44 bg-stone-200 dark:bg-stone-800 overflow-hidden" aria-label="View photo full size">
+              <img src={picture} alt={photo ? "Receipt photo" : ""} onError={() => setImageOk(false)} className="w-full h-full object-cover" />
+              <span className="absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full bg-stone-950/70 text-white text-xs px-2.5 py-1">
+                <Maximize2 className="w-3 h-3" /> {photo ? "View receipt" : "View image"}
+              </span>
+            </button>
           )}
 
-          <DialogDescription className="text-sm text-stone-500 dark:text-stone-400 font-medium">
-              {data.slogan ? `"${data.slogan}"` : "Receipt Details"}
-          </DialogDescription>
-        </DialogHeader>
+          <div className="px-5 py-4 space-y-4">
+            {(address || data.contact) && (
+              <p className="flex items-start gap-2 text-xs text-stone-500 dark:text-stone-400">
+                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                <span>{[address, data.contact].filter(Boolean).join(" · ")}</span>
+              </p>
+            )}
 
-        <ScrollArea className="max-h-[70vh] w-full px-6 pb-6 relative z-10">
-          
-          {/* THE "PAPER" RECEIPT CARD */}
-          <div className="bg-white/60 dark:bg-stone-900/60 backdrop-blur-md rounded-[1.5rem] border border-white/60 dark:border-white/5 p-5 space-y-5 shadow-sm">
-            
-            {/* 1. Address & Contact */}
-            <div className="space-y-2 text-xs text-stone-500 dark:text-stone-400">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-3 h-3 mt-0.5 shrink-0" />
-                <span>
-                  {[
-                    data.address?.street,
-                    data.address?.city,
-                    data.address?.state,
-                    data.address?.zip
-                  ].filter(Boolean).join(", ") || "No address provided"}
-                </span>
-              </div>
-              {(data.manager || data.contact) && (
-                <div className="flex gap-4">
-                  {data.manager && (
-                    <div className="flex items-center gap-1.5">
-                        <User className="w-3 h-3" />
-                        <span>Mgr: {data.manager}</span>
-                    </div>
-                  )}
-                  {data.contact && (
-                      <div className="flex items-center gap-1.5">
-                        <Phone className="w-3 h-3" />
-                        <span>{data.contact}</span>
-                      </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 2. Metadata Grid */}
-            <div className="grid grid-cols-2 gap-3 bg-stone-50 dark:bg-stone-800/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
-              <div className="flex items-center gap-2">
-                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-full text-emerald-700 dark:text-emerald-400">
-                  <Calendar className="w-3 h-3" />
-                </div>
-                <div className="flex flex-col">
-                   <span className="text-[10px] uppercase text-stone-400 font-bold">Date</span>
-                   <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
-                     {formatDate(data.metadata?.datetime)}
-                   </span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="bg-orange-100 dark:bg-orange-900/30 p-1.5 rounded-full text-orange-700 dark:text-orange-400">
-                  <Clock className="w-3 h-3" />
-                </div>
-                <div className="flex flex-col">
-                   <span className="text-[10px] uppercase text-stone-400 font-bold">Time</span>
-                   <span className="text-xs font-semibold text-stone-700 dark:text-stone-200">
-                     {formatTime(data.metadata?.datetime)}
-                   </span>
-                </div>
-              </div>
-              {data.transaction?.transaction_number && (
-                  <div className="col-span-2 flex items-center gap-2 pt-1 border-t border-dashed border-stone-200 dark:border-stone-700 mt-1">
-                     <Hash className="w-3 h-3 text-stone-400" />
-                     <span className="text-[10px] text-stone-400 font-mono">
-                       Ref: #{data.transaction.transaction_number} 
-                       {data.transaction.terminal_number ? ` / Term: ${data.transaction.terminal_number}` : ''}
-                     </span>
-                  </div>
-              )}
-            </div>
-
-            {/* 3. Items List */}
             <div>
-              <div className="flex justify-between items-center mb-3">
-                 <h4 className="text-sm font-bold text-stone-800 dark:text-stone-200 font-serif">Items Purchased</h4>
-                 <span className="text-[10px] bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-full text-stone-500">
-                    {data.items?.length || 0} items
-                 </span>
-              </div>
-              
-              <div className="space-y-3">
-                {data.items && data.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-start text-sm group">
-                    <div className="flex gap-3">
-                      {/* Quantity Box */}
-                      <div className="w-5 h-5 flex items-center justify-center bg-stone-100 dark:bg-stone-800 rounded-md text-[10px] font-bold text-stone-500 shrink-0 mt-0.5">
-                        {item.quantity || 1}
-                      </div>
-                      
-                      <div className="flex flex-col">
-                        <p className="text-stone-700 dark:text-stone-300 font-medium leading-snug">
-                          {item.description || "Unknown Item"}
-                        </p>
-                        
-                        {/* --- NEW: CATEGORY & UPC ROW --- */}
-                        <div className="flex items-center gap-2 mt-1">
-                            {(item.category || item.type) && (
-                                <span className="inline-flex items-center text-[9px] uppercase tracking-wider font-bold text-stone-500 bg-stone-100 dark:bg-stone-800/80 px-1.5 py-0.5 rounded">
-                                    {item.category || item.type}
-                                </span>
-                            )}
-                            {item.upc && (
-                                <span className="text-[9px] text-stone-400 font-mono">
-                                    #{item.upc}
-                                </span>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="font-semibold text-stone-800 dark:text-stone-200 whitespace-nowrap pl-2">
-                      {currencySymbol}{formatMoney(item.price)}
-                    </div>
-                  </div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-stone-400 mb-2">{items.length} {items.length === 1 ? "item" : "items"}</p>
+              <ul className="divide-y divide-dashed divide-stone-200 dark:divide-stone-800">
+                {items.map((item, i) => (
+                  <li key={i} className="flex items-baseline justify-between gap-3 py-2 text-sm">
+                    <span className="min-w-0">
+                      <span className="text-stone-800 dark:text-stone-200">
+                        {item.quantity > 1 && <span className="text-stone-400 tabular-nums">{item.quantity}× </span>}
+                        {item.description || "Item"}
+                      </span>
+                      {(item.category || item.type) && <span className="block text-[11px] text-stone-400">{item.category || item.type}</span>}
+                    </span>
+                    <span className="tabular-nums text-stone-600 dark:text-stone-300 shrink-0">{money.format((item.price || 0) * (item.quantity || 1))}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
-            <Separator className="bg-stone-200 dark:bg-stone-700 border-t border-dashed h-[1px]" />
-
-            {/* 4. Financial Summary */}
-            <div className="space-y-1">
-              {/* Subtotal */}
-              <div className="flex justify-between text-xs text-stone-500 dark:text-stone-400">
-                <span>Subtotal</span>
-                <span>{currencySymbol}{formatMoney(data.subtotal)}</span>
+            <dl className="space-y-1 text-sm border-t border-stone-200 dark:border-stone-800 pt-3">
+              {data.subtotal != null && Number(data.subtotal) !== Number(data.total) && (
+                <div className="flex justify-between text-stone-500"><dt>Subtotal</dt><dd className="tabular-nums">{money.format(data.subtotal)}</dd></div>
+              )}
+              {Number(data.tax_amount) > 0 && (
+                <div className="flex justify-between text-stone-500"><dt>Tax{data.tax_rate ? ` (${data.tax_rate}%)` : ""}</dt><dd className="tabular-nums">{money.format(data.tax_amount)}</dd></div>
+              )}
+              <div className="flex justify-between items-baseline pt-1">
+                <dt className="font-medium">Total</dt>
+                <dd className={`text-2xl font-semibold tabular-nums ${isIncome ? "text-emerald-800 dark:text-emerald-400" : ""}`}>
+                  {isIncome ? "+" : ""}{money.format(data.total ?? data.subtotal ?? 0)}
+                </dd>
               </div>
-              
-              {/* Tax */}
-              <div className="flex justify-between text-xs text-stone-500 dark:text-stone-400">
-                <span>Tax {data.tax_rate ? `(${data.tax_rate}%)` : ''}</span>
-                <span>{currencySymbol}{formatMoney(data.tax_amount)}</span>
-              </div>
+              {data.payment_method && <div className="flex justify-between text-xs text-stone-500 pt-1"><dt>Paid by</dt><dd className="capitalize">{data.payment_method}</dd></div>}
+            </dl>
 
-              {/* Total - Big Organic Emphasis */}
-              <div className="flex justify-between items-center pt-3 mt-2">
-                <span className="font-serif text-lg text-stone-800 dark:text-stone-100 italic">Total</span>
-                <span className="font-serif text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                    {currencySymbol}{formatMoney(data.total)}
-                </span>
-              </div>
-            </div>
-
-            {/* 5. Payment Footer */}
-            <div className="bg-stone-100 dark:bg-stone-800/50 rounded-xl p-3 flex justify-between items-center">
-               <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-stone-400" />
-                  <span className="text-xs font-semibold text-stone-600 dark:text-stone-300 uppercase tracking-wider">
-                    {data.payment_method || "Cash"}
-                  </span>
-               </div>
-               {data.amount_paid && (
-                 <span className="text-xs text-stone-500">
-                   Paid: {currencySymbol}{formatMoney(data.amount_paid)}
-                 </span>
-               )}
-            </div>
-
+            {meta.notes && <p className="text-sm text-stone-600 dark:text-stone-300 bg-stone-100 dark:bg-stone-800/60 rounded-lg px-3 py-2">{meta.notes}</p>}
+            {money.code !== "PHP" && <p className="text-[11px] text-stone-400">Recorded in pesos, shown in {money.code} at today's rate.</p>}
           </div>
+        </div>
 
-          {/* Bottom Note */}
-          <div className="text-center mt-6 mb-2">
-            <p className="text-[10px] text-stone-400 uppercase tracking-widest">
-              Generated from {data.metadata?.source_type || "Scan"}
-            </p>
+        {onDelete && (
+          <div className="shrink-0 px-5 py-3 border-t border-stone-200 dark:border-stone-800 flex items-center justify-end gap-2">
+            {confirmDelete ? (
+              <>
+                <span className="text-sm text-stone-600 dark:text-stone-300 mr-auto">Delete this entry?</span>
+                <button onClick={() => setConfirmDelete(false)} className="h-9 px-4 rounded-full text-sm hover:bg-stone-200/70 dark:hover:bg-stone-800">Keep</button>
+                <button onClick={() => onDelete(data._id || data.id)} className="h-9 px-4 rounded-full text-sm bg-red-700 hover:bg-red-800 text-white">Delete</button>
+              </>
+            ) : (
+              <button onClick={() => setConfirmDelete(true)} className="inline-flex items-center gap-2 h-9 px-3 rounded-full text-sm text-stone-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40">
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
+            )}
           </div>
+        )}
+      </div>
 
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      {viewing && picture && <PhotoViewer src={picture} alt={data.store || "Receipt"} onClose={() => setViewing(false)} />}
+    </div>,
+    document.body
   );
 };
 

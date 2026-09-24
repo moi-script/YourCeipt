@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  Wallet,
-  DollarSign,
-  TrendingUp,
-  UploadCloud,
-  Cpu,
-  Eye,
-  EyeOff,
-  ChevronLeft,
-  ChevronRight,
-  Leaf
-} from "lucide-react";
+import {Wallet, DollarSign, TrendingUp, UploadCloud, Cpu, Eye, EyeOff, ChevronLeft, ChevronRight} from "lucide-react";
+import { IconLedger } from "@/components/icons";
 import { useAuth } from "@/context/AuthContext";
 // import receptaLogo from '../assets/receptaLogo.png'; // Uncomment if needed
 import { BASE_API_URL } from "@/api/getKeys.js";
+import { SignInCode } from "@/components/SignInCode";
 // const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 const Login = () => {
@@ -55,6 +46,8 @@ const Login = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const [pendingCode, setPendingCode] = useState(null); // two-step sign-in
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -66,6 +59,10 @@ const Login = () => {
         body : JSON.stringify({email, password})
       })
 
+      if (res.twoFactor) {
+        setPendingCode({ email: res.email, maskedEmail: res.maskedEmail });
+        return;
+      }
       if(res.status === 200) {
         setUser(res);
         markSignedIn();
@@ -204,7 +201,7 @@ const Login = () => {
               {/* Logo */}
               <div className="flex items-center justify-center mb-10 gap-3">
                 <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-full shadow-sm">
-                    <Leaf className="w-8 h-8 text-emerald-700 dark:text-emerald-400" />
+                    <IconLedger className="w-8 h-8 text-emerald-700 dark:text-emerald-400" />
                 </div>
                 <h1 className="text-4xl font-serif italic font-bold text-stone-800 dark:text-stone-100">
                   Recepta
@@ -220,6 +217,9 @@ const Login = () => {
               </div>
 
               {/* Form */}
+              {pendingCode ? (
+                <SignInCode email={pendingCode.email} maskedEmail={pendingCode.maskedEmail} onBack={() => setPendingCode(null)} onSuccess={(data) => { setUser(data); markSignedIn(); navigate(from, { replace: true }); }} />
+              ) : (
               <form className="space-y-6" onSubmit={handleSubmit}>
                 {/* Email Field */}
                 <div>
@@ -299,6 +299,7 @@ const Login = () => {
                   </p>
                 </div>
               </form>
+              )}
 
               {/* Mobile Onboarding Indicator (Visible only on small screens) */}
               <div className="lg:hidden mt-8 pt-8 border-t border-stone-100 dark:border-stone-800">
