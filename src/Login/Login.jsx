@@ -26,7 +26,7 @@ const Login = () => {
   const location = useLocation();
   const [error, setError] = useState(null);
   
-  const { login, user, setUser} = useAuth();
+  const { login, user, setUser, markSignedIn } = useAuth();
 
   const steps = [
     {
@@ -68,6 +68,7 @@ const Login = () => {
 
       if(res.status === 200) {
         setUser(res);
+        markSignedIn();
         navigate(from, { replace: true });
       } else {
          // Handle non-200 if needed

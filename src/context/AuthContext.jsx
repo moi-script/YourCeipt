@@ -11,7 +11,7 @@ import {
 // import { useNavigate } from "react-router-dom";
 import { apiFetch, loginFetch } from "@/api/client";
 import { calculateMonthlyTrendClientSide, getCategorySummaries, processBudgetInsights, transformBudgetsToInsights } from "@/api/analyticsAction";
-import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/Home/Analyts";
+import { CATEGORY_CONFIG, CATEGORY_MAP } from "@/lib/categories";
 import { useToast } from "@/components/Toaster";
 import { uploadNotification } from "@/api/uploadNotification";
 const AuthContext = createContext(null);
@@ -406,20 +406,24 @@ export const AuthProvider = ({ children }) => {
   // fetching user receipt list
   const [models, setModels] = useState(null);
 
+  // Only signed-in users need the model list; the landing page used to
+  // fetch it for every visitor.
   useEffect(() => {
+    if (!user?._id) return;
     const fetchAi = async () => {
       try {
         setIsModelLoading(true);
         const res = await fetch(BASE_API_URL + "/extract/getModels");
         const data = await res.json();
         setModels(data.models);
-        setIsModelLoading(false);
       } catch (err) {
         console.error("Unable to fetch ai models");
+      } finally {
+        setIsModelLoading(false);
       }
     };
     fetchAi();
-  }, [isUserLogin]);
+  }, [user?._id]);
 
 
 
@@ -439,15 +443,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await fetch(BASE_API_URL + `/extract/getUserModel?userId=${user._id}`);
       const data = await res.json();
-      if (data.success) {
-        setActiveModelName(data.model_name);
-      }
-
-      if(!res.ok) {
-        setActiveModelName(getAiDefaultModel());
-      }
+      // "auto" lets the server pick the fastest working model.
+      setActiveModelName(data.success && data.model_name ? data.model_name : getAiDefaultModel());
     } catch (err) {
       console.error("Error No active model status");
+      setActiveModelName(getAiDefaultModel());
     }
   };
 
@@ -483,6 +483,16 @@ export const AuthProvider = ({ children }) => {
       setTotalBalance(totalBudget - totalSpent);
     }
   }, [totalSpent]);
+
+  // After login/register, re-run the session check so `user` comes from
+  // /user/verify (with its _id) and the loading state clears. Without this a
+  // first-time visitor sat on the loader until they reloaded the page.
+  const markSignedIn = useCallback(() => {
+    try { localStorage.setItem('user', true); } catch { /* storage blocked */ }
+    setLoading(true);
+    setIsUserLogin(true);
+    setRefreshPage(true);
+  }, []);
 
   const register = useCallback(async (url, options = {}) => {
     const status = await apiFetch(url, options);
@@ -730,6 +740,7 @@ useEffect(() => {
       categorySummaries,
 
       activeModelName,
+      setActiveModelName,
       spendingTrend,
       totalBudget,
       categorySpent,
@@ -753,6 +764,7 @@ useEffect(() => {
       models,
       setModels,
       setUser,
+      markSignedIn,
       login,
       setLoading,
       isLoading,
@@ -776,6 +788,7 @@ useEffect(() => {
 
       
       activeModelName,
+      setActiveModelName,
       refreshPage,
       monthlyExpenses,
       getMetrics,
@@ -796,6 +809,7 @@ useEffect(() => {
       models,
       setModels,
       setUser,
+      markSignedIn,
       login,
       isLoading,
       register,

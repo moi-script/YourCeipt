@@ -1,280 +1,284 @@
-import React, { useEffect, useState } from "react";
-import { DashboardSkeleton } from "@/components/loaders/AiSkeleton";
-import {
-  RefreshCw,
-  Zap,
-  Activity,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Cpu,
-} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { RefreshCw, Check, ChevronDown, Sparkles, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/Toaster.jsx";
 import { BASE_API_URL } from "@/api/getKeys";
-// --- CUSTOM ORGANIC COMPONENTS ---
-// const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
-const OrganicCard = ({ children, className = "" }) => (
-  <div
-    className={`backdrop-blur-md border border-white/50 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[1.5rem] md:rounded-[2rem] overflow-hidden transition-all duration-300 ${className}`}
-  >
-    {children}
-  </div>
-);
+const STATUS = {
+  active: { label: "Working", dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400" },
+  degraded: { label: "Unreliable", dot: "bg-amber-500", text: "text-amber-700 dark:text-amber-400" },
+  unknown: { label: "Not checked yet", dot: "bg-stone-300 dark:bg-stone-600", text: "text-stone-500" },
+  busy: { label: "Busy", dot: "bg-amber-500", text: "text-amber-700 dark:text-amber-400" },
+  paused: { label: "Paused", dot: "bg-stone-400", text: "text-stone-500" },
+  down: { label: "Unavailable", dot: "bg-red-500", text: "text-red-700 dark:text-red-400" },
+};
 
-const OrganicCardHeader = ({ children, className = "" }) => (
-  <div className={`p-5 md:p-6 pb-2 ${className}`}>{children}</div>
-);
+const USABLE = ["active", "degraded", "unknown"];
 
-const OrganicCardTitle = ({ children, className = "" }) => (
-  <h3 className={`text-[10px] md:text-sm font-bold uppercase tracking-wider ${className}`}>
-    {children}
-  </h3>
-);
+const formatLatency = (ms) => (ms == null ? "—" : ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`);
 
-const OrganicCardContent = ({ children, className = "" }) => (
-  <div className={`p-5 md:p-6 ${className}`}>{children}</div>
-);
+const timeAgo = (iso) => {
+  if (!iso) return null;
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.round(mins / 60);
+  return hours < 24 ? `${hours} h ago` : `${Math.round(hours / 24)} d ago`;
+};
+
+function StatusPill({ status }) {
+  const s = STATUS[status] || STATUS.unknown;
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${s.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
+      {s.label}
+    </span>
+  );
+}
+
+function ModelRow({ model, selected, disabled, onSelect }) {
+  const usable = USABLE.includes(model.status) || model.builtIn;
+  return (
+    <li className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 px-4 sm:px-5 py-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <p className="font-medium text-stone-900 dark:text-stone-100">{model.name}</p>
+          {model.recommended && model.status === "active" && (
+            <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+              Fastest
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5 truncate">
+          {model.provider} · <span className="font-mono">{model.id.replace(/^google-ai\//, "")}</span>
+        </p>
+        {model.error && <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">{model.error}</p>}
+      </div>
+
+      <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0">
+        <div className="text-left sm:text-right min-w-[92px]">
+          <StatusPill status={model.status} />
+          <p className="text-xs text-stone-500 tabular-nums mt-0.5">
+            {formatLatency(model.latency)}
+            {model.extractions > 0 && ` · ${Math.round((model.successRate ?? 0) * 100)}% of ${model.extractions}`}
+          </p>
+        </div>
+        {selected ? (
+          <span className="inline-flex items-center gap-1 h-9 px-4 text-sm font-medium text-emerald-800 dark:text-emerald-300">
+            <Check className="w-4 h-4" /> In use
+          </span>
+        ) : (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={disabled || !usable}
+            onClick={() => onSelect(model.id)}
+            className="h-9 rounded-full px-4 border-stone-300 dark:border-stone-700"
+          >
+            Use this
+          </Button>
+        )}
+      </div>
+    </li>
+  );
+}
 
 export default function AIModelDashboard() {
+  const { isModelLoading, models, setModels, user, activeModelName, setActiveModelName } = useAuth();
+  const toast = useToast();
+  const [meta, setMeta] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { setIsModelLoading, isModelLoading, models, setModels, user, setRefreshPage } = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
+  const [showUnavailable, setShowUnavailable] = useState(false);
 
-  // useEffect(() => {
-  //   // console.log("Model list :: ", models);
-  // }, [models]);
+  const list = Array.isArray(models) ? models : [];
+  const selected = activeModelName || "auto";
 
-  // --- METHODS ---
+  const { builtIn, community, unavailable } = useMemo(() => {
+    const builtIn = list.filter((m) => m.builtIn);
+    const others = list.filter((m) => !m.builtIn);
+    return {
+      builtIn,
+      community: others.filter((m) => USABLE.includes(m.status)),
+      unavailable: others.filter((m) => !USABLE.includes(m.status)),
+    };
+  }, [list]);
 
-  const handleRefresh = async () => {
+  const selectedModel = list.find((m) => m.id === selected);
+  const selectedGone = selected !== "auto" && list.length > 0 && (!selectedModel || !USABLE.includes(selectedModel.status));
+
+  // The list itself is cached server-side, so this is cheap; it brings the
+  // "last tested" time and whether a re-test is allowed yet.
+  useEffect(() => {
+    fetch(BASE_API_URL + "/extract/getModels")
+      .then((r) => r.json())
+      .then((data) => {
+        setMeta(data);
+        if (Array.isArray(data.models)) setModels(data.models);
+      })
+      .catch(() => {});
+  }, [setModels]);
+
+  const refresh = async () => {
     setIsRefreshing(true);
     try {
-      const res = await fetch(BASE_API_URL + "/extract/getModels");
+      const res = await fetch(BASE_API_URL + "/extract/getModels?refresh=1");
       const data = await res.json();
       setModels(data.models);
-      setRefreshPage(true);
-    } catch (err) {
-      console.error("Unable to fetch ai models");
+      setMeta(data);
+    } catch {
+      toast.error("Couldn't check the models", "Check your connection and try again.");
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  const activateModel = async (modelName) => {
-    if (!user?._id) {
-      console.error("No user ID found for activation");
-      return;
-    }
-
-    setIsRefreshing(true);
+  const select = async (modelId) => {
+    if (!user?._id) return;
+    setIsSaving(true);
     try {
-      const res = await fetch(BASE_API_URL + "/extract/postmodel", {
+      const res = await fetch(BASE_API_URL + "/extract/postModel", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user._id,
-          modelName: modelName,
-        }),
+        body: JSON.stringify({ userId: user._id, modelName: modelId }),
       });
-
-      if (res.ok) {
-        console.log(`Success: ${modelName} activated for user ${user._id}`);
-        await handleRefresh();
-      }
-    } catch (err) {
-      console.error("Activation request failed:", err);
+      if (!res.ok) throw new Error();
+      setActiveModelName(modelId);
+      const name = modelId === "auto" ? "Auto" : list.find((m) => m.id === modelId)?.name || modelId;
+      toast.success("Model updated", `${name} will read your next receipt.`);
+    } catch {
+      toast.error("Couldn't change the model", "Please try again.");
     } finally {
-      setIsRefreshing(false);
+      setIsSaving(false);
     }
   };
 
-  const getStatusIcon = (status) => {
-    return status === "active" ? (
-      <div className="bg-emerald-100 dark:bg-emerald-900/30 p-2 rounded-full">
-        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-      </div>
-    ) : (
-      <div className="bg-stone-100 dark:bg-stone-800 p-2 rounded-full">
-        <XCircle className="w-4 h-4 md:w-5 md:h-5 text-stone-400 dark:text-stone-500 shrink-0" />
-      </div>
-    );
-  };
-
-  const getLatencyColor = (latency) => {
-    if (latency === 0) return "text-stone-400 dark:text-stone-500";
-    if (latency < 200) return "text-emerald-600 dark:text-emerald-400";
-    if (latency < 300) return "text-orange-500 dark:text-orange-400";
-    return "text-orange-700 dark:text-orange-500";
-  };
-
-  if (isModelLoading) return <DashboardSkeleton />;
-
-  const activeCount = Array.isArray(models) ? models.filter((m) => m.status === "active").length : 0;
-  const avgLatency = Array.isArray(models) && models.length > 0
-      ? Math.round(models.reduce((acc, curr) => acc + (curr.latency || 0), 0) / models.length)
-      : 0;
+  const anyPaused = list.some((m) => m.status === "paused");
+  const pausedUntil = meta?.openrouterPausedUntil;
+  const canRefresh = meta ? meta.canRefresh : true;
 
   return (
-    <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 relative overflow-hidden font-sans text-stone-800 dark:text-stone-100 p-4 md:p-8 transition-colors duration-300">
-      
-      {/* Decorative Blobs - Hidden on tiny screens for performance */}
-      <div className="hidden sm:block absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-emerald-100 dark:bg-emerald-900/20 rounded-full filter blur-[90px] opacity-60 dark:opacity-30 pointer-events-none animate-pulse"></div>
-      <div className="hidden sm:block absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-orange-100 dark:bg-orange-900/20 rounded-full filter blur-[90px] opacity-60 dark:opacity-30 pointer-events-none"></div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-6">
+    <div className="min-h-screen bg-[#f7f6f2] dark:bg-stone-950 font-sans text-stone-800 dark:text-stone-100 p-4 md:p-8">
+      <div className="max-w-4xl mx-auto">
+        <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/40 dark:bg-stone-800/40 border border-white/60 dark:border-white/10 backdrop-blur-md mb-3 shadow-sm">
-              <Cpu className="h-3 w-3 text-emerald-700 dark:text-emerald-400" />
-              <span className="text-[10px] uppercase tracking-widest text-emerald-700 dark:text-emerald-400 font-bold">
-                System Status
-              </span>
-            </div>
-            <h1 className="text-3xl md:text-5xl font-serif italic text-[#2c2c2c] dark:text-stone-100 mb-2">
-              AI Models
-            </h1>
-            <p className="text-stone-500 dark:text-stone-400 text-xs md:text-base font-medium max-w-md">
-              Monitor and activate neural nodes for processing across your infrastructure.
+            <h1 className="text-3xl md:text-4xl font-serif text-stone-900 dark:text-stone-50">AI models</h1>
+            <p className="text-sm text-stone-600 dark:text-stone-400 mt-2 max-w-lg">
+              Choose which model reads your receipts. If it fails or takes too long, Recepta hands the job to the next working model, so an upload never gets stuck on one.
             </p>
           </div>
           <Button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white shadow-lg shadow-emerald-900/10 rounded-full px-6 h-12 transition-all duration-300 w-full lg:w-auto"
+            variant="outline"
+            onClick={refresh}
+            disabled={isRefreshing || !canRefresh}
+            title={canRefresh ? "Test the free models again" : "Checked recently. Try again in a few minutes."}
+            className="rounded-full h-10 px-5 border-stone-300 dark:border-stone-700 shrink-0"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
-            Refresh Nodes
+            {isRefreshing ? "Checking…" : "Check again"}
           </Button>
-        </div>
+        </header>
 
-        {/* Stats Grid - 1 col on mobile, 3 on desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
-          <OrganicCard className="bg-sky-50/50 dark:bg-sky-900/10 border-sky-100 dark:border-sky-800/30">
-            <OrganicCardHeader>
-              <OrganicCardTitle className="text-sky-700 dark:text-sky-300 flex items-center">
-                <Activity className="w-4 h-4 mr-2 text-sky-500 dark:text-sky-400" />
-                Active Models
-              </OrganicCardTitle>
-            </OrganicCardHeader>
-            <OrganicCardContent className="pt-0">
-              <div className="text-3xl md:text-4xl font-serif text-sky-800 dark:text-sky-100">{activeCount}</div>
-              <p className="text-[10px] text-sky-600/80 dark:text-sky-300/80 mt-1 font-bold uppercase tracking-wide">Online</p>
-            </OrganicCardContent>
-          </OrganicCard>
+        {selectedGone && (
+          <div className="flex gap-3 items-start rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 p-4 mb-6 text-sm">
+            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+            <p className="text-amber-900 dark:text-amber-200">
+              The model you picked ({selected.split("/").pop()}) isn't available right now, so your receipts are going to the fallback models. Switch to Auto to stop seeing this.
+            </p>
+          </div>
+        )}
 
-          <OrganicCard className="bg-orange-50/50 dark:bg-orange-900/10 border-orange-100 dark:border-orange-800/30">
-            <OrganicCardHeader>
-              <OrganicCardTitle className="text-orange-700 dark:text-orange-300 flex items-center">
-                <Zap className="w-4 h-4 mr-2 text-orange-500 dark:text-orange-400" />
-                Avg Latency
-              </OrganicCardTitle>
-            </OrganicCardHeader>
-            <OrganicCardContent className="pt-0">
-              <div className="text-3xl md:text-4xl font-serif text-orange-800 dark:text-orange-100">
-                {avgLatency > 0 ? `${avgLatency}ms` : "N/A"}
-              </div>
-              <p className="text-[10px] text-orange-600/80 dark:text-orange-300/80 mt-1 font-bold uppercase tracking-wide">Performance</p>
-            </OrganicCardContent>
-          </OrganicCard>
-
-          <OrganicCard className="sm:col-span-2 lg:col-span-1 bg-emerald-50/50 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800/30">
-            <OrganicCardHeader>
-              <OrganicCardTitle className="text-emerald-700 dark:text-emerald-300 flex items-center">
-                <Clock className="w-4 h-4 mr-2 text-emerald-600 dark:text-emerald-400" />
-                Session Load
-              </OrganicCardTitle>
-            </OrganicCardHeader>
-            <OrganicCardContent className="pt-0">
-              <div className="text-3xl md:text-4xl font-serif text-emerald-800 dark:text-emerald-100">2,673</div>
-              <p className="text-[10px] text-emerald-600/80 dark:text-emerald-300/80 mt-1 font-bold uppercase tracking-wide">Total Hits</p>
-            </OrganicCardContent>
-          </OrganicCard>
-        </div>
-
-        {/* List Section */}
-        <div className="space-y-4">
-          {Array.isArray(models) && models.length > 0 ? (
-            models.map((model) => (
-              <OrganicCard
-                key={model.id}
-                className="bg-white/60 dark:bg-stone-900/40 hover:bg-white/80 dark:hover:bg-stone-900/60 border-white dark:border-white/5 hover:shadow-lg transition-all duration-300"
-              >
-                <OrganicCardContent className="p-4 md:p-6">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    
-                    {/* Model Info */}
-                    <div className="flex items-center space-x-4">
-                      {getStatusIcon(model.status)}
-                      <div>
-                        <h3 className="text-base md:text-lg font-serif font-bold text-stone-800 dark:text-stone-100">{model.name}</h3>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500">{model.provider}</p>
-                      </div>
-                    </div>
-
-                    {/* Stats & Actions */}
-                    <div className="flex flex-col md:flex-row md:items-center gap-6 lg:gap-12">
-                      <div className="grid grid-cols-2 gap-8 md:gap-12">
-                        <div className="text-left md:text-center">
-                          <div className={`text-lg md:text-xl font-bold ${getLatencyColor(model.latency)}`}>
-                            {model.latency > 0 ? `${model.latency}ms` : "-"}
-                          </div>
-                          <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Latency</p>
-                        </div>
-                        <div className="text-left md:text-center">
-                          <div className="text-lg md:text-xl font-bold text-sky-600 dark:text-sky-400">{model.requests || 0}</div>
-                          <p className="text-[10px] uppercase tracking-wider text-stone-400 font-bold">Requests</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-4 border-t md:border-t-0 border-stone-100 dark:border-stone-800 pt-4 md:pt-0">
-                        <Badge
-                          variant="outline"
-                          className={`rounded-full px-3 py-1 text-[9px] uppercase tracking-wider font-bold ${
-                            model.status === "active"
-                              ? "bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 text-emerald-700 dark:text-emerald-400"
-                              : "bg-stone-100 dark:bg-stone-800 border-stone-200 text-stone-500"
-                          }`}
-                        >
-                          {model.status}
-                        </Badge>
-
-                        <Button
-                          size="sm"
-                          onClick={() => activateModel(model.name)}
-                          disabled={isRefreshing}
-                          className={`rounded-full shadow-md transition-all duration-300 h-9 px-6 md:px-8 text-[10px] uppercase tracking-wider font-bold 
-                            ${isRefreshing 
-                              ? "opacity-50 cursor-not-allowed" 
-                              : "bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 text-white shadow-orange-200 dark:shadow-none"
-                            }`}
-                        >
-                          {isRefreshing ? "..." : "Activate"}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {model.lastUpdated && (
-                    <div className="mt-4 pt-3 border-t border-stone-100/50 dark:border-stone-800/50 flex items-center gap-2">
-                      <div className="w-1 h-1 rounded-full bg-stone-300"></div>
-                      <p className="text-[9px] uppercase tracking-widest text-stone-400">
-                        Last synced: {model.lastUpdated}
-                      </p>
-                    </div>
-                  )}
-                </OrganicCardContent>
-              </OrganicCard>
-            ))
-          ) : (
-            <div className="text-center py-20">
-              <Zap className="w-8 h-8 mx-auto mb-4 text-stone-300" />
-              <h3 className="text-lg font-serif text-stone-400">No Nodes Found</h3>
+        {/* Auto */}
+        <section className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 px-4 sm:px-5 py-4">
+            <div className="flex-1">
+              <p className="font-medium text-stone-900 dark:text-stone-100 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-700 dark:text-emerald-400" /> Auto
+                <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">Recommended</span>
+              </p>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+                Starts with Gemini, which reads most receipts in 2 to 8 seconds, then moves down the list if a model is busy.
+              </p>
             </div>
-          )}
-        </div>
+            {selected === "auto" ? (
+              <span className="inline-flex items-center gap-1 h-9 px-4 text-sm font-medium text-emerald-800 dark:text-emerald-300 shrink-0">
+                <Check className="w-4 h-4" /> In use
+              </span>
+            ) : (
+              <Button size="sm" onClick={() => select("auto")} disabled={isSaving} className="h-9 rounded-full px-4 bg-emerald-700 hover:bg-emerald-800 text-white shrink-0">
+                Use Auto
+              </Button>
+            )}
+          </div>
+        </section>
+
+        {isModelLoading && !list.length ? (
+          <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-8 text-center text-sm text-stone-500">
+            <RefreshCw className="w-4 h-4 animate-spin mx-auto mb-2" />
+            Loading models…
+          </div>
+        ) : (
+          <>
+            <section className="mb-6">
+              <h2 className="text-sm font-medium text-stone-900 dark:text-stone-100 mb-1">Built in</h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">Google Gemini on Recepta's own key. Fast and accurate on receipts.</p>
+              <ul className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 divide-y divide-stone-100 dark:divide-stone-800">
+                {builtIn.map((m) => (
+                  <ModelRow key={m.id} model={m} selected={selected === m.id} disabled={isSaving} onSelect={select} />
+                ))}
+              </ul>
+            </section>
+
+            <section className="mb-6">
+              <h2 className="text-sm font-medium text-stone-900 dark:text-stone-100 mb-1">Free community models</h2>
+              <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+                Pulled live from OpenRouter's free list and tested with a sample receipt. Expect 20 to 60 seconds per receipt; these change often.
+                {meta?.checkedAt && ` Last tested ${timeAgo(meta.checkedAt)}.`}
+              </p>
+
+              {anyPaused && (
+                <p className="text-xs text-stone-600 dark:text-stone-400 mb-3 rounded-lg bg-stone-100 dark:bg-stone-900 px-3 py-2">
+                  The free daily limit for these models has been reached. They come back
+                  {pausedUntil ? ` at ${new Date(pausedUntil).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}` : " tomorrow"}. Gemini keeps working in the meantime.
+                </p>
+              )}
+
+              {community.length > 0 ? (
+                <ul className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 divide-y divide-stone-100 dark:divide-stone-800">
+                  {community.map((m) => (
+                    <ModelRow key={m.id} model={m} selected={selected === m.id} disabled={isSaving} onSelect={select} />
+                  ))}
+                </ul>
+              ) : (
+                !anyPaused && (
+                  <p className="text-sm text-stone-500 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 p-6 text-center">
+                    None of the free models passed the test right now.
+                  </p>
+                )
+              )}
+
+              {unavailable.length > 0 && (
+                <div className="mt-3">
+                  <button
+                    onClick={() => setShowUnavailable((v) => !v)}
+                    className="flex items-center gap-1 text-xs text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showUnavailable ? "rotate-180" : ""}`} />
+                    {unavailable.length} unavailable right now
+                  </button>
+                  {showUnavailable && (
+                    <ul className="mt-2 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white/60 dark:bg-stone-900/60 divide-y divide-stone-100 dark:divide-stone-800">
+                      {unavailable.map((m) => (
+                        <ModelRow key={m.id} model={m} selected={selected === m.id} disabled onSelect={select} />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

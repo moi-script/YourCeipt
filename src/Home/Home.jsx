@@ -43,13 +43,13 @@ import { DeleteAlert } from "@/components/DeleteAlert";
 import ReceiptDetailModal from "@/components/ReceiptModal";
 
 // --- ASSETS ---
-import food from '../assets/food.png';
-import transport from '../assets/transportation.png';
-import utilities from '../assets/utilities.png';
-import shop from '../assets/shopping.png';
-import health from '../assets/healthcare.png';
-import income from '../assets/income.jpg';
-import general from '../assets/other.png';
+import food from '../assets/food.webp';
+import transport from '../assets/transportation.webp';
+import utilities from '../assets/utilities.webp';
+import shop from '../assets/shopping.webp';
+import health from '../assets/healthcare.webp';
+import income from '../assets/income.webp';
+import general from '../assets/other.webp';
 
 // --- ROBUST HELPERS ---
 
@@ -116,7 +116,8 @@ const getTxnCategory = (t) => {
 const getImageCategory = (category) => {
   switch(category?.toLowerCase()) {
     case "food" : return food;
-    case "groceries": return food; // Added alias
+    case "groceries": return food;
+    case "dining": return food;
     case "transportation" : return transport;
     case "utilities" : return utilities;
     case "shopping" : return shop;
@@ -212,8 +213,7 @@ export function Home() {
 
   useEffect(() => {
     if(user){
-      console.log("Currency code :: ", user);
-    }
+      }
   }, user)
 
 
@@ -481,7 +481,14 @@ export function Home() {
                         <div className="h-32 w-full overflow-hidden relative shrink-0 rounded-[1.5rem]">
                             <img
                               src={meta.image_source || displayImage}
-                              alt={displayImage || "Store"}
+                              alt={transaction.store || "Receipt"}
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                // Product images are hotlinked and sometimes disappear.
+                                const fallback = getCategory(transaction || []);
+                                if (e.currentTarget.src !== fallback) e.currentTarget.src = fallback;
+                              }}
                               className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                             <div className="absolute bottom-2 right-2 bg-white/90 dark:bg-stone-900/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold shadow-sm text-stone-800 dark:text-stone-100">

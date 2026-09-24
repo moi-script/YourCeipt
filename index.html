@@ -2,11 +2,14 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- <link rel="icon" type="image/svg+xml" href="" /> -->
-     
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-     <link rel="icon" type="image/png" href="./src/assets/receptaLogo.png">
-    <title>Recepta</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+     <link rel="icon" type="image/png" href="/favicon.png">
+    <title>Recepta: receipts in, clean ledger out</title>
+    <meta name="description" content="Photograph a receipt and Recepta reads the store, items and total into your expense ledger. Free for personal use." />
+    <meta name="theme-color" content="#f7f6f2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
   </head>
   <body>
     <div id="root"></div>
@@ -19,7 +22,6 @@
         
         // If saved is 'dark', OR if no save exists but system is dark
         if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
-          console.log("Will try to index ", savedTheme);
           document.documentElement.classList.add('dark');
         } else {
           document.documentElement.classList.remove('dark');

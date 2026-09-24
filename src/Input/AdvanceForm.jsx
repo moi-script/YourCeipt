@@ -1,7 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +25,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "../components/Toaster.jsx";
 import { Badge } from "@/components/ui/badge";
 import { uploadNotification } from "@/api/uploadNotification.js";
+import { downscaleImage } from "@/lib/image.js";
+import { ParsedPreview } from "./ParsedPreview.jsx";
 // --- 1. DEFINITIONS & SCHEMA ---
 const EMPTY_ITEM_SCHEMA = {
   description: "", 
@@ -78,6 +79,9 @@ export function AdvanceForm({
   const [quickText, setQuickText] = useState("");
   const [isLoading, setIsLoader] = useState(false);
   const [receiptContent, setReceiptContent] = useState(null);
+  const [quickResult, setQuickResult] = useState(null);
+  const [parseInfo, setParseInfo] = useState(null);
+  const [parseStage, setParseStage] = useState("");
   const [color, setColor] = useState("from-emerald-600");
 
 
@@ -167,7 +171,7 @@ export function AdvanceForm({
 
   const uploadManualReceipt = async () => {
     try {
-      await fetch(BASE_API_URL + "/receipt/uploadManual",  { // http://localhost:3000/receipt/uploadManual",
+      const res = await fetch(BASE_API_URL + "/receipt/uploadManual",  { // http://localhost:3000/receipt/uploadManual",
         method: "POST",
         headers: { "Content-type": "application/json" },
         body: JSON.stringify({
@@ -175,6 +179,7 @@ export function AdvanceForm({
           ...formData, 
         }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setFormData(INITIAL_COMPLEX_STATE);
 
       const { store } = formData;
@@ -188,14 +193,17 @@ export function AdvanceForm({
       
       toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
 
-      await uploadNotification(notifPayload);
-
+      uploadNotification(notifPayload).catch(() => {});
+      return true;
     } catch (err) {
       console.error(err);
+      toast.error("Couldn't save the transaction", "Check your connection and try again.");
+      return false;
     }
   };
 
   const handleUploadReceipts = async () => {
+    if (!receiptContent) return false;
     try {
       await uploadReceipts(BASE_API_URL + "/receipt/upload", {
         method: "POST",
@@ -206,123 +214,130 @@ export function AdvanceForm({
         }),
       });
 
-      const { store } = receiptContent;
-
-      const notifPayload = {
-        userId : user._id,
-        title : store,
-        message : "Your receipt was successfully parsed and logged.",
-        type : "success"
-      }
-      
-      toast.success("Transaction Saved", "Your receipt was successfully parsed and logged.");
-
-
-      await uploadNotification(notifPayload);
+      toast.success("Receipt saved", `${receiptContent.store || "Your receipt"} is in your ledger.`);
+      // The receipt is already saved; a failed notification shouldn't block closing.
+      uploadNotification({
+        userId: user._id,
+        title: receiptContent.store,
+        message: "Your receipt was read and added to your ledger.",
+        type: "success",
+      }).catch(() => {});
 
       setReceiptContent(null);
+      setParseInfo(null);
+      return true;
     } catch (err) {
       console.error("Unable to upload receipts", err);
+      toast.error("Couldn't save the receipt", "Check your connection and try again.");
+      return false;
     }
   };
 
+  const readError = async (res, fallback) => {
+    try {
+      const body = await res.json();
+      return body?.message || fallback;
+    } catch {
+      return fallback;
+    }
+  };
+
+  // Photo goes straight to the OCR endpoint. It used to be uploaded to
+  // Cloudinary, downloaded back into the browser, then uploaded again.
   const handleFileChanges = async (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsLoader(true);
+    const picked = e.target.files?.[0];
+    e.target.value = "";
+    if (!picked) return;
 
-      // limit to just only 1 files first
-      const formDataUpload = new FormData();
-      
-      // for (let i = 0; i < files.length; i++) {
-      //   formDataUpload.append("myImages", files[i]);
-      // }
+    setIsLoader(true);
+    setReceiptContent(null);
+    setParseInfo(null);
+    try {
+      setParseStage("Preparing photo…");
+      const file = await downscaleImage(picked);
 
-      formDataUpload.append('image', file)
-      try {
-           // BASE_API_URL 'http://localhost:3000'
-        const res = await fetch(BASE_API_URL + "/receipt-image-cloud", {
-          method : "POST",
-          body : formDataUpload
-          // headers: { "Content-Type": "multipart/form-data" },
-        });
+      const form = new FormData();
+      form.append("image_buffer", file);
+      form.append("activeModelName", activeModelName || "auto");
 
-        const { imageUrl } = await res.json();
-
-        console.log("Url to fetch image for buffer --> ", imageUrl);
-        const image_response = await fetch(imageUrl);
-
-        const postImageForm = new FormData();
-          const arrayBuffer = await image_response.arrayBuffer();
-          const blob = new Blob([arrayBuffer], { type: "image/*" });
-          console.log('This is the buffer -->', blob);
-          postImageForm.append("image_buffer", blob);
-          postImageForm.append("activeModelName", activeModelName);
-          // const buffer = Buffer.from(arrayBuffer);
-
-          const extractText = await axios.post(BASE_API_URL + "/extract/azure", postImageForm); //  BASE_API_URL
-
-        if(extractText.status !== 200){
-           setIsLoader(false);
-           return;
-        }
-        setIsLoader(false);
-        setReceipts(extractText.data.contents);
-        setReceiptContent(extractText.data.contents);
-      } catch (err) {
-        alert('Unable to parse image ::', err);
-        console.error('Unable to parse image ::' + err);
-        console.log('Unable to parse image ::' + err);
-
-        setIsLoader(false);
+      setParseStage("Reading the receipt…");
+      const res = await fetch(BASE_API_URL + "/extract/azure", { method: "POST", body: form });
+      if (!res.ok) {
+        toast.error("Couldn't read that receipt", await readError(res, "Please try again in a moment."));
+        return;
       }
+
+      const data = await res.json();
+      setReceipts(data.contents);
+      setReceiptContent(data.contents);
+      setParseInfo({ model: data.model, timings: data.timings });
+    } catch (err) {
+      console.error("Unable to parse image", err);
+      toast.error("Upload failed", "Check your connection and try again.");
+    } finally {
+      setIsLoader(false);
+      setParseStage("");
     }
   };
 
   const handleParseText = async () => {
-    // needs to be study
+    if (!quickText.trim()) return;
     try {
       setIsLoader(true);
-      const res = await fetch(BASE_API_URL + "/extract/quickText",  { // BASE_API_URL http://localhost:3000/extract/quickText",
+      setParseStage("Reading your note…");
+      const res = await fetch(BASE_API_URL + "/extract/quickText", {
         method: "POST",
         headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ userId: user._id, quickText: quickText, activeModelName : activeModelName }),
+        body: JSON.stringify({ userId: user._id, quickText, activeModelName: activeModelName || "auto" }),
       });
+      if (!res.ok) {
+        toast.error("Couldn't parse that", await readError(res, "Please try again in a moment."));
+        return;
+      }
       const data = await res.json();
-      setColor("bg-orange-500");  
-      setQuickText(data); 
-      setIsLoader(false);
+      setQuickResult(data.output);
+      setParseInfo({ model: data.model, timings: data.timings });
+      setColor("from-orange-500");
     } catch (err) {
       console.error(err);
+      toast.error("Couldn't parse that", "Check your connection and try again.");
+    } finally {
       setIsLoader(false);
+      setParseStage("");
     }
   };
 
   const hanldeUploadQuickText = async () => {
+    if (!quickResult) return false;
     try {
       setIsLoader(true);
       const res = await fetch(BASE_API_URL + "/extract/uploadQuick", {
         method: "POST",
         headers: { "Content-type": "application/json" },
-        body: JSON.stringify({ userId: user._id, quickText: quickText.output }),
+        body: JSON.stringify({ userId: user._id, quickText: quickResult }),
       });
-      setIsLoader(false);
-      if (res.ok) setQuickText("");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success("Entry saved", "It's in your ledger.");
+      setQuickText("");
+      setQuickResult(null);
+      setParseInfo(null);
       setColor("from-emerald-600");
+      return true;
     } catch (err) {
       console.error(err);
+      toast.error("Couldn't save the entry", "Check your connection and try again.");
+      return false;
+    } finally {
       setIsLoader(false);
     }
   };
 
-  const handleClearUploads = async () => {
-    try {
-      await fetch('/clearUploads');
-      setFormData(INITIAL_COMPLEX_STATE); 
-    } catch(err){
-      console.error('Unable to clean uploads ::', err);
-    }
-  }
+  const handleClearUploads = () => {
+    setFormData(INITIAL_COMPLEX_STATE);
+    setReceiptContent(null);
+    setQuickResult(null);
+    setParseInfo(null);
+  };
 
   const uploadInput = () => {
     switch (inputMode) {
@@ -505,49 +520,52 @@ export function AdvanceForm({
 
         {/* ================= RECEIPT & QUICK MODES (UNCHANGED) ================= */}
         {inputMode === "receipt" && (
-          <div className="space-y-4 sm:space-y-6 animate-in fade-in zoom-in-95 duration-300">
-             <div className="border-2 border-dashed border-emerald-100 dark:border-emerald-900/30 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-10 text-center hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-300 group">
-              <div className="bg-emerald-50 dark:bg-emerald-900/30 p-3 sm:p-4 rounded-full w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Receipt className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <p className="text-base sm:text-lg font-serif italic text-emerald-900 dark:text-emerald-100 mb-1">Upload Receipt</p>
-              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-4 sm:mb-6 max-w-xs mx-auto">
-                AI extraction supported.
-              </p>
-              <Input type="file" accept="image/*" multiple className="hidden" id="image-upload" onChange={handleFileChanges} />
-              <label htmlFor="image-upload" className="cursor-pointer flex justify-center items-center">
-                {isLoading ? (
-                  <Button disabled className="w-full sm:w-auto rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 h-10 sm:h-12 px-6 sm:px-8 text-sm"><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</Button>
-                ) : (
-                  <div className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-600 text-white h-10 sm:h-12 px-6 sm:px-8 flex items-center justify-center rounded-full font-medium text-sm sm:text-base shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20 transition-all">Select Image</div>
+          <div className="space-y-4 animate-in fade-in duration-200">
+            {receiptContent && !isLoading ? (
+              <>
+                <ParsedPreview receipt={receiptContent} info={parseInfo} />
+                <label htmlFor="image-upload" className="block text-center text-xs text-stone-500 hover:text-emerald-700 dark:hover:text-emerald-400 cursor-pointer underline underline-offset-4">
+                  Wrong receipt? Choose another photo
+                </label>
+              </>
+            ) : (
+              <div className="border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl p-6 sm:p-10 text-center">
+                <div className="bg-emerald-50 dark:bg-emerald-900/30 rounded-full w-14 h-14 mx-auto mb-3 flex items-center justify-center">
+                  {isLoading ? <Loader2 className="w-6 h-6 text-emerald-700 dark:text-emerald-400 animate-spin" /> : <Receipt className="w-6 h-6 text-emerald-700 dark:text-emerald-400" />}
+                </div>
+                <p className="text-base font-medium text-stone-900 dark:text-stone-100 mb-1">
+                  {isLoading ? parseStage || "Working…" : "Upload a receipt"}
+                </p>
+                <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-5 max-w-xs mx-auto">
+                  {isLoading
+                    ? "This usually takes 5 to 15 seconds."
+                    : "Take a photo or pick one from your gallery. Flat, well lit and the whole receipt in frame works best."}
+                </p>
+                {!isLoading && (
+                  <label htmlFor="image-upload" className="cursor-pointer inline-flex items-center justify-center bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white h-11 px-7 rounded-full font-medium text-sm transition-colors">
+                    <Camera className="w-4 h-4 mr-2" /> Choose photo
+                  </label>
                 )}
-              </label>
-            </div>
-
-              <div className="bg-orange-50 dark:bg-orange-900/20 p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border border-orange-100 dark:border-orange-800/30 flex gap-3 items-start">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 dark:text-orange-400 mt-0.5" />
-              <p className="text-xs sm:text-sm text-orange-800/80 dark:text-orange-200/80">
-                <span className="font-bold">Tip:</span> Ensure the receipt is well-lit. Parsing speed depends on your Ai model {activeModelName}
-              </p>
-            </div>
-
-
+              </div>
+            )}
+            <Input type="file" accept="image/*" className="hidden" id="image-upload" onChange={handleFileChanges} />
           </div>
         )}
 
         {inputMode === "quick" && (
-           <div className="space-y-4 sm:space-y-6 animate-in fade-in zoom-in-95 duration-300">
-              <div className="space-y-1.5 sm:space-y-2">
-                 <Label className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 ml-3">Quick Entry</Label>
-                 <Textarea placeholder='e.g., "Paid $45 for groceries..."' value={quickText} onChange={(e) => setQuickText(e.target.value)} rows={4} className="rounded-[1.5rem] bg-stone-50 dark:bg-stone-900 border-transparent dark:border-stone-800 px-4 sm:px-5 py-3 sm:py-4 focus-visible:ring-emerald-200 dark:focus-visible:ring-emerald-900 text-base sm:text-lg resize-none" />
+           <div className="space-y-4 animate-in fade-in duration-200">
+              <div className="space-y-1.5">
+                 <Label htmlFor="quick-text" className="text-xs font-medium text-stone-500 dark:text-stone-400 ml-1">Describe it in your own words</Label>
+                 <Textarea id="quick-text" placeholder='e.g. "Lunch at Jollibee 250, Grab home 180"' value={quickText} onChange={(e) => { setQuickText(e.target.value); setQuickResult(null); }} rows={3} className="rounded-2xl bg-stone-50 dark:bg-stone-900 border-transparent dark:border-stone-800 px-4 py-3 focus-visible:ring-emerald-200 dark:focus-visible:ring-emerald-900 text-base resize-none" />
+                 <p className="text-xs text-stone-500 dark:text-stone-400 ml-1">Include an amount for each thing so it counts toward your budgets.</p>
               </div>
-                 <div className="bg-orange-50 dark:bg-orange-900/20 p-3 sm:p-4 rounded-[1.2rem] sm:rounded-[1.5rem] border border-orange-100 dark:border-orange-800/30 flex gap-3 items-start">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 dark:text-orange-400 mt-0.5" />
-              <p className="text-xs sm:text-sm text-orange-800/80 dark:text-orange-200/80">
-                <span className="font-bold">Tip:</span> Ensure each item had price value to have a budget computation 
-              </p>
-            </div>
-              <Button variant="secondary" onClick={handleParseText} className="w-full rounded-full h-11 sm:h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-900/50"><Sparkles className="w-4 h-4 mr-2" /> Parse with AI</Button>
+              {quickResult && !isLoading ? (
+                <ParsedPreview receipt={quickResult} info={parseInfo} />
+              ) : (
+                <Button variant="secondary" onClick={handleParseText} disabled={isLoading || !quickText.trim()} className="w-full rounded-full h-11 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50">
+                  {isLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {parseStage || "Working…"}</> : <><Sparkles className="w-4 h-4 mr-2" /> Read it</>}
+                </Button>
+              )}
            </div>
         )}
 
@@ -565,12 +583,14 @@ export function AdvanceForm({
           </Button>
 
           <Button
-            disabled={isLoading}
+            disabled={isLoading || (inputMode === "receipt" && !receiptContent) || (inputMode === "quick" && !quickResult)}
             className={`w-full sm:w-auto h-11 sm:h-auto rounded-full px-8 bg-gradient-to-r ${color} to-teal-600 hover:shadow-lg transition-all duration-300 text-white border-none text-sm sm:text-base`}
-            onClick={() => {
-              setRefreshPage(true);
-              uploadInput();
-              setIsAddDialogOpen(false);
+            onClick={async () => {
+              const saved = await uploadInput();
+              if (saved) {
+                setRefreshPage(true);
+                setIsAddDialogOpen(false);
+              }
             }}
           >
             {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

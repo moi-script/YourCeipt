@@ -1,42 +1,28 @@
 
+// Income and expense for the last four months, oldest first. (`year` is kept
+// for callers but the window can cross into the previous year in January.)
 export const calculateMonthlyTrendClientSide = (receipts, year = new Date().getFullYear()) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    const currentMonthIndex = new Date().getMonth();
+    const now = new Date();
+    const months = Array.from({ length: 4 }, (_, i) => new Date(now.getFullYear(), now.getMonth() - 3 + i, 1));
+    const monthlyData = months.map((d) => ({ month: monthNames[d.getMonth()], income: 0, expense: 0 }));
+    const slot = (d) => months.findIndex((m) => m.getFullYear() === d.getFullYear() && m.getMonth() === d.getMonth());
 
+    (receipts || []).forEach(receipt => {
+        const date = new Date(receipt?.metadata?.datetime);
+        if (Number.isNaN(date.getTime())) return;
 
+        const i = slot(date);
+        if (i === -1) return;
 
-    const monthlyData = monthNames.slice(currentMonthIndex, currentMonthIndex + 4).map((month, idx) => ({
-        month,
-        income: 0,
-        expense: 0
-    }));
+        // total is a string on AI receipts and a number on manual ones.
+        const total = parseFloat(String(receipt.total ?? 0).replace(/[^0-9.-]+/g, ''));
+        if (!total) return;
 
-    receipts.forEach(receipt => {
-        const dateStr = receipt.metadata?.datetime;
-        if (!dateStr) return;
-
-        try {
-            const date = new Date(dateStr);
-            if (date.getFullYear() !== year) return;
-
-            const monthIndex = date.getMonth();
-            const total = parseFloat(receipt.total?.replace(/[^0-9.-]+/g, '') || 0);
-
-            if (isNaN(total) || total === 0) return;
-
-            const type = receipt.metadata?.type?.toLowerCase();
-
-            if (type === 'income') {
-                monthlyData[monthIndex].income += total;
-            } else {
-                // console.log('Monthly data ::', monthlyData[monthIndex]);
-                monthlyData[monthIndex].expense += total;
-            }
-        } catch (error) {
-            console.error('Error processing receipt:', error);
-        }
+        if (receipt.metadata?.type?.toLowerCase() === 'income') monthlyData[i].income += total;
+        else monthlyData[i].expense += total;
     });
 
     return monthlyData;

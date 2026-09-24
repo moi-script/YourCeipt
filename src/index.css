@@ -125,3 +125,30 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* 3. MOBILE PERFORMANCE
+   backdrop-filter and 90-120px blur layers are re-rasterised by the GPU on
+   every scroll frame. On phones that was the main source of heat and jank,
+   so on touch/small screens the glass panels fall back to their solid
+   background and the decorative blur blobs are hidden. */
+@media (max-width: 1024px), (pointer: coarse) {
+  [class*="backdrop-blur"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+
+  .pointer-events-none[class*="blur-["] {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

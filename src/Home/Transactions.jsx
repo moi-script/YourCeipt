@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { DialogForm } from "@/Input/DialogForm";
+import { AdvanceForm } from "@/Input/AdvanceForm";
 import {
   Select,
   SelectContent,
@@ -78,9 +78,7 @@ export default function TransactionsPage({
         <div className="absolute top-[-10%] left-[-10%] w-[500px] max-w-full h-[500px] bg-emerald-100 dark:bg-emerald-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[80px] opacity-60 dark:opacity-20 pointer-events-none"></div>
         <div className="absolute bottom-[-10%] right-[-5%] w-[400px] max-w-full h-[400px] bg-orange-100 dark:bg-orange-900/30 rounded-full mix-blend-multiply dark:mix-blend-normal filter blur-[80px] opacity-60 dark:opacity-20 pointer-events-none"></div>
 
-        <DialogForm
-          transactions={transactions}
-          setTransactions={setTransactions}
+        <AdvanceForm
           isAddDialogOpen={isAddDialogOpen}
           setIsAddDialogOpen={setIsAddDialogOpen}
         />

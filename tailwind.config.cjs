@@ -7,6 +7,10 @@ module.exports =  {
   ],
   theme : {
   	extend: {
+  		fontFamily: {
+  			display: ['"Instrument Serif"', 'Georgia', 'serif'],
+  			ui: ['Geist', 'system-ui', 'sans-serif']
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',

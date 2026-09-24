@@ -108,18 +108,15 @@ export default function AiEnginePage() {
 
   // --- FILTERING LOGIC ---
   const filteredModels = models.filter(m => {
-    let modelType = "Local"; 
-    const lowerName = m.name.toLowerCase();
-    if (lowerName.includes("gpt") || lowerName.includes("claude") || lowerName.includes("gemini")) {
-        modelType = "Cloud";
-    }
+    const modelType = m.builtIn ? "Built in" : "Community";
     const matchesType = filter === "All" || modelType === filter;
     const matchesSearch = m.name.toLowerCase().includes(search.toLowerCase()) || m.provider.toLowerCase().includes(search.toLowerCase());
     return matchesType && matchesSearch;
   });
 
-  const totalRequests = models.reduce((acc, curr) => acc + (curr.requests || 0), 0);
-  const avgLatency = models.length > 0 ? Math.round(models.reduce((acc, curr) => acc + (curr.latency || 0), 0) / models.length) : 0;
+  const totalRequests = models.reduce((acc, curr) => acc + (curr.extractions || 0), 0);
+  const timed = models.filter((m) => m.latency != null);
+  const avgLatency = timed.length > 0 ? Math.round(timed.reduce((acc, curr) => acc + curr.latency, 0) / timed.length) : 0;
 
   // 
 
@@ -182,7 +179,7 @@ export default function AiEnginePage() {
         {/* 2. Filters & Search */}
         <section className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300" style={{ animationFillMode: 'backwards' }}>
             <div className="bg-stone-100 dark:bg-stone-900 p-1 rounded-xl flex gap-1">
-                {["All", "Cloud", "Local"].map((tab) => (
+                {["All", "Built in", "Community"].map((tab) => (
                     <button
                         key={tab}
                         onClick={() => setFilter(tab)}
@@ -252,9 +249,9 @@ export default function AiEnginePage() {
                             </div>
                             <div>
                                 <h3 className="font-serif font-bold text-stone-900 dark:text-stone-100 text-lg md:text-base leading-tight group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                                    {model.name.split('/').pop()}
+                                    {model.name}
                                 </h3>
-                                <p className="text-xs text-stone-400 truncate w-full max-w-[200px] mt-0.5">{model.name}</p>
+                                <p className="text-xs text-stone-400 truncate w-full max-w-[200px] mt-0.5">{model.id}</p>
                             </div>
                         </div>
 
@@ -265,17 +262,17 @@ export default function AiEnginePage() {
 
                         {/* Latency */}
                         <div className="col-span-2">
-                            <LatencyBar ms={model.latency} />
+                            <LatencyBar ms={model.latency ?? 0} />
                         </div>
 
                         {/* Requests */}
                         <div className="col-span-2">
-                            <div className="text-sm font-mono font-medium text-stone-700 dark:text-stone-300">{model.requests} reqs</div>
+                            <div className="text-sm font-mono font-medium text-stone-700 dark:text-stone-300">{model.extractions || 0} receipts</div>
                             <div className="w-24 h-1 bg-stone-100 dark:bg-stone-800 rounded-full mt-2 overflow-hidden">
                                 <div 
                                     className="h-full bg-blue-500 transition-all duration-1000 ease-out" 
                                     style={{ 
-                                        width: `${Math.min((model.requests / 1000) * 100, 100)}%`,
+                                        width: `${Math.min(((model.extractions || 0) / 50) * 100, 100)}%`,
                                         transitionDelay: `${index * 100 + 300}ms`
                                     }}
                                 ></div>

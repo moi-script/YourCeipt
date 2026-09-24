@@ -14,7 +14,7 @@ export function RegisterForm({
   showPassword,
   setShowPassword,
 }) {
-  const { login, register, registerLoading, setRegisterLoading, setUser } = useAuth();
+  const { login, register, registerLoading, setRegisterLoading, setUser, markSignedIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -41,7 +41,7 @@ export function RegisterForm({
 
       if (response.status === 200) {
 
-        setUser(formData);
+        markSignedIn();
         navigate(from, { replace: true });
       } else {  
         console.error("Server Error:");

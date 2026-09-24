@@ -9,5 +9,7 @@ const getBaseApiUrl = (type) => {
 export const BASE_API_URL = getBaseApiUrl('production');  
 
 
-export const getAiDefaultModel = () => import.meta.env.VITE_AI_DEFAULT_MODEL;
+// "auto" = the server's fallback chain (Gemini first). The old env default,
+// mistralai/devstral-2512:free, is no longer free.
+export const getAiDefaultModel = () => "auto";
 // console.log(getCloudName());

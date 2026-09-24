@@ -90,7 +90,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
   // =========================================================
   // AUTH STATE & LOGIC
   // =========================================================
-  const { login, register, setUser } = useAuth(); 
+  const { login, register, setUser, markSignedIn } = useAuth(); 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/user";
@@ -153,7 +153,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
       if (res.status === 200) {
         setUser(res);
         onClose(false); 
-        localStorage.setItem('user', true);
+        markSignedIn();
         navigate("/user"); 
       }
     } catch (err) {
@@ -183,9 +183,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = "login" }) {
       });
 
       if (response.status === 200) {
-        setUser(registerData);
         onClose(false);
-        localStorage.setItem('user', true);
+        markSignedIn();
         navigate(from, { replace: true });
       } else {  
         setError("Registration failed. Please try again.");
