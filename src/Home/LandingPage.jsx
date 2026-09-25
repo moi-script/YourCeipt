@@ -4,6 +4,7 @@ import { ArrowRight, Moon, Sun, Menu, X, Check, Smartphone } from "lucide-react"
 import { AuthModal } from "./AuthModal";
 import { APK_URL, isNativeApp } from "@/lib/appRelease";
 import { useApkDownloads } from "@/hooks/use-apk-downloads";
+import ApkInstallGuide from "@/components/ApkInstallGuide";
 
 // The landing page is deliberately static: no scroll observers, blur layers
 // or looping animations. The old version ran all three and made phones hot.
@@ -243,6 +244,12 @@ export default function LandingPage() {
   // Inside the Android app the download links would just point at itself.
   const showApk = !isNativeApp();
   const apkDownloads = useApkDownloads(showApk);
+  const [apkGuide, setApkGuide] = useState(false);
+  // No preventDefault: the download starts and the guide opens on top of it.
+  const onApkClick = () => {
+    setMenuOpen(false);
+    setApkGuide(true);
+  };
   const downloadsLabel = apkDownloads ? `${apkDownloads.toLocaleString("en-PH")} download${apkDownloads === 1 ? "" : "s"}` : null;
   const [auth, setAuth] = useState({ open: false, tab: "register" });
   const [isDark, setIsDark] = useState(() =>
@@ -271,6 +278,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-[100dvh] bg-[#f7f6f2] dark:bg-stone-950 text-stone-700 dark:text-stone-300 font-ui antialiased selection:bg-emerald-800/20 [scroll-behavior:smooth]">
+      <ApkInstallGuide open={apkGuide} onOpenChange={setApkGuide} />
       <AuthModal isOpen={auth.open} onClose={(open) => setAuth((a) => ({ ...a, open }))} defaultTab={auth.tab} />
 
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 bg-white px-3 py-2 rounded text-sm">
@@ -296,7 +304,7 @@ export default function LandingPage() {
           <div className="flex items-center gap-1 sm:gap-2">
             {showApk && (
               <a
-                href={APK_URL}
+                href={APK_URL} onClick={onApkClick}
                 aria-label="Download the Android app"
                 className="hidden sm:inline-flex items-center gap-1.5 text-sm px-3 h-9 rounded-md text-stone-700 hover:text-stone-900 hover:bg-stone-200/60 dark:text-stone-300 dark:hover:text-stone-100 dark:hover:bg-stone-800 transition-colors"
               >
@@ -337,7 +345,7 @@ export default function LandingPage() {
             <Link to="/aiEngine" className="block py-2 text-sm text-stone-700 dark:text-stone-300">Model status</Link>
             <button onClick={() => openAuth("login")} className="block w-full text-left py-2 text-sm text-stone-700 dark:text-stone-300">Sign in</button>
             {showApk && (
-              <a href={APK_URL} className="block py-2 text-sm text-stone-700 dark:text-stone-300">Download Android app</a>
+              <a href={APK_URL} onClick={onApkClick} className="block py-2 text-sm text-stone-700 dark:text-stone-300">Download Android app</a>
             )}
           </div>
         )}
@@ -369,7 +377,7 @@ export default function LandingPage() {
             {showApk && (
               <div className="mt-7 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <a
-                  href={APK_URL}
+                  href={APK_URL} onClick={onApkClick}
                   className="shrink-0 whitespace-nowrap inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
                 >
                   <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" /> Download for Android
@@ -455,7 +463,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-3 shrink-0">
               {showApk && (
                 <a
-                  href={APK_URL}
+                  href={APK_URL} onClick={onApkClick}
                   className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
                 >
                   <Smartphone className="w-4 h-4" /> Download for Android
@@ -483,7 +491,7 @@ export default function LandingPage() {
             <Link to="/legal" className="hover:text-stone-900 dark:hover:text-stone-200">Privacy</Link>
             <Link to="/legal" className="hover:text-stone-900 dark:hover:text-stone-200">Terms</Link>
             <Link to="/aiEngine" className="hover:text-stone-900 dark:hover:text-stone-200">Model status</Link>
-            {showApk && <a href={APK_URL} className="hover:text-stone-900 dark:hover:text-stone-200">Android app</a>}
+            {showApk && <a href={APK_URL} onClick={onApkClick} className="hover:text-stone-900 dark:hover:text-stone-200">Android app</a>}
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-stone-900 dark:hover:text-stone-200">GitHub</a>
           </div>
         </div>
