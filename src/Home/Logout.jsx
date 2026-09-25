@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { LogOut, User, Shield, ChevronRight } from "lucide-react";
 
 import {
@@ -24,47 +24,17 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate, NavLink } from "react-router-dom";
-import { BASE_API_URL } from "@/api/getKeys";
+import { useLogout } from "@/hooks/use-logout";
+import { NavLink } from "react-router-dom";
 // const BASE_API_URL  = import.meta.env.VITE_URL_BACKEND || "http://localhost:5173"
 
 
 
 export default function UserMenu({ onNavigate }) {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { user, setUser } = useAuth() || { user: null };
-  const navigate = useNavigate();
+  const { user } = useAuth() || { user: null };
 
 
-  useEffect(() => {
-    // console.log("User data for logout ---> ", user);
-  }, [user]);
-
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
-      const response = await fetch(BASE_API_URL+"/user/logout", {
-        method: "POST",
-        credentials : 'include',
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!response.ok) {
-        throw new Error("Logout failed");
-      }
-    } catch (err) {
-      console.error("Unable to logout");
-    } finally {
-      setShowLogoutDialog(false);
-      setIsLoggingOut(false);
-      localStorage.setItem('user', false);
-      setUser(null);
-      navigate("/", { replace: true });
-      // setRefreshPage(true);
-
-    }
-  };
 
   if (!user) {
     return (
@@ -158,65 +128,72 @@ export default function UserMenu({ onNavigate }) {
         </DropdownMenu>
       </div>
 
-      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent className="max-w-md rounded-[2.5rem] bg-[#fcfcfc] dark:bg-stone-950 border border-white dark:border-stone-800 shadow-2xl p-8">
-          <AlertDialogHeader>
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 shadow-sm">
-              <LogOut className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-            </div>
-            <AlertDialogTitle className="text-center text-xl font-serif text-stone-800 dark:text-stone-100">
-              Log out of your account?
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center text-stone-500 dark:text-stone-400">
-              You'll need to sign in again to access your account and continue
-              where you left off.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <AlertDialogFooter className="grid grid-cols-2 gap-3 sm:gap-3 sm:space-x-0 mt-6">
-            <AlertDialogCancel
-              className="w-full mt-0 font-bold rounded-full border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-200 h-12 bg-transparent"
-              disabled={isLoggingOut}
-            >
-              Cancel
-            </AlertDialogCancel>
-
-            <AlertDialogAction
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 focus:ring-orange-600 font-bold rounded-full h-12 shadow-lg shadow-orange-200 dark:shadow-none text-white"
-            >
-              {isLoggingOut ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Logging out...
-                </span>
-              ) : (
-                "Yes, log out"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <LogoutConfirm open={showLogoutDialog} onOpenChange={setShowLogoutDialog} />
     </>
+  );
+}
+
+export function LogoutConfirm({ open, onOpenChange }) {
+  const { logout, isLoggingOut } = useLogout();
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent className="max-w-md rounded-[2.5rem] bg-[#fcfcfc] dark:bg-stone-950 border border-white dark:border-stone-800 shadow-2xl p-8">
+        <AlertDialogHeader>
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 shadow-sm">
+            <LogOut className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+          </div>
+          <AlertDialogTitle className="text-center text-xl font-serif text-stone-800 dark:text-stone-100">
+            Log out of your account?
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center text-stone-500 dark:text-stone-400">
+            You'll need to sign in again to access your account and continue
+            where you left off.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter className="grid grid-cols-2 gap-3 sm:gap-3 sm:space-x-0 mt-6">
+          <AlertDialogCancel
+            className="w-full mt-0 font-bold rounded-full border-stone-200 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-200 h-12 bg-transparent"
+            disabled={isLoggingOut}
+          >
+            Cancel
+          </AlertDialogCancel>
+
+          <AlertDialogAction
+            onClick={logout}
+            disabled={isLoggingOut}
+            className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700 focus:ring-orange-600 font-bold rounded-full h-12 shadow-lg shadow-orange-200 dark:shadow-none text-white"
+          >
+            {isLoggingOut ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg
+                  className="animate-spin h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Logging out...
+              </span>
+            ) : (
+              "Yes, log out"
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

@@ -44,7 +44,7 @@ writeFileSync(manifestPath, JSON.stringify({ ...manifest, versionName, versionCo
 const run = (cmd, cwd = root) => execSync(cmd, { cwd, stdio: "inherit" });
 run("npm run build");
 run("npx cap sync android");
-run(process.platform === "win32" ? "gradlew.bat assembleRelease" : "./gradlew assembleRelease", join(root, "android"));
+run(`"${join(root, "android", process.platform === "win32" ? "gradlew.bat" : "gradlew")}" assembleRelease`, join(root, "android"));
 
 mkdirSync(join(root, "release"), { recursive: true });
 const apk = join(root, "release/recepta.apk");

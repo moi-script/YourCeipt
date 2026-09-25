@@ -28,6 +28,9 @@ import { Badge } from "@/components/ui/badge";
 import { uploadNotification } from "@/api/uploadNotification.js";
 import { downscaleImage } from "@/lib/image.js";
 import { ParsedPreview } from "./ParsedPreview.jsx";
+import { isNativeApp } from "@/lib/appRelease";
+import { Capacitor } from "@capacitor/core";
+import { ImageIcon } from "lucide-react";
 // --- 1. DEFINITIONS & SCHEMA ---
 const EMPTY_ITEM_SCHEMA = {
   description: "", 
@@ -72,6 +75,8 @@ const categories = [
 export function AdvanceForm({
   isAddDialogOpen,
   setIsAddDialogOpen,
+  launchCamera = false,
+  onCameraLaunched,
 }) {
   const { user, uploadReceipts, setReceipts, setRefreshPage, activeModelName, money } = useAuth();
   const  toast   = useToast();
@@ -260,8 +265,47 @@ export function AdvanceForm({
   const handleFileChanges = async (e) => {
     const picked = e.target.files?.[0];
     e.target.value = "";
-    if (!picked) return;
+    if (picked) await readReceiptPhoto(picked);
+  };
 
+  // In the app this opens the phone's camera straight away. In a browser the
+  // `capture` input does the same on phones and falls back to a file picker.
+  const takePhoto = async () => {
+    // Older app builds (1.0.0) load this code but lack the camera plugin; the
+    // capture input still opens the camera there.
+    if (!isNativeApp() || !Capacitor.isPluginAvailable("Camera")) {
+      document.getElementById("camera-capture")?.click();
+      return;
+    }
+    try {
+      const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
+      const photo = await Camera.getPhoto({
+        source: CameraSource.Camera,
+        resultType: CameraResultType.Uri,
+        quality: 85,
+        correctOrientation: true,
+        saveToGallery: false,
+      });
+      const blob = await (await fetch(photo.webPath)).blob();
+      await readReceiptPhoto(new File([blob], `receipt.${photo.format || "jpg"}`, { type: blob.type || "image/jpeg" }));
+    } catch (err) {
+      // Closing the camera without a photo lands here too; only report real failures.
+      const msg = String(err?.message || err);
+      if (!/cancel/i.test(msg)) toast.error("Couldn't open the camera", /denied|permission/i.test(msg) ? "Allow camera access for Recepta in your phone's settings." : msg);
+    }
+  };
+
+  // Opened from the app's center button: go straight to the camera.
+  useEffect(() => {
+    if (!isAddDialogOpen || !launchCamera) return;
+    setInputMode("receipt");
+    onCameraLaunched?.();
+    takePhoto();
+    // takePhoto is recreated each render; this should only fire on open.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAddDialogOpen, launchCamera]);
+
+  const readReceiptPhoto = async (picked) => {
     setIsLoader(true);
     setReceiptContent(null);
     setParseInfo(null);
@@ -538,9 +582,12 @@ export function AdvanceForm({
             {receiptContent && !isLoading ? (
               <>
                 <ParsedPreview receipt={receiptContent} info={parseInfo} />
-                <label htmlFor="image-upload" className="block text-center text-xs text-stone-500 hover:text-emerald-700 dark:hover:text-emerald-400 cursor-pointer underline underline-offset-4">
-                  Wrong receipt? Choose another photo
-                </label>
+                <p className="text-center text-xs text-stone-500">
+                  Wrong receipt?{" "}
+                  <button type="button" onClick={takePhoto} className="hover:text-emerald-700 dark:hover:text-emerald-400 underline underline-offset-4">Retake</button>
+                  {" · "}
+                  <label htmlFor="image-upload" className="hover:text-emerald-700 dark:hover:text-emerald-400 cursor-pointer underline underline-offset-4">Pick from gallery</label>
+                </p>
               </>
             ) : (
               <div className="border-2 border-dashed border-stone-200 dark:border-stone-800 rounded-2xl p-6 sm:p-10 text-center">
@@ -556,13 +603,19 @@ export function AdvanceForm({
                     : "Take a photo or pick one from your gallery. Flat, well lit and the whole receipt in frame works best."}
                 </p>
                 {!isLoading && (
-                  <label htmlFor="image-upload" className="cursor-pointer inline-flex items-center justify-center bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white h-11 px-7 rounded-full font-medium text-sm transition-colors">
-                    <Camera className="w-4 h-4 mr-2" /> Choose photo
-                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <button type="button" onClick={takePhoto} className="inline-flex items-center justify-center bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white h-11 px-7 rounded-full font-medium text-sm transition-colors">
+                      <Camera className="w-4 h-4 mr-2" /> Take photo
+                    </button>
+                    <label htmlFor="image-upload" className="cursor-pointer inline-flex items-center justify-center border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 h-11 px-7 rounded-full font-medium text-sm transition-colors">
+                      <ImageIcon className="w-4 h-4 mr-2" /> From gallery
+                    </label>
+                  </div>
                 )}
               </div>
             )}
             <Input type="file" accept="image/*" className="hidden" id="image-upload" onChange={handleFileChanges} />
+            <Input type="file" accept="image/*" capture="environment" className="hidden" id="camera-capture" onChange={handleFileChanges} />
           </div>
         )}
 

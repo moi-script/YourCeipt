@@ -157,6 +157,48 @@ export const getMerchantPatterns = (merchantInsights) => {
   return { mostFrequent, biggestSpender };
 };
 
+const isIncome = (r) => String(r?.metadata?.type || "").toLowerCase() === "income";
+const parseAmount = (v) => {
+  const n = parseFloat(String(v ?? 0).replace(/[^0-9.-]+/g, ""));
+  return Number.isFinite(n) ? n : 0;
+};
+
+// The AI and the manual form don't agree on names ("Groceries", "food",
+// "Transport"), so fold them onto the categories the app knows.
+const CATEGORY_ALIASES = {
+  food: "Food", groceries: "Food", grocery: "Food", dining: "Food", restaurant: "Food",
+  transport: "Transportation", transportation: "Transportation",
+  health: "Healthcare", healthcare: "Healthcare", medical: "Healthcare",
+  shopping: "Shopping", utilities: "Utilities", bills: "Utilities",
+  entertainment: "Entertainment",
+};
+const canonicalCategory = (c) => CATEGORY_ALIASES[String(c || "").toLowerCase().trim()] || "Other";
+
+// This month's spending per category, from what was actually spent. The donut
+// used to be built from budgets, so it was empty for anyone without one.
+export const spendingByCategory = (receipts, CATEGORY_MAP) => {
+  const now = new Date();
+  const totals = {};
+  for (const r of receipts || []) {
+    if (isIncome(r)) continue;
+    const d = new Date(r?.metadata?.datetime);
+    if (Number.isNaN(d.getTime()) || d.getFullYear() !== now.getFullYear() || d.getMonth() !== now.getMonth()) continue;
+    const items = (r.items || []).filter((i) => parseAmount(i.price) > 0);
+    if (items.length) {
+      for (const i of items) {
+        const key = canonicalCategory(i.category);
+        totals[key] = (totals[key] || 0) + parseAmount(i.price) * (parseFloat(i.quantity) || 1);
+      }
+    } else {
+      const key = canonicalCategory(r.category);
+      totals[key] = (totals[key] || 0) + parseAmount(r.total);
+    }
+  }
+  return Object.entries(totals)
+    .map(([name, spent]) => ({ name, spent: Math.round(spent * 100) / 100, color: (CATEGORY_MAP[name] || CATEGORY_MAP.Other).color }))
+    .sort((a, b) => b.spent - a.spent);
+};
+
 export const transformToDailyHeatmap = (receipts) => {
   // 1. Determine the number of days in the current month
   const now = new Date();
@@ -168,18 +210,15 @@ export const transformToDailyHeatmap = (receipts) => {
     amount: 0,
   }));
 
-  // 3. Fill in the actual spending from receipts
+  // 3. Fill in this month's spending. This used to add every receipt from
+  // every month, income included, onto its day number, so a salary on the
+  // 1st of any month showed as a giant spike.
   receipts.forEach((receipt) => {
-    if (!receipt.metadata?.datetime) return;
+    if (!receipt.metadata?.datetime || isIncome(receipt)) return;
 
     const date = new Date(receipt.metadata.datetime);
-    const dayOfMonth = date.getDate(); // Returns 1-31
-    const totalAmount = parseFloat(receipt.total) || 0;
-
-    // Add to the corresponding index (day - 1)
-    if (dayOfMonth <= daysInMonth) {
-      dailyData[dayOfMonth - 1].amount += totalAmount;
-    }
+    if (Number.isNaN(date.getTime()) || date.getFullYear() !== now.getFullYear() || date.getMonth() !== now.getMonth()) return;
+    dailyData[date.getDate() - 1].amount += parseAmount(receipt.total);
   });
 
   return dailyData;

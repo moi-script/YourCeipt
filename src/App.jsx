@@ -4,10 +4,13 @@ import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toaster.jsx";
 import AppUpdatePrompt from "./components/AppUpdatePrompt.jsx";
+import { isNativeApp } from "./lib/appRelease";
 
 // Each route is its own chunk. Before, every page (Recharts, the dashboard,
 // all forms) shipped in one 1.2 MB bundle, including to the landing page.
 const LandingPage = lazy(() => import("./Home/LandingPage"));
+// The Android app opens on a splash and sign-in, not the marketing page.
+const AppEntry = lazy(() => import("./Home/AppEntry"));
 const Login = lazy(() => import("./Login/Login"));
 const LegalPage = lazy(() => import("./components/LegalPage"));
 const BudgetSignup = lazy(() => import("./SignUp/SignUp"));
@@ -32,7 +35,7 @@ function App() {
         <BrowserRouter>
           <Suspense fallback={<RouteFallback />}>
             <Routes>
-              <Route path="/" element={<LandingPage />} />
+              <Route path="/" element={isNativeApp() ? <AppEntry /> : <LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/legal" element={<LegalPage />} />
               <Route path="/register" element={<BudgetSignup />} />

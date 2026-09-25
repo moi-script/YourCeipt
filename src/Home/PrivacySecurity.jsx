@@ -5,6 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/Toaster.jsx";
 import { Section, Row } from "./Profile";
+import { exportWithFeedback } from "@/lib/saveFile";
 import { BASE_API_URL } from "@/api/getKeys";
 
 // These endpoints authenticate with the session cookie.
@@ -182,10 +183,7 @@ export default function PrivacySecurity() {
     setBusy("export");
     try {
       const data = await api("/user/export");
-      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
-      const a = Object.assign(document.createElement("a"), { href: url, download: `recepta-account-${new Date().toISOString().slice(0, 10)}.json` });
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await exportWithFeedback(toast, JSON.stringify(data, null, 2), `recepta-account-${new Date().toISOString().slice(0, 10)}.json`, "application/json");
     } catch (err) {
       toast.error("Couldn't prepare your data", err.message);
     } finally {

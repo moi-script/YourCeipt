@@ -3,6 +3,8 @@ import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import VideoLoader from "./components/loaders/AnimatedLoader";
+import { AppSplash } from "./Home/AppEntry";
+import { isNativeApp } from "./lib/appRelease";
 
 const ProtectedRoute = () => {
   const { user, isAuth, isLoading } = useAuth(); // <--- Read the current user from Context
@@ -12,7 +14,7 @@ const ProtectedRoute = () => {
 
   // loading part when session is fetcing
   if (isLoading) {
-    return <VideoLoader />;
+    return isNativeApp() ? <AppSplash /> : <VideoLoader />;
   }
 
    if (!user) {

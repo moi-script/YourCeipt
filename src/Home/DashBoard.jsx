@@ -5,6 +5,8 @@ import UserMenu from "./Logout";
 import { useAuth } from "@/context/AuthContext";
 import { AdvanceForm } from "@/Input/AdvanceForm";
 import { IconOverview, IconLedger, IconBudget, IconReader, IconTrends, LogoMark } from "@/components/icons";
+import { isNativeApp } from "@/lib/appRelease";
+import { AppShell } from "./AppShell";
 
 const NAV = [
   { title: "Overview", icon: IconOverview, href: "/user/" },
@@ -78,7 +80,13 @@ function SidebarContent({ onNavigate }) {
   );
 }
 
+// The Android app gets a phone-style frame (tab bar, profile on top); browsers
+// keep the sidebar layout.
 export function BudgetDashboard() {
+  return isNativeApp() ? <AppShell /> : <WebDashboard />;
+}
+
+function WebDashboard() {
   const { isAddDialogOpen, setIsAddDialogOpen } = useAuth();
   const isDesktop = useIsDesktop();
   const [drawerOpen, setDrawerOpen] = useState(false);

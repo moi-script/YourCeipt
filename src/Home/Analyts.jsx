@@ -16,6 +16,8 @@ import { makeMoney } from "@/lib/money";
 // user's display currency (amounts are stored in pesos).
 let pageMoney = makeMoney();
 const fmt = (pesos) => pageMoney.format(Number(pesos) || 0);
+import { spendingByCategory } from "@/api/analyticsAction";
+import { CATEGORY_MAP as CATEGORY_COLORS_MAP } from "@/lib/categories";
 import { calculateKeyInsights, getCategorySummaries, getMerchantPatterns, processBudgetInsights,
    transformBudgetsToInsights,
     transformToDailyHeatmap,
@@ -142,8 +144,8 @@ const Tabs = ({ children, defaultValue, className = "" }) => {
 const TabsList = ({ children, activeTab, setActiveTab, className = "" }) => (
   <div 
     className={`
-      flex gap-2 p-1.5 rounded-full 
-      overflow-x-auto w-full flex-nowrap justify-start no-scrollbar 
+      grid grid-cols-2 sm:flex gap-1.5 p-1.5 rounded-2xl sm:rounded-full
+      w-full sm:flex-nowrap justify-start 
       ${className}
     `}
   >
@@ -156,7 +158,7 @@ const TabsList = ({ children, activeTab, setActiveTab, className = "" }) => (
 const TabsTrigger = ({ children, value, activeTab, setActiveTab }) => (
     <button
         onClick={() => setActiveTab(value)}
-        className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
+        className={`px-3 sm:px-4 py-2 rounded-full text-[11px] sm:text-xs leading-tight font-bold uppercase tracking-wider transition-all duration-300 ${
             activeTab === value 
             ? "bg-white dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 shadow-sm" 
             : "text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-white/50 dark:hover:bg-stone-800/50"
@@ -317,6 +319,10 @@ export function AnalyticsDashBoards() {
   );
 }
 
+// The income/expense cards used to show all-time totals under hard-coded
+// "+12%" / "+8%" badges; they now follow the period picker and say which period.
+const PERIOD_LABEL = { week: "This week", month: "This month", quarter: "This quarter", year: "This year" };
+
 export default function Analytics({
   // monthlyData,
   // spendingTrend,
@@ -377,6 +383,8 @@ const monthlyData = {
 
 
   const [merchantPattern, setMerchantPattern] = useState(null);
+  const categoryBreakdown = useMemo(() => spendingByCategory(userReceipts, CATEGORY_COLORS_MAP), [userReceipts]);
+  const categoryTotal = categoryBreakdown.reduce((sum, c) => sum + c.spent, 0);
   const [dailySpending, setDailySpending] = useState(null);
   const [keyInsights, setKeyInsights] = useState(null);
 
@@ -491,14 +499,14 @@ const monthlyData = {
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <Badge className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/30">
-                  +12%
+                  {PERIOD_LABEL[selectedPeriod]}
                 </Badge>
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Total Income
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {fmt(totalIncome)}
+                {fmt(metricValue?.income ?? totalIncome)}
               </h3>
             </CardContent>
           </Card>
@@ -511,14 +519,14 @@ const monthlyData = {
                   <TrendingDown className="w-5 h-5" />
                 </div>
                 <Badge className="bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border border-orange-100 dark:border-orange-800/30">
-                  +8%
+                  {PERIOD_LABEL[selectedPeriod]}
                 </Badge>
               </div>
               <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
                 Total Expenses
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {fmt(totalSpent)}
+                {fmt(metricValue?.expenses ?? totalSpent)}
               </h3>
             </CardContent>
           </Card>
@@ -558,7 +566,7 @@ const monthlyData = {
                 Savings Rate
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {metricValue?.savingsRate}%
+                {metricValue?.savingsRate}
               </h3>
             </CardContent>
           </Card>
@@ -577,7 +585,7 @@ const monthlyData = {
                 Income Stability
               </p>
               <h3 className="text-2xl font-serif text-stone-800 dark:text-stone-100">
-                {metricValue?.stabilityScore}%
+                {metricValue?.stabilityScore}
               </h3>
             </CardContent>
           </Card>
@@ -640,7 +648,7 @@ const monthlyData = {
               <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
                 <CardHeader>
                   <CardTitle>Category Breakdown</CardTitle>
-                  <CardDescription>Where your money goes</CardDescription>
+                  <CardDescription>Where your money went this month</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -792,13 +800,13 @@ const monthlyData = {
     <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
       <CardHeader>
         <CardTitle>Category Breakdown</CardTitle>
-        <CardDescription>Where your money goes</CardDescription>
+        <CardDescription>Where your money went this month</CardDescription>
       </CardHeader>
       <CardContent className="h-[300px] relative">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={transformInsights || []}
+              data={categoryBreakdown}
               cx="50%"
               cy="50%"
               innerRadius={60}
@@ -807,7 +815,7 @@ const monthlyData = {
               dataKey="spent"
               nameKey="name"
             >
-              {(transformInsights || []).map((entry, index) => (
+              {categoryBreakdown.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
                   fill={CHART_COLORS[entry.color] || CHART_COLORS.stone} 
@@ -820,15 +828,16 @@ const monthlyData = {
         </ResponsiveContainer>
         {/* Center Text overlay for Donut */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-6">
-          <span className="text-xs font-bold uppercase tracking-wider text-stone-400">Total</span>
+          <span className="text-xs font-bold uppercase tracking-wider text-stone-400">This month</span>
           <span className="text-xl font-serif text-stone-800 dark:text-stone-100">
-            {fmt(monthlyData.totalExpenses)}
+            {fmt(categoryTotal)}
           </span>
+          {!categoryBreakdown.length && <span className="text-xs text-stone-400 mt-1">No spending yet</span>}
         </div>
       </CardContent>
       {/* Mini Legend below chart */}
       <div className="px-6 pb-6 flex flex-wrap gap-2 justify-center">
-        {transformInsights?.slice(0, 5).map((cat, i) => (
+        {categoryBreakdown.slice(0, 6).map((cat, i) => (
           <div key={i} className="flex items-center gap-1.5 text-[10px] uppercase font-bold text-stone-500">
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CHART_COLORS[cat.color] }}></div>
             {cat.name}
@@ -1231,7 +1240,7 @@ const monthlyData = {
   <Card className="bg-white/70 dark:bg-stone-900/60 border-white dark:border-white/5">
     <CardHeader>
       <CardTitle>Spending Flow</CardTitle>
-      <CardDescription>Daily spending curve</CardDescription>
+      <CardDescription>What you spent each day this month</CardDescription>
     </CardHeader>
     <CardContent className="h-[250px] w-full">
       <ResponsiveContainer width="100%" height="100%">

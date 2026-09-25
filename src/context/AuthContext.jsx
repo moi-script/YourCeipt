@@ -189,8 +189,9 @@ const calculateBudgetSpending = (budgetList, transactions) => {
 
 const getTotals = (transactions, type, period, offset = 0) => {
   return transactions
-    .filter(t => t.metadata.type === type && isInTimeframe(t.metadata.datetime, period, offset))
-    .reduce((sum, t) => sum + parseFloat(t.total || 0), 0);
+    // Case-insensitive: the manual form saves "expense", the AI saves "Expense".
+    .filter(t => txType(t) === type.toLowerCase() && isInTimeframe(t.metadata?.datetime, period, offset))
+    .reduce((sum, t) => sum + txAmount(t), 0);
 };
 
 const getMetrics = (transactions, period = 'month') => {

@@ -4,6 +4,7 @@ import { Loader2, Camera, Download, ArrowRight } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/Toaster.jsx";
+import { exportWithFeedback } from "@/lib/saveFile";
 import { CURRENCIES } from "@/lib/money";
 import { isDarkTheme, setTheme } from "@/lib/theme";
 import { BASE_API_URL } from "@/api/getKeys";
@@ -72,14 +73,6 @@ function toCsv(receipts, money) {
   return "﻿" + lines.join("\n"); // BOM so Excel reads the ₱ sign
 }
 
-const download = (content, name, type) => {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const a = Object.assign(document.createElement("a"), { href: url, download: name });
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-};
 
 function Avatar() {
   const { user, updateUser } = useAuth();
@@ -250,12 +243,12 @@ export default function ProfilePage() {
 
       <Section title="Export" description={`${receipts.length} ${receipts.length === 1 ? "entry" : "entries"} in your ledger.`}>
         <Row label="Spreadsheet (CSV)" hint="One row per item. Opens in Excel, Numbers or Google Sheets.">
-          <button disabled={!receipts.length} onClick={() => download(toCsv(receipts, money), `recepta-${stamp}.csv`, "text/csv;charset=utf-8")} className="h-9 px-4 rounded-full border border-stone-300 dark:border-stone-700 text-sm inline-flex items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40">
+          <button disabled={!receipts.length} onClick={() => exportWithFeedback(toast, toCsv(receipts, money), `recepta-${stamp}.csv`, "text/csv;charset=utf-8")} className="h-9 px-4 rounded-full border border-stone-300 dark:border-stone-700 text-sm inline-flex items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40">
             <Download className="w-4 h-4" /> Download CSV
           </button>
         </Row>
         <Row label="Full backup (JSON)" hint="Every field of every entry, for moving your data elsewhere.">
-          <button disabled={!receipts.length} onClick={() => download(JSON.stringify(receipts, null, 2), `recepta-${stamp}.json`, "application/json")} className="h-9 px-4 rounded-full border border-stone-300 dark:border-stone-700 text-sm inline-flex items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40">
+          <button disabled={!receipts.length} onClick={() => exportWithFeedback(toast, JSON.stringify(receipts, null, 2), `recepta-${stamp}.json`, "application/json")} className="h-9 px-4 rounded-full border border-stone-300 dark:border-stone-700 text-sm inline-flex items-center gap-2 hover:bg-stone-50 dark:hover:bg-stone-800 disabled:opacity-40">
             <Download className="w-4 h-4" /> Download JSON
           </button>
         </Row>
