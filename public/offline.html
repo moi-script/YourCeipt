@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recepta</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: #f7f6f2; color: #44403c; font: 15px/1.5 system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background: #0c0a09; color: #d6d3d1; } h1 { color: #fafaf9 !important; } }
+  main { max-width: 22rem; padding: 24px; text-align: center; }
+  .logo { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; background: #065f46; color: #f7f6f2; font: 26px Georgia, serif; }
+  h1 { margin: 20px 0 8px; font: 28px/1.15 Georgia, serif; color: #1c1917; }
+  button { margin-top: 20px; height: 44px; padding: 0 22px; border: 0; border-radius: 6px; background: #065f46; color: #fff; font: 500 15px system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<main>
+  <span class="logo">R</span>
+  <h1>You're offline</h1>
+  <p>Recepta needs a connection to read receipts and sync your budget. Check your Wi-Fi or data and try again.</p>
+  <button onclick="location.href='https://recepta-phi.vercel.app/'">Try again</button>
+</main>
+</body>
+</html>

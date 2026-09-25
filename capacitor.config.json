@@ -1,0 +1,13 @@
+{
+  "appId": "com.recepta.app",
+  "appName": "Recepta",
+  "webDir": "dist",
+  "server": {
+    "url": "https://recepta-phi.vercel.app",
+    "cleartext": false,
+    "errorPath": "offline.html"
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

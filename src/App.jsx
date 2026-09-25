@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./components/Toaster.jsx";
+import AppUpdatePrompt from "./components/AppUpdatePrompt.jsx";
 
 // Each route is its own chunk. Before, every page (Recharts, the dashboard,
 // all forms) shipped in one 1.2 MB bundle, including to the landing page.
@@ -51,6 +52,7 @@ function App() {
               </Route>
             </Routes>
           </Suspense>
+          <AppUpdatePrompt />
         </BrowserRouter>
       </AuthProvider>
     </ToastProvider>

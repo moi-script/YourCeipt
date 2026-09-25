@@ -1,7 +1,8 @@
 import React, { useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Moon, Sun, Menu, X, Check } from "lucide-react";
+import { ArrowRight, Moon, Sun, Menu, X, Check, Smartphone } from "lucide-react";
 import { AuthModal } from "./AuthModal";
+import { APK_URL, isNativeApp } from "@/lib/appRelease";
 
 // The landing page is deliberately static: no scroll observers, blur layers
 // or looping animations. The old version ran all three and made phones hot.
@@ -238,6 +239,8 @@ const FAQ = [
 
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
+  // Inside the Android app the download links would just point at itself.
+  const showApk = !isNativeApp();
   const [auth, setAuth] = useState({ open: false, tab: "register" });
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false
@@ -321,6 +324,9 @@ export default function LandingPage() {
             ))}
             <Link to="/aiEngine" className="block py-2 text-sm text-stone-700 dark:text-stone-300">Model status</Link>
             <button onClick={() => openAuth("login")} className="block w-full text-left py-2 text-sm text-stone-700 dark:text-stone-300">Sign in</button>
+            {showApk && (
+              <a href={APK_URL} className="block py-2 text-sm text-stone-700 dark:text-stone-300">Download Android app</a>
+            )}
           </div>
         )}
       </header>
@@ -348,6 +354,13 @@ export default function LandingPage() {
               </button>
             </div>
             <p className="mt-5 text-xs text-stone-500">Free during early access. No card required.</p>
+            {showApk && (
+              <a href={APK_URL} className="mt-6 inline-flex items-center gap-2 text-sm text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white">
+                <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
+                <span className="underline underline-offset-4 decoration-stone-300 hover:decoration-stone-500">Get the Android app</span>
+                <span className="text-xs text-stone-500">APK · web updates arrive automatically</span>
+              </a>
+            )}
           </div>
 
           <HeroVisual />
@@ -421,12 +434,22 @@ export default function LandingPage() {
             <h2 className="font-display text-4xl sm:text-5xl leading-[1.05] text-stone-900 dark:text-stone-50 max-w-xl [text-wrap:balance]">
               The receipt in your wallet is a good place to start.
             </h2>
-            <button
-              onClick={() => openAuth("register")}
-              className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md bg-emerald-800 text-white text-[15px] font-medium hover:bg-emerald-900 active:translate-y-px transition-colors dark:bg-emerald-600 dark:hover:bg-emerald-500 shrink-0"
-            >
-              Create a free account <ArrowRight className="w-4 h-4" />
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+              {showApk && (
+                <a
+                  href={APK_URL}
+                  className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
+                >
+                  <Smartphone className="w-4 h-4" /> Download for Android
+                </a>
+              )}
+              <button
+                onClick={() => openAuth("register")}
+                className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md bg-emerald-800 text-white text-[15px] font-medium hover:bg-emerald-900 active:translate-y-px transition-colors dark:bg-emerald-600 dark:hover:bg-emerald-500"
+              >
+                Create a free account <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </section>
       </main>
@@ -441,6 +464,7 @@ export default function LandingPage() {
             <Link to="/legal" className="hover:text-stone-900 dark:hover:text-stone-200">Privacy</Link>
             <Link to="/legal" className="hover:text-stone-900 dark:hover:text-stone-200">Terms</Link>
             <Link to="/aiEngine" className="hover:text-stone-900 dark:hover:text-stone-200">Model status</Link>
+            {showApk && <a href={APK_URL} className="hover:text-stone-900 dark:hover:text-stone-200">Android app</a>}
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-stone-900 dark:hover:text-stone-200">GitHub</a>
           </div>
         </div>
