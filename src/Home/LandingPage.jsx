@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Moon, Sun, Menu, X, Check, Smartphone } from "lucide-react";
 import { AuthModal } from "./AuthModal";
 import { APK_URL, isNativeApp } from "@/lib/appRelease";
+import { useApkDownloads } from "@/hooks/use-apk-downloads";
 
 // The landing page is deliberately static: no scroll observers, blur layers
 // or looping animations. The old version ran all three and made phones hot.
@@ -241,6 +242,8 @@ export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   // Inside the Android app the download links would just point at itself.
   const showApk = !isNativeApp();
+  const apkDownloads = useApkDownloads(showApk);
+  const downloadsLabel = apkDownloads ? `${apkDownloads.toLocaleString("en-PH")} download${apkDownloads === 1 ? "" : "s"}` : null;
   const [auth, setAuth] = useState({ open: false, tab: "register" });
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false
@@ -371,7 +374,9 @@ export default function LandingPage() {
                 >
                   <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" /> Download for Android
                 </a>
-                <span className="text-xs text-stone-500">Free APK · the app tells you when there's a newer version</span>
+                <span className="text-xs text-stone-500">
+                  Free APK{downloadsLabel && <> · <span className="tabular-nums text-stone-700 dark:text-stone-300">{downloadsLabel}</span></>} · the app tells you when there's a newer version
+                </span>
               </div>
             )}
           </div>
@@ -454,6 +459,7 @@ export default function LandingPage() {
                   className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
                 >
                   <Smartphone className="w-4 h-4" /> Download for Android
+                  {downloadsLabel && <span className="text-xs font-normal text-stone-500 tabular-nums">· {downloadsLabel}</span>}
                 </a>
               )}
               <button
