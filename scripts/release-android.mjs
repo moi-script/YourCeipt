@@ -49,7 +49,9 @@ run(process.platform === "win32" ? "gradlew.bat assembleRelease" : "./gradlew as
 mkdirSync(join(root, "release"), { recursive: true });
 const apk = join(root, "release/recepta.apk");
 copyFileSync(join(root, "android/app/build/outputs/apk/release/app-release.apk"), apk);
+// The landing page serves this copy so the download never leaves the site.
+copyFileSync(apk, join(root, "public/downloads/recepta.apk"));
 
 run(`gh release create v${versionName} "${apk}" --repo ${REPO} --title "Recepta ${versionName}" --notes ${JSON.stringify(notes || `Android build ${versionCode}`)} --latest`);
 
-console.log(`\nReleased ${versionName} (build ${versionCode}). Commit and deploy so public/app-version.json goes live.`);
+console.log(`\nReleased ${versionName} (build ${versionCode}). Commit and deploy so public/app-version.json and public/downloads/recepta.apk go live.`);

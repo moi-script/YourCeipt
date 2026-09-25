@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { App as CapApp } from "@capacitor/app";
 import { Download, X } from "lucide-react";
-import { APK_URL, VERSION_MANIFEST, isNativeApp } from "@/lib/appRelease";
+import { GITHUB_APK_URL, VERSION_MANIFEST, isNativeApp } from "@/lib/appRelease";
 
 // Web changes reach the Android app on their own, because the app loads the
 // live site. Only a new APK (native changes) needs the user to act, so this
@@ -50,7 +50,7 @@ export default function AppUpdatePrompt() {
             You have {update.installedName}.{update.notes ? ` ${update.notes}` : ""}
           </p>
           <a
-            href={update.apkUrl || APK_URL}
+            href={update.apkUrl || GITHUB_APK_URL}
             className="mt-2.5 inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-emerald-800 text-white text-xs font-medium hover:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500"
           >
             <Download className="w-3.5 h-3.5" /> Download update

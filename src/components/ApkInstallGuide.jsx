@@ -42,7 +42,7 @@ export default function ApkInstallGuide({ open, onOpenChange }) {
         </ol>
         <p className="text-xs text-stone-500 border-t border-stone-200 dark:border-stone-800 pt-3">
           Nothing happened?{" "}
-          <a href={APK_URL} className="underline underline-offset-4 text-stone-700 dark:text-stone-300">Start the download again</a>
+          <a href={APK_URL} download="recepta.apk" className="underline underline-offset-4 text-stone-700 dark:text-stone-300">Start the download again</a>
         </p>
       </DialogContent>
     </Dialog>
