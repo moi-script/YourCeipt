@@ -291,6 +291,15 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
+            {showApk && (
+              <a
+                href={APK_URL}
+                aria-label="Download the Android app"
+                className="hidden sm:inline-flex items-center gap-1.5 text-sm px-3 h-9 rounded-md text-stone-700 hover:text-stone-900 hover:bg-stone-200/60 dark:text-stone-300 dark:hover:text-stone-100 dark:hover:bg-stone-800 transition-colors"
+              >
+                <Smartphone className="w-4 h-4" /> App
+              </a>
+            )}
             <button
               onClick={() => setIsDark((d) => !d)}
               aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
@@ -355,11 +364,15 @@ export default function LandingPage() {
             </div>
             <p className="mt-5 text-xs text-stone-500">Free during early access. No card required.</p>
             {showApk && (
-              <a href={APK_URL} className="mt-6 inline-flex items-center gap-2 text-sm text-stone-700 hover:text-stone-900 dark:text-stone-300 dark:hover:text-white">
-                <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" />
-                <span className="underline underline-offset-4 decoration-stone-300 hover:decoration-stone-500">Get the Android app</span>
-                <span className="text-xs text-stone-500">APK · web updates arrive automatically</span>
-              </a>
+              <div className="mt-7 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <a
+                  href={APK_URL}
+                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
+                >
+                  <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" /> Download for Android
+                </a>
+                <span className="text-xs text-stone-500">Free APK · the app tells you when there's a newer version</span>
+              </div>
             )}
           </div>
 
