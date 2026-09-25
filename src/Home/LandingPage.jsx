@@ -367,7 +367,7 @@ export default function LandingPage() {
               <div className="mt-7 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                 <a
                   href={APK_URL}
-                  className="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
+                  className="shrink-0 whitespace-nowrap inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border border-stone-300 text-stone-800 text-[15px] font-medium hover:bg-stone-200/60 active:translate-y-px transition-colors dark:border-stone-700 dark:text-stone-100 dark:hover:bg-stone-800"
                 >
                   <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" /> Download for Android
                 </a>
