@@ -3,6 +3,7 @@ import {Plus, TrendingUp, TrendingDown, AlertTriangle, Calendar, Edit2, Trash2, 
 import { IconStamp, IconLedger } from "@/components/icons";
 import { useAuth } from '@/context/AuthContext';
 import { BASE_API_URL } from '@/api/getKeys.js';
+import { Select as SelectRoot, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const initialBudgets = [
   {
     _id: 1,
@@ -107,19 +108,40 @@ const Input = ({ className = "", ...props }) => (
   />
 );
 
-const Select = ({ children, value, onChange, className = "" }) => (
-  <div className="relative">
-    <select
-      value={value}
-      onChange={onChange}
-      className={`w-full px-5 py-3 appearance-none bg-white/60 dark:bg-stone-800/60 border border-transparent rounded-full text-stone-800 dark:text-stone-100 focus:outline-none focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 focus:bg-white dark:focus:bg-stone-800 transition-all shadow-sm cursor-pointer ${className}`}
-    >
-      {children}
-    </select>
-    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-    </div>
-  </div>
+// Radix instead of a native <select>: the native option list is drawn by the
+// browser/OS and ignores the app palette (it showed a stock dark list).
+const CATEGORY_OPTIONS = [
+  { value: "groceries", label: "Groceries", icon: ShoppingCart },
+  { value: "food", label: "Food", icon: Utensils },
+  { value: "housing", label: "Housing", icon: Home },
+  { value: "transportation", label: "Transportation", icon: Car },
+  { value: "dining", label: "Dining Out", icon: Utensils },
+  { value: "healthcare", label: "Healthcare", icon: Heart },
+  { value: "entertainment", label: "Entertainment", icon: Film },
+  { value: "utilities", label: "Utilities", icon: Zap },
+  { value: "other", label: "Other", icon: DollarSign },
+];
+
+const CategorySelect = ({ value, onValueChange }) => (
+  <SelectRoot value={value} onValueChange={onValueChange}>
+    <SelectTrigger className="h-auto px-5 py-3 rounded-full border-transparent bg-white/60 dark:bg-stone-800/60 text-base text-stone-800 dark:text-stone-100 shadow-sm focus:ring-2 focus:ring-emerald-200 dark:focus:ring-emerald-800 data-[state=open]:bg-white dark:data-[state=open]:bg-stone-800 transition-all [&>svg]:text-stone-400 [&>svg]:opacity-100">
+      <SelectValue />
+    </SelectTrigger>
+    <SelectContent className="z-[70] rounded-3xl border border-stone-200/80 dark:border-stone-800 bg-[#fcfcfc] dark:bg-stone-900 text-stone-800 dark:text-stone-100 shadow-[0_16px_40px_-16px_rgba(28,25,23,0.35)] p-1.5">
+      {CATEGORY_OPTIONS.map((opt) => (
+        <SelectItem
+          key={opt.value}
+          value={opt.value}
+          className="rounded-2xl py-2.5 pl-3 pr-9 text-sm cursor-pointer text-stone-700 dark:text-stone-200 focus:bg-emerald-50 focus:text-emerald-900 dark:focus:bg-emerald-950/60 dark:focus:text-emerald-200 data-[state=checked]:font-medium data-[state=checked]:text-emerald-800 dark:data-[state=checked]:text-emerald-300 [&>span:first-child]:right-3"
+        >
+          <span className="inline-flex items-center gap-2.5">
+            <opt.icon className="w-4 h-4 text-stone-400 dark:text-stone-500" />
+            {opt.label}
+          </span>
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </SelectRoot>
 );
 
 const Dialog = ({ open, onOpenChange, children }) => {
@@ -552,20 +574,10 @@ const handleGetBudgetItemList = async () => {
                 <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2 ml-4">
                   Category
                 </label>
-                <Select 
-                  value={formData.category} 
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                >
-                  <option value="groceries">Groceries</option>
-                  <option value="food">Food</option>
-                  <option value="housing">Housing</option>
-                  <option value="transportation">Transportation</option>
-                  <option value="dining">Dining Out</option>
-                  <option value="healthcare">Healthcare</option>
-                  <option value="entertainment">Entertainment</option>
-                  <option value="utilities">Utilities</option>
-                  <option value="other">Other</option>
-                </Select>
+                <CategorySelect
+                  value={formData.category}
+                  onValueChange={(category) => setFormData({ ...formData, category })}
+                />
               </div>
 
               <div>

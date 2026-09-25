@@ -1,8 +1,8 @@
-import React, { useLayoutEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Moon, Sun, Menu, X, Check, Smartphone } from "lucide-react";
+import { ArrowRight, Moon, Sun, Menu, X, Check, Smartphone, Camera, Keyboard, Search, BellRing, FileDown, MonitorSmartphone, Wallet } from "lucide-react";
 import { AuthModal } from "./AuthModal";
-import { APK_URL, isNativeApp } from "@/lib/appRelease";
+import { APK_URL, VERSION_MANIFEST, isNativeApp } from "@/lib/appRelease";
 import { useApkDownloads } from "@/hooks/use-apk-downloads";
 import ApkInstallGuide from "@/components/ApkInstallGuide";
 
@@ -182,18 +182,123 @@ function ModelSnippet() {
   );
 }
 
+// Small drawn scenes for each step. Plain markup, so they follow the theme and
+// cost nothing to load.
+function StepCapture() {
+  const corners = ["top-3 left-3 border-t border-l", "top-3 right-3 border-t border-r", "bottom-3 left-3 border-b border-l", "bottom-3 right-3 border-b border-r"];
+  return (
+    <div className="relative h-full grid place-items-center">
+      <div className="relative w-[92px] h-[118px] rounded-[14px] border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-2">
+        <div className="h-full rounded-md bg-stone-100 dark:bg-stone-800 grid place-items-center">
+          <div className="w-12 bg-white dark:bg-stone-200 px-1.5 py-1.5 space-y-1 -rotate-3 shadow-sm">
+            <span className="block h-1 w-7 mx-auto rounded bg-stone-300" />
+            <span className="block h-0.5 rounded bg-stone-200 dark:bg-stone-300" />
+            <span className="block h-0.5 rounded bg-stone-200 dark:bg-stone-300" />
+            <span className="block h-0.5 w-8 rounded bg-stone-200 dark:bg-stone-300" />
+            <span className="block h-1 w-5 ml-auto rounded bg-stone-400" />
+          </div>
+        </div>
+        {corners.map((c) => (
+          <span key={c} className={`absolute w-2.5 h-2.5 border-emerald-700 dark:border-emerald-400 ${c}`} />
+        ))}
+        <span className="absolute -bottom-3 -right-3 grid place-items-center w-8 h-8 rounded-full bg-emerald-800 text-white dark:bg-emerald-600">
+          <Camera className="w-4 h-4" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function StepReview() {
+  const rows = [["Biogesic 500mg", "55.00"], ["Alcohol 70%", "68.50"], ["Vitamin C 30s", "245.00"]];
+  return (
+    <div className="h-full grid place-items-center">
+      <div className="w-[86%] max-w-[180px] rounded-lg border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 px-3 py-2.5 text-[10px] leading-tight">
+        <p className="font-medium text-stone-800 dark:text-stone-200 mb-1.5">Mercury Drug</p>
+        {rows.map(([n, v], i) => (
+          <div key={n} className={`flex justify-between gap-2 py-0.5 ${i === 1 ? "rounded bg-amber-50 dark:bg-amber-950/40 -mx-1 px-1 ring-1 ring-amber-300/70 dark:ring-amber-700/60" : ""}`}>
+            <span className="text-stone-600 dark:text-stone-400 truncate">{n}</span>
+            <span className="tabular-nums text-stone-500">{v}</span>
+          </div>
+        ))}
+        <div className="mt-1.5 pt-1.5 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between">
+          <span className="flex items-center gap-1 text-emerald-800 dark:text-emerald-400"><Check className="w-3 h-3" /> Looks right</span>
+          <span className="font-semibold tabular-nums text-stone-900 dark:text-stone-100">368.50</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StepBudget() {
+  const rows = [["Healthcare", 42, false], ["Groceries", 71, false], ["Dining", 94, true]];
+  return (
+    <div className="h-full grid place-items-center">
+      <div className="w-[82%] max-w-[180px] space-y-2.5 text-[10px]">
+        {rows.map(([n, pct, warn]) => (
+          <div key={n}>
+            <div className="flex justify-between mb-1">
+              <span className="text-stone-700 dark:text-stone-300">{n}</span>
+              <span className={`tabular-nums ${warn ? "text-amber-700 dark:text-amber-400 font-medium" : "text-stone-500"}`}>{pct}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-stone-200/80 dark:bg-stone-800 overflow-hidden">
+              <div className={`h-full rounded-full ${warn ? "bg-amber-600" : "bg-emerald-800 dark:bg-emerald-500"}`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const STEPS = [
   {
     title: "Take a photo",
     body: 'Or type a note like "Grab home 180, lunch 250". Printed receipts from supermarkets, restaurants and pharmacies read best.',
+    visual: <StepCapture />,
   },
   {
     title: "Check what it read",
     body: "You see the store, each item, the tax and the total before anything is saved. If the paper was crumpled, fix the line and move on.",
+    visual: <StepReview />,
   },
   {
     title: "Watch your budgets",
     body: "The entry lands in its category and counts against the budget you set for it. Your dashboard updates straight away.",
+    visual: <StepBudget />,
+  },
+];
+
+const BENEFITS = [
+  {
+    icon: Keyboard,
+    title: "Less typing, fewer skipped entries",
+    body: "Logging an expense takes a photo instead of a form, so the small purchases that usually go unrecorded actually get written down.",
+  },
+  {
+    icon: Wallet,
+    title: "Money you can account for",
+    body: "Every peso lands in a category. At the end of the month you know what went to food, bills and transport, not just that the balance is lower.",
+  },
+  {
+    icon: BellRing,
+    title: "A warning while there's still time",
+    body: "Budgets flag you as you get close to the limit, not after you've passed it, so you can ease off for the rest of the month.",
+  },
+  {
+    icon: Search,
+    title: "Receipts you can find again",
+    body: "The photo stays with its entry, so returns, warranty claims and reimbursements no longer depend on a crumpled slip in your wallet.",
+  },
+  {
+    icon: FileDown,
+    title: "Your records, when you want them",
+    body: "Export to CSV or JSON for a spreadsheet, your accountant, or your own backup.",
+  },
+  {
+    icon: MonitorSmartphone,
+    title: "Phone and browser, one account",
+    body: "Use the Android app or any browser and see the same ledger. Two-step sign-in with an emailed code is there if you want it.",
   },
 ];
 
@@ -239,6 +344,29 @@ const FAQ = [
   },
 ];
 
+// The same manifest installed apps poll. Shown here so web visitors see which
+// build the download gives them, and whether it just came out.
+const NEW_RELEASE_DAYS = 14;
+function useLatestRelease(enabled) {
+  const [latest, setLatest] = useState(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    fetch(`${VERSION_MANIFEST}?t=${Date.now()}`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m) => {
+        if (cancelled || !m?.versionName) return;
+        const age = m.releasedAt ? Date.now() - new Date(m.releasedAt).getTime() : Infinity;
+        setLatest({ ...m, isNew: age < NEW_RELEASE_DAYS * 864e5 });
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled]);
+  return latest;
+}
+
 export default function LandingPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   // Inside the Android app the download links would just point at itself.
@@ -252,6 +380,7 @@ export default function LandingPage() {
     recordDownload();
   };
   const downloadsLabel = apkDownloads ? `${apkDownloads.toLocaleString("en-PH")} download${apkDownloads === 1 ? "" : "s"}` : null;
+  const latest = useLatestRelease(showApk);
   const [auth, setAuth] = useState({ open: false, tab: "register" });
   const [isDark, setIsDark] = useState(() =>
     typeof document !== "undefined" ? document.documentElement.classList.contains("dark") : false
@@ -274,6 +403,7 @@ export default function LandingPage() {
   const navLinks = [
     { href: "#how", label: "How it works" },
     { href: "#features", label: "Features" },
+    { href: "#benefits", label: "Benefits" },
     { href: "#faq", label: "Questions" },
   ];
 
@@ -384,6 +514,11 @@ export default function LandingPage() {
                   <Smartphone className="w-4 h-4 text-emerald-800 dark:text-emerald-400" /> Download for Android
                 </a>
                 <span className="text-xs text-stone-500">
+                  {latest && (
+                    <span className="inline-flex items-center mr-1.5 px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 font-medium" title={latest.notes || undefined}>
+                      v{latest.versionName}{latest.isNew && " · new"}
+                    </span>
+                  )}
                   Free APK{downloadsLabel && <> · <span className="tabular-nums text-stone-700 dark:text-stone-300">{downloadsLabel}</span></>} · the app tells you when there's a newer version
                 </span>
               </div>
@@ -403,6 +538,9 @@ export default function LandingPage() {
               <ol className="grid sm:grid-cols-3 gap-8 sm:gap-6">
                 {STEPS.map((s, i) => (
                   <li key={s.title} className="sm:border-l sm:border-stone-200 sm:dark:border-stone-800 sm:pl-6">
+                    <div aria-hidden="true" className="mb-5 h-36 rounded-xl bg-[#efede6] dark:bg-stone-900/60 border border-stone-200/80 dark:border-stone-800">
+                      {s.visual}
+                    </div>
                     <span className="font-display text-3xl text-emerald-800 dark:text-emerald-400 tabular-nums">{String(i + 1).padStart(2, "0")}</span>
                     <h3 className="mt-3 font-medium text-stone-900 dark:text-stone-100">{s.title}</h3>
                     <p className="mt-2 text-sm leading-relaxed">{s.body}</p>
@@ -431,6 +569,27 @@ export default function LandingPage() {
               </article>
             ))}
           </div>
+        </section>
+
+        {/* Benefits */}
+        <section id="benefits" className="max-w-6xl mx-auto px-5 sm:px-8 pt-20 sm:pt-28">
+          <div className="max-w-2xl">
+            <p className="text-sm text-emerald-800 dark:text-emerald-400 mb-3">Why keep track at all</p>
+            <h2 className="font-display text-4xl sm:text-5xl leading-[1.05] text-stone-900 dark:text-stone-50 [text-wrap:balance]">
+              What changes once your receipts are in one place
+            </h2>
+          </div>
+          <ul className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-10">
+            {BENEFITS.map((b) => (
+              <li key={b.title}>
+                <span className="grid place-items-center w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400">
+                  <b.icon className="w-5 h-5" />
+                </span>
+                <h3 className="mt-4 font-medium text-stone-900 dark:text-stone-100">{b.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed [text-wrap:pretty]">{b.body}</p>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* FAQ */}

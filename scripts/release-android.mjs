@@ -39,7 +39,7 @@ gradle = gradle
 writeFileSync(gradlePath, gradle);
 
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-writeFileSync(manifestPath, JSON.stringify({ ...manifest, versionName, versionCode, notes }, null, 2) + "\n");
+writeFileSync(manifestPath, JSON.stringify({ ...manifest, versionName, versionCode, notes, releasedAt: new Date().toISOString() }, null, 2) + "\n");
 
 const run = (cmd, cwd = root) => execSync(cmd, { cwd, stdio: "inherit" });
 run("npm run build");
