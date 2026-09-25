@@ -4,4 +4,6 @@
     <cache-path name="my_cache_images" path="." />
     <!-- Exports fall back to app storage when public Documents is refused. -->
     <files-path name="app_files" path="." />
+    <!-- In-app update APKs, handed to the package installer. -->
+    <external-files-path name="updates" path="Download/" />
 </paths>

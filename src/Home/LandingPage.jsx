@@ -324,7 +324,16 @@ const FEATURES = [
 const FAQ = [
   {
     q: "What happens to my receipt photos?",
-    a: "The photo goes to Microsoft Azure to read the text, and that text goes to Google Gemini (or the model you picked) to be split into items and totals. The photo is kept with the entry so you can look at it later, unless you switch that off in Privacy settings. Passwords are hashed, and you can turn on two-step sign-in with an emailed code.",
+    a: (
+      <>
+        The photo goes to Microsoft Azure to read the text, and that text goes to Google Gemini (or the model you picked) to be split into items and totals.{" "}
+        <mark className="bg-amber-100 text-amber-950 dark:bg-amber-900/40 dark:text-amber-100 px-1 rounded">
+          Recepta uses the free tiers of these services, and on free tiers the providers may keep what they receive and use it to improve their models.
+        </mark>{" "}
+        Skip or cover receipts showing card numbers or IDs.{" "}
+        <Link to="/legal?tab=privacy" className="underline underline-offset-4 hover:text-stone-900 dark:hover:text-white">Read the details</Link>. The photo is kept with the entry unless you switch that off in Privacy settings.
+      </>
+    ),
   },
   {
     q: "How accurate is it?",
@@ -645,11 +654,15 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-8 flex flex-col sm:flex-row gap-4 sm:items-center justify-between text-sm text-stone-500">
           <div className="flex items-center gap-3">
             <Logo />
-            <span className="text-stone-400">© 2026 · Built by Moises Nugal</span>
+            <span className="text-stone-400">
+              © 2026 · Built by{" "}
+              <a href="https://portfolio-five-xi-51.vercel.app/" target="_blank" rel="noreferrer" className="underline underline-offset-4 decoration-stone-300 hover:text-stone-900 dark:decoration-stone-700 dark:hover:text-stone-200">Moises Nugal</a>
+            </span>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link to="/legal" className="hover:text-stone-900 dark:hover:text-stone-200">Privacy</Link>
-            <Link to="/legal" className="hover:text-stone-900 dark:hover:text-stone-200">Terms</Link>
+            <Link to="/legal?tab=privacy" className="hover:text-stone-900 dark:hover:text-stone-200">Privacy</Link>
+            <Link to="/legal?tab=terms" className="hover:text-stone-900 dark:hover:text-stone-200">Terms</Link>
+            <Link to="/legal?tab=about" className="hover:text-stone-900 dark:hover:text-stone-200">About</Link>
             <Link to="/aiEngine" className="hover:text-stone-900 dark:hover:text-stone-200">Model status</Link>
             {showApk && <a href={APK_URL} download="recepta.apk" onClick={onApkClick} className="hover:text-stone-900 dark:hover:text-stone-200">Android app</a>}
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-stone-900 dark:hover:text-stone-200">GitHub</a>

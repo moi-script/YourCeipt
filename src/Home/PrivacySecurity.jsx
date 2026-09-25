@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2, Download, MonitorSmartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/context/AuthContext";
@@ -7,6 +7,7 @@ import { useToast } from "@/components/Toaster.jsx";
 import { Section, Row } from "./Profile";
 import { exportWithFeedback } from "@/lib/saveFile";
 import { BASE_API_URL } from "@/api/getKeys";
+import { FreeAiNotice } from "@/components/LegalPage";
 
 // These endpoints authenticate with the session cookie.
 const api = async (path, { method = "GET", body } = {}) => {
@@ -230,7 +231,14 @@ export default function PrivacySecurity() {
         </Row>
       </Section>
 
-      <Section title="What Recepta keeps" description="Receipt photos go to Microsoft Azure to read the text and Google Gemini (or the model you chose) to sort it into items. Neither is used for advertising.">
+      <div className="mb-6">
+        <FreeAiNotice compact />
+        <Link to="/legal?tab=privacy" className="mt-2 inline-block text-xs text-stone-500 underline underline-offset-4 hover:text-stone-800 dark:hover:text-stone-200">
+          What the providers may do with it
+        </Link>
+      </div>
+
+      <Section title="What Recepta keeps" description="Your account, your records and, if you allow it, the receipt photos. Recepta doesn't sell data or show ads.">
         <Row label="Keep receipt photos" hint="Store the original photo with each entry so you can look at it later. Turning this off only affects new receipts.">
           <Switch disabled={!security} checked={security ? security.keepReceiptImages : true} onCheckedChange={(v) => toggle("keepReceiptImages", v)} className="data-[state=checked]:bg-emerald-700" />
         </Row>

@@ -36,6 +36,8 @@
     <!-- "Export saved" notifications (asked for at the first export). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Saving exports to Documents on Android 10 and older; newer versions need no permission. -->
+    <!-- In-app updates: hand the downloaded APK to Android's installer. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 </manifest>

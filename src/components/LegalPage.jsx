@@ -1,226 +1,266 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {Shield, FileText, Lock, ArrowLeft, Server, Eye, Cpu, Scale} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import React, { useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { AlertTriangle, ArrowLeft, ArrowUpRight, Github } from "lucide-react";
 
-export default function LegalPage() {
-  const [activeTab, setActiveTab] = useState("privacy");
-  const [scrolled, setScrolled] = useState(false);
+// Plain, specific statements only: everything here should match what the app
+// and backend actually do. Update the date when the content changes.
+const UPDATED = "September 25, 2026";
+const GITHUB_URL = "https://github.com/moi-script/YourCeipt";
+const PORTFOLIO_URL = "https://portfolio-five-xi-51.vercel.app/";
 
-  // Handle navbar background on scroll
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+const TABS = [
+  { id: "privacy", label: "Privacy" },
+  { id: "terms", label: "Terms" },
+  { id: "about", label: "About" },
+];
 
-  // Scroll to top when switching tabs
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activeTab]);
+function H({ children }) {
+  return <h2 className="mt-12 first:mt-0 font-display text-2xl sm:text-3xl text-stone-900 dark:text-stone-50">{children}</h2>;
+}
 
+function P({ children }) {
+  return <p className="mt-3 leading-relaxed [text-wrap:pretty]">{children}</p>;
+}
+
+function List({ items }) {
   return (
-    <div className="min-h-screen bg-[#f2f0e9] dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans transition-colors duration-500 selection:bg-emerald-500/30">
-      
-      {/* ==================================================================
-          NAVBAR (Simplified)
-          ================================================================== */}
-      <nav 
-        className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${
-          scrolled 
-            ? "bg-white/80 dark:bg-stone-950/80 backdrop-blur-md border-stone-200 dark:border-stone-800 py-4" 
-            : "bg-transparent border-transparent py-6"
-        }`}
-      >
-        <div className="max-w-4xl mx-auto px-6 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group text-stone-600 dark:text-stone-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-medium text-sm">Back to Home</span>
-          </Link>
-          <span className="font-serif italic font-bold text-xl">Recepta Legal</span>
-        </div>
-      </nav>
+    <ul className="mt-3 space-y-2">
+      {items.map((it, i) => (
+        <li key={i} className="flex gap-3 leading-relaxed">
+          <span className="mt-2.5 w-1 h-1 rounded-full bg-emerald-700 dark:bg-emerald-400 shrink-0" />
+          <span>{it}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
-      {/* ==================================================================
-          HEADER SECTION
-          ================================================================== */}
-      <div className="pt-32 pb-12 px-6 bg-stone-100 dark:bg-stone-900/50 border-b border-stone-200 dark:border-stone-800">
-        <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center justify-center p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-full mb-6">
-                <Shield className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <h1 className="font-serif text-4xl md:text-5xl mb-4 text-stone-900 dark:text-white">
-                Transparency & Trust
-            </h1>
-            <p className="text-stone-600 dark:text-stone-400 text-lg max-w-2xl mx-auto">
-                We handle your financial data with the same care we would handle our own. 
-                Read below to understand how Recepta protects your privacy.
+// The part people most need to know, so it sits at the top of both Privacy
+// and Terms rather than inside a numbered section.
+export function FreeAiNotice({ compact = false }) {
+  return (
+    <aside id="ai" className="rounded-2xl border border-amber-300/80 dark:border-amber-800/70 bg-amber-50 dark:bg-amber-950/30 p-5 sm:p-6">
+      <div className="flex gap-3">
+        <AlertTriangle className="w-5 h-5 mt-0.5 shrink-0 text-amber-700 dark:text-amber-400" />
+        <div className="text-amber-950 dark:text-amber-100">
+          <p className="font-semibold">Recepta runs on free AI services. What you scan is shared with them.</p>
+          <p className="mt-2 text-sm leading-relaxed text-amber-900/90 dark:text-amber-100/80">
+            Recepta is free, so it uses the <strong>free tiers</strong> of outside AI providers. When you scan a receipt or type an entry, that content leaves Recepta:
+          </p>
+          <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-amber-900/90 dark:text-amber-100/80 list-disc pl-5">
+            <li><strong>Microsoft Azure AI Vision</strong> receives the receipt photo to read its text.</li>
+            <li><strong>Google Gemini</strong> (free tier) receives that text, or the note you typed, to sort it into items and totals.</li>
+            <li>If Gemini is busy, or you pick another model, the text goes to <strong>free models on OpenRouter</strong>, which pass it to the company that runs that model.</li>
+          </ul>
+          {!compact && (
+            <p className="mt-3 text-sm leading-relaxed text-amber-900/90 dark:text-amber-100/80">
+              <strong>On free tiers, these providers may keep what they receive, have people review it, and use it to improve their models.</strong> Their own terms apply, not ours, and Recepta can't delete data once they have it. Store names, items, amounts and anything else printed on the receipt can be included. Don't scan receipts that show card numbers, IDs, addresses or anything you wouldn't want a third party to read. Crossing those details out before taking the photo works.
             </p>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function Privacy() {
+  return (
+    <>
+      <FreeAiNotice />
+
+      <H>What Recepta stores</H>
+      <List
+        items={[
+          <><strong className="text-stone-900 dark:text-stone-100">Your account:</strong> name, email, profile picture and a hashed password. The password itself is never stored.</>,
+          <><strong className="text-stone-900 dark:text-stone-100">Your records:</strong> transactions, items, categories, budgets, alerts and income you enter or scan.</>,
+          <><strong className="text-stone-900 dark:text-stone-100">Receipt photos:</strong> kept with their entry on Cloudinary so you can look at them later. You can switch this off in Privacy &amp; security; it applies to new receipts.</>,
+        ]}
+      />
+      <P>Records are kept in a MongoDB database. Connections to Recepta use HTTPS.</P>
+
+      <H>What Recepta doesn't do</H>
+      <List
+        items={[
+          "Sell your data or share it with advertisers.",
+          "Show ads or use trackers for advertising.",
+          "Connect to your bank or read your accounts. Recepta only knows what you give it.",
+        ]}
+      />
+
+      <H>Your controls</H>
+      <List
+        items={[
+          "Download everything Recepta holds about you as JSON, or your transactions as CSV, from Privacy & security.",
+          "Turn on two-step sign-in, which asks for a code sent to your email.",
+          "Delete your account. This removes your profile, every entry, budgets, alerts and stored photos. It can't be undone. It also can't recall anything the AI providers above already received.",
+        ]}
+      />
+
+      <H>Questions</H>
+      <P>
+        Recepta is a one-person project, so there's no support inbox. Open an issue on{" "}
+        <a href={`${GITHUB_URL}/issues`} target="_blank" rel="noreferrer" className="text-emerald-800 dark:text-emerald-400 underline underline-offset-4">GitHub</a>{" "}
+        or reach the developer through the{" "}
+        <a href={PORTFOLIO_URL} target="_blank" rel="noreferrer" className="text-emerald-800 dark:text-emerald-400 underline underline-offset-4">portfolio site</a>.
+      </P>
+    </>
+  );
+}
+
+function Terms() {
+  return (
+    <>
+      <FreeAiNotice compact />
+
+      <H>1. Using Recepta</H>
+      <P>
+        By creating an account or using Recepta on the web or the Android app, you agree to these terms. If you don't agree, please don't use it.
+        Recepta is free during early access. Features, limits and these terms may change, and when they do the date at the top is updated.
+      </P>
+
+      <H>2. AI results can be wrong</H>
+      <P>
+        Receipts are read by AI models, which can misread amounts, skip items or invent lines, especially on faded or crumpled paper.
+        You see every result before it's saved, and you're responsible for checking it. Don't rely on Recepta alone for taxes, accounting, reimbursement or legal purposes; keep the original receipt.
+      </P>
+
+      <H>3. Third-party AI services</H>
+      <P>
+        Scanning and typed entries depend on free tiers of Microsoft Azure, Google Gemini and models reached through OpenRouter. By using those features you agree that your content is sent to them and handled under their terms, as described in the notice above.
+        Free quotas run out and providers change their models, so scanning may be slow or unavailable at times.
+      </P>
+
+      <H>4. Not financial advice</H>
+      <P>Recepta is a record-keeping and budgeting tool. Budgets, charts and summaries are for your information and aren't financial, tax or investment advice.</P>
+
+      <H>5. Your account</H>
+      <List
+        items={[
+          "Keep your password to yourself. You're responsible for what happens under your account.",
+          "Only upload receipts and content you're allowed to share, and nothing illegal.",
+          "Don't try to break, overload or get around the limits of the service, including the AI quotas it shares with other users.",
+        ]}
+      />
+      <P>Accounts that break these rules can be suspended or deleted.</P>
+
+      <H>6. Your data</H>
+      <P>Your records belong to you. You can export or delete them at any time, as described in the Privacy tab.</P>
+
+      <H>7. No guarantees</H>
+      <P>
+        Recepta is provided as is, with no warranty. It runs on free hosting and may be slow, go offline, or lose data. Export anything you can't afford to lose.
+        To the extent the law allows, the developer isn't liable for losses that come from using Recepta or from errors in what it records.
+      </P>
+
+      <H>8. The Android app</H>
+      <P>
+        The Android app is distributed directly as an APK, not through Google Play. Only install it from this website or the project's GitHub releases.
+        The app checks for new versions and asks before installing them.
+      </P>
+
+      <H>9. Governing law</H>
+      <P>These terms are governed by the laws of the Republic of the Philippines, including the Data Privacy Act of 2012.</P>
+    </>
+  );
+}
+
+function About() {
+  return (
+    <>
+      <H>What Recepta is</H>
+      <P>
+        Recepta turns a photo of a receipt, or a quick note like "jeep 13, coffee 120", into an organised ledger. It files each entry under a category,
+        counts it against your budgets, and shows where your money went. It's built for everyday spending in the Philippines.
+      </P>
+      <P>
+        It's an independent, early-access project with no company or investors behind it. Keeping it free is why it relies on free AI tiers, which is the trade-off explained in the Privacy tab.
+      </P>
+
+      <H>Who made it</H>
+      <div className="mt-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-5">
+        <span className="grid place-items-center w-14 h-14 shrink-0 rounded-2xl bg-emerald-800 text-[#f7f6f2] font-display text-2xl">MN</span>
+        <div className="flex-1">
+          <p className="font-medium text-stone-900 dark:text-stone-100">Moises Nugal</p>
+          <p className="mt-1 text-sm leading-relaxed">Designed and built Recepta end to end: the web app, the API, the receipt pipeline and the Android app.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={PORTFOLIO_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md bg-emerald-800 text-white text-sm font-medium hover:bg-emerald-900 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          >
+            Portfolio <ArrowUpRight className="w-4 h-4" />
+          </a>
+          <a
+            href={GITHUB_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-md border border-stone-300 dark:border-stone-700 text-sm text-stone-800 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800"
+          >
+            <Github className="w-4 h-4" /> Source
+          </a>
         </div>
       </div>
 
-      {/* ==================================================================
-          TABS & CONTENT
-          ================================================================== */}
-      <main className="max-w-4xl mx-auto px-6 py-12 relative z-10">
-        
-        {/* Tab Navigation */}
-        <div className="flex justify-center mb-12">
-            <div className="bg-stone-200 dark:bg-stone-900 p-1 rounded-full inline-flex">
-                <button
-                    onClick={() => setActiveTab("privacy")}
-                    className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${
-                        activeTab === "privacy"
-                            ? "bg-white dark:bg-stone-800 text-emerald-700 dark:text-emerald-400 shadow-sm"
-                            : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
-                    }`}
-                >
-                    Privacy Policy
-                </button>
-                <button
-                    onClick={() => setActiveTab("terms")}
-                    className={`px-8 py-3 rounded-full text-sm font-bold transition-all ${
-                        activeTab === "terms"
-                            ? "bg-white dark:bg-stone-800 text-emerald-700 dark:text-emerald-400 shadow-sm"
-                            : "text-stone-500 hover:text-stone-700 dark:hover:text-stone-300"
-                    }`}
-                >
-                    Terms of Service
-                </button>
-            </div>
+      <H>Built with</H>
+      <P>React and Vite on Vercel, a Node.js API on Render, MongoDB, Cloudinary for photos, Microsoft Azure AI Vision for reading receipts, Google Gemini and OpenRouter models for sorting them, and Capacitor for the Android app.</P>
+    </>
+  );
+}
+
+export default function LegalPage() {
+  const [params, setParams] = useSearchParams();
+  const tab = TABS.some((t) => t.id === params.get("tab")) ? params.get("tab") : "privacy";
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [tab]);
+
+  return (
+    <div className="min-h-[100dvh] bg-[#f7f6f2] dark:bg-stone-950 text-stone-700 dark:text-stone-300 font-ui antialiased">
+      <header className="sticky top-0 z-40 bg-[#f7f6f2]/95 dark:bg-stone-950/95 border-b border-stone-200/80 dark:border-stone-800/80">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100">
+            <ArrowLeft className="w-4 h-4" /> Recepta
+          </Link>
+          <nav className="flex gap-1 p-1 rounded-lg bg-stone-200/60 dark:bg-stone-900" aria-label="Sections">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setParams({ tab: t.id }, { replace: true })}
+                aria-current={tab === t.id ? "page" : undefined}
+                className={`px-3 sm:px-4 h-8 rounded-md text-sm transition-colors ${
+                  tab === t.id
+                    ? "bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-50 shadow-sm"
+                    : "text-stone-600 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-100"
+                }`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
         </div>
+      </header>
 
-        {/* Content Container */}
-        <div className="bg-white dark:bg-stone-900 rounded-3xl p-8 md:p-12 shadow-xl border border-stone-200 dark:border-stone-800">
-            
-            {/* ====================================================
-                PRIVACY POLICY CONTENT
-               ==================================================== */}
-            {activeTab === "privacy" && (
-                <div className="prose prose-stone dark:prose-invert max-w-none animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center gap-3 mb-8 pb-8 border-b border-stone-100 dark:border-stone-800">
-                        <Lock className="w-6 h-6 text-emerald-600" />
-                        <h2 className="text-3xl font-serif m-0">Privacy Policy</h2>
-                    </div>
-
-                    <p className="lead text-lg text-stone-600 dark:text-stone-300">
-                        Last Updated: January 2026
-                    </p>
-
-                    <h3>1. Data Collection</h3>
-                    <p>
-                        We collect information you provide directly to us when you create an account, upload receipts, or input transaction data.
-                    </p>
-                    <ul className="grid sm:grid-cols-2 gap-4 list-none pl-0 my-6">
-                        <li className="bg-stone-50 dark:bg-stone-950 p-4 rounded-xl border border-stone-100 dark:border-stone-800">
-                            <strong className="block text-emerald-600 mb-1">Identity Data</strong>
-                            Name, email address, and profile image.
-                        </li>
-                        <li className="bg-stone-50 dark:bg-stone-950 p-4 rounded-xl border border-stone-100 dark:border-stone-800">
-                            <strong className="block text-emerald-600 mb-1">Financial Data</strong>
-                            Receipt images, merchant names, transaction amounts, and budgets.
-                        </li>
-                    </ul>
-
-                    <h3>2. How We Use AI</h3>
-                    <div className="flex gap-4 items-start bg-emerald-50 dark:bg-emerald-900/10 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-900/30 my-6">
-                        <Cpu className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-1" />
-                        <div>
-                            <h4 className="text-emerald-800 dark:text-emerald-400 font-bold m-0 mb-2">Receipt Processing</h4>
-                            <p className="m-0 text-sm text-emerald-900/80 dark:text-stone-300">
-                                When you upload a receipt, the image is processed by our AI models (e.g., Xiaomi Mimo, Nemotron) solely to extract data (Date, Total, Merchant). 
-                                <strong> We do not use your personal financial data to train public AI models.</strong>
-                            </p>
-                        </div>
-                    </div>
-
-                    <h3>3. Data Storage & Security</h3>
-                    <p>
-                        Your data is encrypted at rest and in transit. We use industry-standard encryption protocols (AES-256) to store your financial records. 
-                        You retain full ownership of your data at all times.
-                    </p>
-
-                    <h3>4. User Rights</h3>
-                    <p>You have the right to:</p>
-                    <ul>
-                        <li>Access the personal data we hold about you.</li>
-                        <li>Request correction of inaccurate data.</li>
-                        <li>Request deletion of your account and all associated financial data ("Right to be Forgotten").</li>
-                        <li>Export your transaction history in CSV/JSON format.</li>
-                    </ul>
-
-                    <h3>5. Contact Us</h3>
-                    <p>
-                        If you have questions about this policy, please contact us at <a href="mailto:privacy@recepta.app" className="text-emerald-600 hover:underline">privacy@recepta.app</a>.
-                    </p>
-                </div>
-            )}
-
-
-            {/* ====================================================
-                TERMS OF SERVICE CONTENT
-               ==================================================== */}
-            {activeTab === "terms" && (
-                <div className="prose prose-stone dark:prose-invert max-w-none animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center gap-3 mb-8 pb-8 border-b border-stone-100 dark:border-stone-800">
-                        <Scale className="w-6 h-6 text-emerald-600" />
-                        <h2 className="text-3xl font-serif m-0">Terms of Service</h2>
-                    </div>
-
-                    <p className="lead text-lg text-stone-600 dark:text-stone-300">
-                        Last Updated: January 2026
-                    </p>
-
-                    <div className="bg-orange-50 dark:bg-orange-900/10 p-6 rounded-2xl border border-orange-100 dark:border-orange-900/30 my-6">
-                        <h4 className="text-orange-800 dark:text-orange-400 font-bold m-0 mb-2">Important Disclaimer</h4>
-                        <p className="m-0 text-sm text-orange-900/80 dark:text-stone-300">
-                            <strong>Recepta is a budgeting tool, not a financial advisor.</strong> The insights provided by our AI are for informational purposes only. We are not responsible for financial decisions made based on this data.
-                        </p>
-                    </div>
-
-                    <h3>1. Acceptance of Terms</h3>
-                    <p>
-                        By accessing or using Recepta, you agree to be bound by these Terms. If you disagree with any part of the terms, you may not access the service.
-                    </p>
-
-                    <h3>2. User Responsibilities</h3>
-                    <p>You are responsible for:</p>
-                    <ul>
-                        <li>Maintaining the confidentiality of your account credentials.</li>
-                        <li>Ensuring uploaded receipts do not contain illegal or prohibited content.</li>
-                        <li>Verifying the accuracy of AI-extracted data before relying on it for tax or accounting purposes.</li>
-                    </ul>
-
-                    <h3>3. AI Usage Limitations</h3>
-                    <p>
-                        Our AI features utilize Large Language Models (LLMs). You acknowledge that AI can occasionally produce "hallucinations" or incorrect data. Always review scanned receipt totals against the original physical document.
-                    </p>
-
-                    <h3>4. Intellectual Property</h3>
-                    <p>
-                        The Recepta source code, design, and "Leaf" branding are owned by us. Your specific financial data remains your intellectual property.
-                    </p>
-
-                    <h3>5. Termination</h3>
-                    <p>
-                        We reserve the right to suspend or terminate your account immediately, without prior notice, for any breach of these Terms, specifically regarding fraudulent usage or security violations.
-                    </p>
-                </div>
-            )}
+      <main className="max-w-3xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
+        <h1 className="font-display text-4xl sm:text-5xl leading-[1.05] text-stone-900 dark:text-stone-50">
+          {tab === "privacy" ? "Privacy" : tab === "terms" ? "Terms of use" : "About Recepta"}
+        </h1>
+        {tab !== "about" && <p className="mt-3 text-sm text-stone-500">Last updated {UPDATED}</p>}
+        <div className="mt-10">
+          {tab === "privacy" && <Privacy />}
+          {tab === "terms" && <Terms />}
+          {tab === "about" && <About />}
         </div>
       </main>
 
-      {/* ==================================================================
-          FOOTER
-          ================================================================== */}
-      <footer className="py-12 text-center text-stone-500 text-sm">
-        <p>&copy; 2026 Recepta. Built by Moi.</p>
-        <div className="mt-4 flex justify-center gap-4">
-            <Link to="/main" className="hover:text-stone-800 dark:hover:text-stone-300">Home</Link>
-            <a href="#" className="hover:text-stone-800 dark:hover:text-stone-300">Contact Support</a>
+      <footer className="border-t border-stone-200 dark:border-stone-800">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8 text-sm text-stone-500 flex flex-wrap gap-x-6 gap-y-2 justify-between">
+          <span>© 2026 Recepta · Built by Moises Nugal</span>
+          <a href={PORTFOLIO_URL} target="_blank" rel="noreferrer" className="hover:text-stone-900 dark:hover:text-stone-200">Portfolio</a>
         </div>
       </footer>
-
     </div>
   );
 }
